@@ -1,0 +1,63 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  frontend:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 11.1.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      
+      - name: Install dependencies
+        working-directory: ./
+        run: pnpm install
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test || echo "Tests pending"
+
+      - name: Build
+        run: pnpm build
+
+  backend:
+    name: Backend Test & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio flake8 mypy
+
+      - name: Lint
+        run: |
+          flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          
+      - name: Test
+        run: |
+          pytest

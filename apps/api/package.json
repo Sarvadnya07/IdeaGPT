@@ -1,0 +1,14 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "python -m app.main",
+    "test": "pytest",
+    "lint": "flake8 ."
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.4"
+  }
+}

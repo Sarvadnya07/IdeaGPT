@@ -1,0 +1,93 @@
+# ==============================================================================
+# 1. DEPENDENCIES & PACKAGE MANAGERS
+# ==============================================================================
+node_modules/
+.pnpm-store/
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+npm-debug.log*
+
+# ==============================================================================
+# 2. NEXT.JS BUILD & CACHE ARTIFACTS
+# ==============================================================================
+.next/
+**/_next/
+out/
+dist/
+build/
+.swc/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+
+# ==============================================================================
+# 3. TURBOREPO & MONOREPO WORKSPACE
+# ==============================================================================
+.turbo/
+**/logs.txt
+**/error.txt
+coverage/
+.nyc_output/
+
+# ==============================================================================
+# 4. ENVIRONMENT VARIABLES & SECRETS
+# ==============================================================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+*.env
+*.env.local
+
+# Whitelist safe configuration templates
+!.env.example
+!.env.template
+!.env.sample
+
+# ==============================================================================
+# 5. PYTHON BACKEND & VIRTUAL ENVIRONMENTS
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite3
+
+# ==============================================================================
+# 6. IDEs, EDITORS & SYSTEM METADATA
+# ==============================================================================
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+
+# JetBrains / WebStorm
+.idea/
+
+# OS metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
