@@ -25,7 +25,7 @@ export default function IdeaSubmissionPage() {
   const router = useRouter();
   
   const { projectsQuery } = useProjects();
-  const projects = projectsQuery.data || [];
+  const projects = projectsQuery.data?.items || [];
   const currentProject = projects.find(p => p.slug === slug);
   const projectId = currentProject?.id || null;
 

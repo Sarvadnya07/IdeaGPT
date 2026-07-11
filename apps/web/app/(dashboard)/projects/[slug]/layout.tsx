@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, BrainCircuit, Map, FileText, Settings } from "lucide-react";
@@ -10,10 +10,10 @@ export default function ProjectLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const pathname = usePathname();
-  const slug = params.slug;
+  const { slug } = use(params);
 
   const navItems = [
     { name: "Overview", href: `/dashboard/projects/${slug}`, icon: LayoutDashboard },

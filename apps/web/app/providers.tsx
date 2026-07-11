@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ModalProvider } from "../providers/ModalProvider";
 
 // Mock idea context to prevent existing pages from breaking
 interface IdeaData {
@@ -66,8 +67,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <QueryClientProvider client={queryClient}>
           <IdeaContext.Provider value={{ idea, setIdea, isAnalyzing, setIsAnalyzing }}>
-            {children}
-            <Toaster theme="system" position="top-right" closeButton richColors />
+            <ModalProvider>
+              {children}
+              <Toaster theme="system" position="top-right" closeButton richColors />
+            </ModalProvider>
           </IdeaContext.Provider>
         </QueryClientProvider>
       </ThemeProvider>

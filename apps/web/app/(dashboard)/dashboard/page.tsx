@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useProjects } from "../../../hooks/useProjects";
-import { Folder, Plus, Loader2, Pin, Trash2, Archive, ExternalLink } from "lucide-react";
+import { Folder, Plus, Loader2, Pin, Trash2, Archive, ExternalLink, Search } from "lucide-react";
 
 export default function DashboardPage() {
   const [search, setSearch] = useState("");

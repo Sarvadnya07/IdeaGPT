@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useProjects } from "../../../../../hooks/useProjects";
 import { useIdea, IdeaData } from "../../../../../hooks/useIdea";
 import { useEvaluation } from "../../../../../hooks/useEvaluation";
 import { BrainCircuit, Loader2, ArrowRight, CheckCircle2, ChevronRight, AlertTriangle } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 
-export default function AnalysisPage({ params }: { params: { slug: string } }) {
+export default function AnalysisPage({ params }: { params: Promise<{ slug: string }> }) {
   const { projectsQuery } = useProjects();
-  const project = projectsQuery.data?.items.find(p => p.slug === params.slug);
+  const { slug } = use(params);
+  const project = projectsQuery.data?.items.find(p => p.slug === slug);
 
   const { ideaQuery, saveIdea } = useIdea(project?.id);
   const [jobId, setJobId] = useState<number | null>(null);

@@ -1,15 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import { useProjects } from "../../../../hooks/useProjects";
 import { AlertTriangle, Clock, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function ProjectOverviewPage({ params }: { params: { slug: string } }) {
+export default function ProjectOverviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
   const { projectsQuery, deleteProject } = useProjects();
   
-  const project = projectsQuery.data?.items.find(p => p.slug === params.slug);
+  const { slug } = use(params);
+  const project = projectsQuery.data?.items.find(p => p.slug === slug);
 
   if (projectsQuery.isLoading) return <div className="py-20 text-center text-zinc-500 animate-pulse">Loading Workspace...</div>;
   if (!project) return <div className="py-20 text-center text-red-400">Project Not Found.</div>;

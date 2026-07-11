@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Sparkles, ArrowRight, Lightbulb, Map, Layers, Target } from "lucide-react";
 import { Show } from "@clerk/nextjs";
+import { Search } from "lucide-react";
 
 export default function LandingPage() {
   return (
