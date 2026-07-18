@@ -12,8 +12,8 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const { slug } = use(params);
   const project = projectsQuery.data?.items.find(p => p.slug === slug);
 
-  const { ideaQuery, saveIdea } = useIdea(project?.id);
-  const [jobId, setJobId] = useState<number | null>(null);
+  const { ideasQuery, saveIdea } = useIdea(project?.id);
+  const [jobId, setJobId] = useState<string | null>(null);
   const { triggerEvaluation, evaluationQuery } = useEvaluation(jobId);
 
   const [step, setStep] = useState(1);
@@ -28,17 +28,16 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
     technical_risks: "",
   });
 
+  const firstIdea = ideasQuery.data?.[0];
+
   // Pre-fill form if idea exists
   useEffect(() => {
-    if (ideaQuery.data && !ideaQuery.data.project_id) {
-       // empty object fallback in backend returns just project_id if not found sometimes, but let's be careful
-       if (ideaQuery.data.elevator_pitch) {
-         setFormData(ideaQuery.data);
-       }
+    if (firstIdea) {
+       setFormData(firstIdea);
     }
-  }, [ideaQuery.data]);
+  }, [firstIdea]);
 
-  if (projectsQuery.isLoading || ideaQuery.isLoading) {
+  if (projectsQuery.isLoading || ideasQuery.isLoading) {
     return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>;
   }
 
@@ -50,10 +49,10 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const handleSubmit = async () => {
     try {
       // 1. Save Idea
-      await saveIdea.mutateAsync({ projectId: project.id, payload: formData });
+      const savedIdea = await saveIdea.mutateAsync({ projectId: project.id, payload: formData });
       
       // 2. Trigger Evaluation
-      const job = await triggerEvaluation.mutateAsync(project.id);
+      const job = await triggerEvaluation.mutateAsync({ ideaId: savedIdea.id || firstIdea?.id || '' });
       
       // 3. Set Job ID to start polling
       setJobId(job.id);
@@ -67,7 +66,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
   // Render Polling / Results State
   if (jobId || jobStatus) {
-    if (jobStatus === "QUEUED" || jobStatus === "PROCESSING" || !jobStatus) {
+    if (jobStatus === "PENDING" || jobStatus === "QUEUED" || jobStatus === "RUNNING" || !jobStatus) {
       return (
         <div className="flex flex-col items-center justify-center py-32 space-y-6">
           <div className="relative">

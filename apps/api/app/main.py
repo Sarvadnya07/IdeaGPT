@@ -46,7 +46,7 @@ app.add_middleware(
 # Register routers
 app.include_router(project_routes.router, prefix="/api/v1/projects", tags=["projects"])
 app.include_router(user_routes.router, prefix="/api/v1/users", tags=["users"])
-app.include_router(idea_routes.router, prefix="/api/v1/projects", tags=["ideas"])
+app.include_router(idea_routes.router, prefix="/api/v1", tags=["ideas"])
 app.include_router(evaluation_routes.router, prefix="/api/v1", tags=["evaluations"])
 
 @app.get("/")

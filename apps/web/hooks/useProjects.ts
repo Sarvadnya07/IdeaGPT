@@ -13,7 +13,7 @@ api.interceptors.request.use(async (config) => {
 });
 
 export interface Project {
-  id: number;
+  id: string;
   user_id: number;
   title: string;
   slug: string;
@@ -85,7 +85,7 @@ export const useProjects = (
   });
 
   const updateProject = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<Project> }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Project> }) => {
       const headers = await getHeaders();
       const res = await api.patch<Project>(`/projects/${id}`, data, { headers });
       return res.data;
@@ -96,7 +96,7 @@ export const useProjects = (
   });
   
   const togglePin = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const headers = await getHeaders();
       const res = await api.patch<Project>(`/projects/${id}/pin`, {}, { headers });
       return res.data;
@@ -107,7 +107,7 @@ export const useProjects = (
   });
   
   const toggleArchive = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const headers = await getHeaders();
       const res = await api.patch<Project>(`/projects/${id}/archive`, {}, { headers });
       return res.data;
@@ -118,7 +118,7 @@ export const useProjects = (
   });
 
   const deleteProject = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const headers = await getHeaders();
       await api.delete(`/projects/${id}`, { headers });
     },
@@ -128,7 +128,7 @@ export const useProjects = (
   });
 
   const duplicateProject = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const headers = await getHeaders();
       const res = await api.post<Project>(`/projects/${id}/duplicate`, {}, { headers });
       return res.data;

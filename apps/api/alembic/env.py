@@ -14,7 +14,7 @@ from app.db.base import Base
 from app.models.user import User
 from app.models.project import Project
 from app.models.idea import Idea
-from app.models.evaluation import Evaluation, EvaluationJob
+from app.models.evaluation import Evaluation
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

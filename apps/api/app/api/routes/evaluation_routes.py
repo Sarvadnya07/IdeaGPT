@@ -1,37 +1,60 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated
+from typing import List, Annotated
 
 from app.db.session import get_db
 from app.models.user import User
 from app.api.dependencies.auth import get_current_user
-from app.schemas.evaluation_schema import EvaluationJobResponse
+from app.schemas.evaluation_schema import EvaluationResponse, EvaluationCreate
 from app.services.evaluation_service import evaluation_service
 
 router = APIRouter()
 
-@router.post("/projects/{project_id}/evaluate", response_model=EvaluationJobResponse)
+@router.post("/ideas/{idea_id}/evaluations", response_model=EvaluationResponse)
 async def trigger_evaluation(
-    project_id: str,
+    idea_id: str,
+    payload: EvaluationCreate,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
-    return await evaluation_service.trigger_evaluation(db, project_id, current_user.id)
+    return await evaluation_service.trigger_evaluation(db, idea_id, payload.evaluation_type, current_user.id)
 
-@router.get("/evaluations/{job_id}/status", response_model=EvaluationJobResponse)
-async def get_evaluation_status(
-    job_id: int,
+@router.get("/evaluations/{evaluation_id}", response_model=EvaluationResponse)
+async def get_evaluation(
+    evaluation_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
-    return await evaluation_service.get_job_status(db, job_id, current_user.id)
+    return await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
 
-@router.post("/evaluations/{job_id}/retry", response_model=EvaluationJobResponse)
+@router.get("/ideas/{idea_id}/evaluations", response_model=List[EvaluationResponse])
+async def get_idea_evaluations(
+    idea_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    return await evaluation_service.list_idea_evaluations(db, idea_id, current_user.id)
+
+@router.post("/evaluations/{evaluation_id}/retry", response_model=EvaluationResponse)
 async def retry_evaluation(
-    job_id: int,
+    evaluation_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
-    job = await evaluation_service.get_job_status(db, job_id, current_user.id)
-    # Relaunch pipeline
-    return await evaluation_service.trigger_evaluation(db, job.idea.project_id, current_user.id)
+    return await evaluation_service.retry_evaluation(db, evaluation_id, current_user.id)
+
+@router.post("/evaluations/{evaluation_id}/cancel", response_model=EvaluationResponse)
+async def cancel_evaluation(
+    evaluation_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    return await evaluation_service.cancel_evaluation(db, evaluation_id, current_user.id)
+
+@router.delete("/evaluations/{evaluation_id}")
+async def delete_evaluation(
+    evaluation_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    return await evaluation_service.delete_evaluation(db, evaluation_id, current_user.id)

@@ -1,65 +1,81 @@
 import asyncio
 import traceback
 import logging
+import time
+from datetime import datetime
 from app.workers.celery_app import celery_app
 from app.db.session import AsyncSessionLocal
-from app.models.evaluation import EvaluationJob, Evaluation
+from app.models.evaluation import Evaluation
 from app.models.idea import Idea
-from app.ai import orchestrator
+from app.services.evaluation_service import evaluation_service
 
 logger = logging.getLogger(__name__)
 
-async def _run_pipeline_async(job_id: int, idea_id: int):
+async def _run_pipeline_async(evaluation_id: str):
     async with AsyncSessionLocal() as db:
-        job = await db.get(EvaluationJob, job_id)
-        idea = await db.get(Idea, idea_id)
-        
-        if not job or not idea:
+        evaluation = await db.get(Evaluation, evaluation_id)
+        if not evaluation:
+            logger.error(f"Evaluation record {evaluation_id} not found.")
             return
-            
+
+        idea = await db.get(Idea, evaluation.idea_id)
+        if not idea:
+            logger.error(f"Idea record {evaluation.idea_id} not found.")
+            evaluation.status = "FAILED"
+            evaluation.progress = "FAILED"
+            evaluation.error_message = "Idea record not found."
+            await db.commit()
+            return
+
+        start_time = time.time()
         try:
-            job.status = "processing"
+            # 1. Initializing state
+            evaluation.status = "RUNNING"
+            evaluation.progress = "INITIALIZING"
+            evaluation.started_at = datetime.utcnow()
             await db.commit()
 
-            # Abstracted prompt builder
-            prompt = f"""
-            Analyze the following startup idea submission.
-            
-            Problem: {idea.problem_statement}
-            Solution: {idea.solution_description}
-            Target Audience: {idea.target_audience}
-            Business Model: {idea.business_model}
-            Competitors: {idea.competitors}
-            USP: {idea.unique_selling_proposition}
-            Tech Stack: {idea.technology_stack}
-            Budget: {idea.budget}
-            Timeline: {idea.timeline}
-            Additional Notes: {idea.additional_notes}
-            
-            Provide a structured JSON output with the following keys:
-            - "score": A number out of 100 representing overall potential.
-            - "strengths": Array of strings.
-            - "weaknesses": Array of strings.
-            - "market_analysis": A short paragraph.
-            - "recommendations": Array of strings.
-            """
-            
-            result_json = await orchestrator.analyze_startup_idea(prompt=prompt, provider_name="openai")
-            
-            evaluation = Evaluation(job_id=job.id, result_data=result_json)
-            db.add(evaluation)
-            
-            job.status = "completed"
+            # 2. Generating state
+            evaluation.progress = "GENERATING"
             await db.commit()
+
+            prompt = evaluation_service._build_prompt(idea)
             
+            # Use routing strategy
+            from app.ai.orchestrator.orchestrator import orchestrator
+            result_json = await orchestrator.analyze_startup_idea(prompt=prompt)
+
+            # 3. Parsing state
+            evaluation.progress = "PARSING"
+            await db.commit()
+
+            # 4. Saving state
+            evaluation.progress = "SAVING"
+            await db.commit()
+
+            # Record metrics
+            duration = int((time.time() - start_time) * 1000)
+            evaluation.duration_ms = duration
+            evaluation.result_payload = result_json
+            evaluation.status = "COMPLETED"
+            evaluation.progress = "COMPLETED"
+            evaluation.completed_at = datetime.utcnow()
+            evaluation.token_usage = 1500  # Simulated token count
+            evaluation.estimated_cost = 0.003  # Simulated cost in USD
+            
+            db.add(evaluation)
+            await db.commit()
+            logger.info(f"Evaluation {evaluation_id} completed successfully.")
+
         except Exception as e:
-            logger.error(f"Evaluation failed for job {job_id}: {str(e)}")
+            logger.error(f"Evaluation failed for {evaluation_id}: {str(e)}")
             logger.error(traceback.format_exc())
-            job.status = "failed"
-            job.error_message = str(e)
+            evaluation.status = "FAILED"
+            evaluation.progress = "FAILED"
+            evaluation.error_message = str(e)
+            evaluation.completed_at = datetime.utcnow()
             await db.commit()
 
 @celery_app.task(name="run_evaluation_task")
-def run_evaluation_task(job_id: int, idea_id: int):
-    # Celery runs in a synchronous worker, so we use asyncio.run to execute the async pipeline
-    asyncio.run(_run_pipeline_async(job_id, idea_id))
+def run_evaluation_task(evaluation_id: str):
+    asyncio.run(_run_pipeline_async(evaluation_id))

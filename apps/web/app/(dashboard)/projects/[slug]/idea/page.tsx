@@ -78,8 +78,8 @@ export default function IdeaSubmissionPage() {
   const handleAnalyze = async () => {
     try {
       // Final save before analyze
-      await saveIdeaMutation.mutateAsync(formData);
-      const job = await triggerEvaluationMutation.mutateAsync();
+      const saved = await saveIdeaMutation.mutateAsync(formData);
+      const job = await triggerEvaluationMutation.mutateAsync(saved.id);
       // Redirect to processing page with the job id
       router.push(`/dashboard/projects/${slug}/processing?jobId=${job.id}`);
     } catch (err) {
