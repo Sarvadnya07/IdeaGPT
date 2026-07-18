@@ -52,7 +52,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link
-          href="/dashboard/projects/new"
+          href="/projects/new"
           className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -163,7 +163,7 @@ function ProjectCard({ project, togglePin, toggleArchive, deleteProject, duplica
         <span className="text-[10px] text-zinc-600 font-medium">
           Updated {new Date(project.updated_at).toLocaleDateString()}
         </span>
-        <Link href={`/dashboard/projects/${project.slug}`} className="flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
+        <Link href={`/projects/${project.slug}`} className="flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
           Open <ExternalLink className="w-3 h-3" />
         </Link>
       </div>

@@ -24,7 +24,7 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
   };
 
   const getPageTitle = () => {
-    if (pathname.includes("submit-idea")) return "Submit New Idea";
+    if (pathname.includes("ai-analysis")) return "Idea Analysis";
     if (pathname.includes("roadmap")) return "Implementation Roadmap";
     if (pathname.includes("tech-stack")) return "Tech Stack";
     if (pathname.includes("dashboard")) return "Dashboard Overview";

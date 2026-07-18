@@ -39,7 +39,7 @@ const navigationGroups: SidebarGroup[] = [
     heading: "Core Workspace",
     items: [
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { name: "Idea Analysis", href: "/submit-idea", icon: Lightbulb },
+      { name: "Idea Analysis", href: "/ai-analysis", icon: Lightbulb },
       { name: "Compare Ideas", href: "/compare", icon: GitCompare },
       { name: "Saved Reports", href: "/reports", icon: Bookmark },
     ],
@@ -75,10 +75,10 @@ interface SidebarProps {
 export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const activeHref = pathname.includes("ai-analysis") ? "/submit-idea" : pathname;
+  const activeHref = pathname.includes("ai-analysis") ? "/ai-analysis" : pathname;
 
   const handleNewAnalysis = () => {
-    router.push("/submit-idea");
+    router.push("/ai-analysis");
     setMobileMenuOpen(false);
   };
 

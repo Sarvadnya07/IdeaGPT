@@ -487,7 +487,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
             <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-colors ${step >= s ? 'bg-indigo-600 text-white' : 'bg-zinc-800 text-zinc-500'}`}>
               {s}
             </div>
-            {s < 3 && <div className={`w-12 h-[2px] ${step > s ? 'bg-indigo-600' : 'bg-zinc-800'}`} />}
+            {s < 3 && <div className={`w-12 h-0.5 ${step > s ? 'bg-indigo-600' : 'bg-zinc-800'}`} />}
           </React.Fragment>
         ))}
       </div>

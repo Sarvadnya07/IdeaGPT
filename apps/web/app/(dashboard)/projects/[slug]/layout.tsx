@@ -16,11 +16,11 @@ export default function ProjectLayout({
   const { slug } = use(params);
 
   const navItems = [
-    { name: "Overview", href: `/dashboard/projects/${slug}`, icon: LayoutDashboard },
-    { name: "AI Analysis", href: `/dashboard/projects/${slug}/analysis`, icon: BrainCircuit },
-    { name: "Roadmap", href: `/dashboard/projects/${slug}/roadmap`, icon: Map },
-    { name: "Reports", href: `/dashboard/projects/${slug}/reports`, icon: FileText },
-    { name: "Settings", href: `/dashboard/projects/${slug}/settings`, icon: Settings },
+    { name: "Overview", href: `/projects/${slug}`, icon: LayoutDashboard },
+    { name: "AI Analysis", href: `/projects/${slug}/analysis`, icon: BrainCircuit },
+    { name: "Roadmap", href: `/projects/${slug}/roadmap`, icon: Map },
+    { name: "Reports", href: `/projects/${slug}/reports`, icon: FileText },
+    { name: "Settings", href: `/projects/${slug}/settings`, icon: Settings },
   ];
 
   return (

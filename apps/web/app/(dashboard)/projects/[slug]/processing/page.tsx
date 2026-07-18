@@ -19,7 +19,7 @@ export default function ProcessingPage() {
     if (status === "completed") {
       // Redirect to results dashboard
       setTimeout(() => {
-        router.push(`/dashboard/projects/${slug}/results`); // To be implemented in next sprint
+        router.push(`/projects/${slug}/analysis`);
       }, 1500);
     }
   }, [status, router, slug]);
