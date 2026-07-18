@@ -5,7 +5,7 @@ from app.workers.celery_app import celery_app
 from app.db.session import AsyncSessionLocal
 from app.models.evaluation import EvaluationJob, Evaluation
 from app.models.idea import Idea
-from app.services.ai.orchestrator import orchestrator
+from app.ai import orchestrator
 
 logger = logging.getLogger(__name__)
 

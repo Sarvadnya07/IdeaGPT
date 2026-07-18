@@ -18,4 +18,12 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
 
+    DEFAULT_PROVIDER: str = "mock"
+    ENABLE_OPENAI: bool = False
+    ENABLE_GEMINI: bool = False
+    ENABLE_OLLAMA: bool = False
+    OLLAMA_URL: str = "http://localhost:11434"
+    CUSTOM_PROVIDER_URL: Optional[str] = None
+    CUSTOM_PROVIDER_KEY: Optional[str] = None
+
 settings = Settings()

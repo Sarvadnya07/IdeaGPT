@@ -50,8 +50,55 @@ app.include_router(idea_routes.router, prefix="/api/v1/projects", tags=["ideas"]
 app.include_router(evaluation_routes.router, prefix="/api/v1", tags=["evaluations"])
 
 @app.get("/")
+@app.get("/health")
 async def health_check():
     return {
         "status": "healthy",
         "service": "IdeaGPT API"
     }
+
+@app.get("/health/ai")
+async def health_ai():
+    return {
+        "status": "healthy",
+        "default_provider": settings.DEFAULT_PROVIDER,
+        "enabled_providers": {
+            "openai": settings.ENABLE_OPENAI,
+            "gemini": settings.ENABLE_GEMINI,
+            "ollama": settings.ENABLE_OLLAMA,
+            "custom": settings.CUSTOM_PROVIDER_URL is not None
+        }
+    }
+
+@app.get("/health/providers")
+async def health_providers():
+    import httpx
+    status = {}
+    
+    if not settings.OPENAI_API_KEY:
+        status["openai"] = "missing_key"
+    else:
+        status["openai"] = "available" if settings.ENABLE_OPENAI else "disabled"
+        
+    if not settings.GEMINI_API_KEY:
+        status["gemini"] = "missing_key"
+    else:
+        status["gemini"] = "available" if settings.ENABLE_GEMINI else "disabled"
+
+    if settings.ENABLE_OLLAMA:
+        try:
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                res = await client.get(f"{settings.OLLAMA_URL.rstrip('/')}/")
+                status["ollama"] = "healthy"
+        except Exception:
+            status["ollama"] = "offline"
+    else:
+        status["ollama"] = "disabled"
+
+    if settings.CUSTOM_PROVIDER_URL:
+        status["custom"] = "configured"
+    else:
+        status["custom"] = "not_configured"
+
+    status["mock"] = "healthy"
+    return status
