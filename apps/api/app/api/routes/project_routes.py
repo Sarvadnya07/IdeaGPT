@@ -34,52 +34,52 @@ async def get_projects(
 
 @router.post("/{project_id}/duplicate", response_model=ProjectResponse)
 async def duplicate_project(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     return await project_service.duplicate_project(db, project_id, current_user.id)
-
+ 
 @router.get("/{project_id}", response_model=ProjectResponse)
 async def get_project(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     return await project_service.get_project(db, project_id, current_user.id)
-
+ 
 @router.patch("/{project_id}", response_model=ProjectResponse)
 async def update_project(
-    project_id: int,
+    project_id: str,
     payload: ProjectUpdate,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     return await project_service.update_project(db, project_id, payload, current_user.id)
-
+ 
 @router.patch("/{project_id}/pin", response_model=ProjectResponse)
 async def pin_project(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     project = await project_service.get_project(db, project_id, current_user.id)
     update_data = ProjectUpdate(is_pinned=not project.is_pinned)
     return await project_service.update_project(db, project_id, update_data, current_user.id)
-
+ 
 @router.patch("/{project_id}/archive", response_model=ProjectResponse)
 async def archive_project(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     project = await project_service.get_project(db, project_id, current_user.id)
     update_data = ProjectUpdate(is_archived=not project.is_archived)
     return await project_service.update_project(db, project_id, update_data, current_user.id)
-
+ 
 @router.delete("/{project_id}")
 async def delete_project(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):

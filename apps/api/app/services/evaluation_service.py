@@ -13,15 +13,14 @@ from app.ai import orchestrator
 logger = logging.getLogger(__name__)
 
 class EvaluationService:
-    async def _verify_project_ownership(self, db: AsyncSession, project_id: int, user_id: int):
-        result = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user_id))
+    async def _verify_project_ownership(self, db: AsyncSession, project_id: str, user_id: int):
+        result = await db.execute(select(Project).where(Project.id == project_id, Project.user_id == user_id, Project.deleted_at.is_(None)))
         project = result.scalar_one_or_none()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found or access denied")
         return project
 
     async def get_job_status(self, db: AsyncSession, job_id: int, user_id: int):
-        # We need to verify ownership via idea -> project
         result = await db.execute(
             select(EvaluationJob, Idea)
             .join(Idea, Idea.id == EvaluationJob.idea_id)
@@ -36,12 +35,12 @@ class EvaluationService:
         
         return job
 
-    async def trigger_evaluation(self, db: AsyncSession, project_id: int, user_id: int):
+    async def trigger_evaluation(self, db: AsyncSession, project_id: str, user_id: int):
         await self._verify_project_ownership(db, project_id, user_id)
         
-        # 1. Fetch Idea
-        result = await db.execute(select(Idea).where(Idea.project_id == project_id))
-        idea = result.scalar_one_or_none()
+        # 1. Fetch Latest Idea
+        result = await db.execute(select(Idea).where(Idea.project_id == project_id).order_by(Idea.created_at.desc()))
+        idea = result.scalars().first()
         if not idea:
             raise HTTPException(status_code=404, detail="Idea submission not found for this project")
             
@@ -67,7 +66,7 @@ class EvaluationService:
         
         return job
 
-    async def run_evaluation_pipeline(self, job_id: int, idea_id: int):
+    async def run_evaluation_pipeline(self, job_id: int, idea_id: str):
         """
         Background task to run the AI pipeline via Orchestrator.
         """

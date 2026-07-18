@@ -16,7 +16,7 @@ def _generate_slug(title: str) -> str:
 
 class ProjectService:
     async def get_user_projects(self, db: AsyncSession, user_id: int, limit: int = 50, offset: int = 0, search: str = None, category: str = None, is_archived: bool = False, is_pinned: bool = None, sort_by: str = "newest"):
-        query = select(Project).where(Project.user_id == user_id)
+        query = select(Project).where(Project.user_id == user_id, Project.deleted_at.is_(None))
         
         if search:
             query = query.where(Project.title.ilike(f"%{search}%"))
@@ -32,11 +32,10 @@ class ProjectService:
         elif sort_by == "alphabetical":
             query = query.order_by(Project.title.asc())
         elif sort_by == "last_opened":
-            query = query.order_by(Project.updated_at.desc()) # using updated_at as proxy for now
+            query = query.order_by(Project.updated_at.desc())
         else:
-            query = query.order_by(Project.created_at.desc()) # newest default
+            query = query.order_by(Project.created_at.desc())
             
-        # Count total
         from sqlalchemy import func
         count_query = select(func.count()).select_from(query.subquery())
         total_res = await db.execute(count_query)
@@ -48,9 +47,9 @@ class ProjectService:
         
         return {"items": items, "total": total}
 
-    async def get_project(self, db: AsyncSession, project_id: int, user_id: int):
+    async def get_project(self, db: AsyncSession, project_id: str, user_id: int):
         result = await db.execute(
-            select(Project).where(Project.id == project_id, Project.user_id == user_id)
+            select(Project).where(Project.id == project_id, Project.user_id == user_id, Project.deleted_at.is_(None))
         )
         project = result.scalar_one_or_none()
         if not project:
@@ -69,7 +68,7 @@ class ProjectService:
         await db.refresh(db_project)
         return db_project
 
-    async def update_project(self, db: AsyncSession, project_id: int, project_in: ProjectUpdate, user_id: int):
+    async def update_project(self, db: AsyncSession, project_id: str, project_in: ProjectUpdate, user_id: int):
         db_project = await self.get_project(db, project_id, user_id)
         
         update_data = project_in.model_dump(exclude_unset=True)
@@ -84,13 +83,15 @@ class ProjectService:
         await db.refresh(db_project)
         return db_project
 
-    async def delete_project(self, db: AsyncSession, project_id: int, user_id: int):
+    async def delete_project(self, db: AsyncSession, project_id: str, user_id: int):
         db_project = await self.get_project(db, project_id, user_id)
-        await db.delete(db_project)
+        from sqlalchemy.sql import func
+        db_project.deleted_at = func.now()
+        db.add(db_project)
         await db.commit()
         return {"status": "deleted"}
         
-    async def duplicate_project(self, db: AsyncSession, project_id: int, user_id: int):
+    async def duplicate_project(self, db: AsyncSession, project_id: str, user_id: int):
         original = await self.get_project(db, project_id, user_id)
         slug = _generate_slug(f"{original.title} Copy")
         db_project = Project(

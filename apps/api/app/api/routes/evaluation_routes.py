@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.post("/projects/{project_id}/evaluate", response_model=EvaluationJobResponse)
 async def trigger_evaluation(
-    project_id: int,
+    project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):

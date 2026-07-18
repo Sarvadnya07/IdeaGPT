@@ -22,15 +22,18 @@ class ProjectUpdate(BaseModel):
     icon: Optional[str] = None
     is_pinned: Optional[bool] = None
     is_archived: Optional[bool] = None
+    is_favorite: Optional[bool] = None
 
 class ProjectResponse(ProjectBase):
-    id: int
+    id: str
     user_id: int
     slug: str
     status: str
     visibility: str
     is_pinned: bool
     is_archived: bool
+    is_favorite: bool
+    deleted_at: Optional[datetime]
     created_at: datetime
     updated_at: datetime
 

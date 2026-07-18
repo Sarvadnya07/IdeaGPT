@@ -11,7 +11,7 @@ class EvaluationJob(Base):
     __tablename__ = "evaluation_jobs"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    idea_id: Mapped[int] = mapped_column(ForeignKey("ideas.id", ondelete="CASCADE"), index=True)
+    idea_id: Mapped[str] = mapped_column(ForeignKey("ideas.id", ondelete="CASCADE"), index=True)
     
     # Status: 'draft', 'queued', 'processing', 'completed', 'failed', 'cancelled'
     status: Mapped[str] = mapped_column(String, default="draft", index=True)
