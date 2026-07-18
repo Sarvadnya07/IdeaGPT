@@ -39,11 +39,17 @@ async def _run_pipeline_async(evaluation_id: str):
             evaluation.progress = "GENERATING"
             await db.commit()
 
-            prompt = evaluation_service._build_prompt(idea)
-            
+            # Resolve prompt_version if saved in payload previously, default to "1.0"
+            payload_meta = evaluation.result_payload.get("metadata", {}) if evaluation.result_payload else {}
+            p_ver = payload_meta.get("prompt_version", "1.0")
+
             # Use routing strategy
             from app.ai.orchestrator.orchestrator import orchestrator
-            result_json = await orchestrator.analyze_startup_idea(prompt=prompt)
+            result_json = await orchestrator.analyze_startup_idea(
+                db=db, 
+                idea_id=evaluation.idea_id,
+                prompt_version=p_ver
+            )
 
             # 3. Parsing state
             evaluation.progress = "PARSING"

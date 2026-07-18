@@ -1,0 +1,10 @@
+{
+  "id": "startup_evaluation",
+  "version": "1.0",
+  "description": "Standard startup idea evaluation prompt, evaluating multi-dimensional scores and insights.",
+  "temperature": 0.2,
+  "max_tokens": 1500,
+  "supported_providers": ["openai", "gemini", "ollama", "mock"],
+  "system_prompt": "You are a world-class AI Startup Analyst. You must return your analysis strictly as JSON matching the requested structure.",
+  "user_prompt_template": "Analyze the following startup idea:\nProject Title: {project_title}\nStartup Idea: {idea_title}\nProblem Statement: {problem_statement}\nSolution Description: {solution_description}\nTarget Users: {target_users}\nIndustry: {industry}\nBusiness Model: {business_model}\nStage: {stage}\n\nProvide the response strictly as a JSON object with: 'summary', 'score', 'strengths', 'weaknesses', 'recommendations', 'confidence', and 'dimensions' containing scores (0-100) for 'innovation', 'market_potential', 'technical_feasibility', 'business_viability', 'scalability', 'execution_complexity', 'competitive_differentiation'. Also include 'architecture_breakdown' as markdown."
+}

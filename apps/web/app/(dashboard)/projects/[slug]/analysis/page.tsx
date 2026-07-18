@@ -4,8 +4,35 @@ import React, { useState, useEffect, use } from "react";
 import { useProjects } from "../../../../../hooks/useProjects";
 import { useIdea, IdeaData } from "../../../../../hooks/useIdea";
 import { useEvaluation } from "../../../../../hooks/useEvaluation";
-import { BrainCircuit, Loader2, ArrowRight, CheckCircle2, ChevronRight, AlertTriangle } from "lucide-react";
+import { useInsights } from "../../../../../hooks/useInsights";
+import { BrainCircuit, Loader2, ArrowRight, CheckCircle2, ChevronRight, AlertTriangle, ChevronDown, Target, Users, Swords, Wrench, DollarSign, Shield, Lightbulb, History } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
+import Link from 'next/link';
+
+function InsightModule({ title, icon: Icon, color, children }: { title: string; icon: React.ComponentType<any>; color: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-[#0b0b0d] border border-zinc-800/60 rounded-2xl overflow-hidden">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between p-5 hover:bg-zinc-900/30 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <span className="text-sm font-bold text-white">{title}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-5 pb-5 border-t border-zinc-800/60 pt-4 space-y-3 animate-in fade-in slide-in-from-top-2">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AnalysisPage({ params }: { params: Promise<{ slug: string }> }) {
   const { projectsQuery } = useProjects();
@@ -15,6 +42,8 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const { ideasQuery, saveIdea } = useIdea(project?.id);
   const [jobId, setJobId] = useState<string | null>(null);
   const { triggerEvaluation, evaluationQuery } = useEvaluation(jobId);
+  const insightsQuery = useInsights(evaluationQuery.data?.status === "COMPLETED" ? evaluationQuery.data?.id || null : null);
+  const insights = insightsQuery.data;
 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<IdeaData>>({
@@ -87,16 +116,152 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
     if (jobStatus === "COMPLETED" && evaluationQuery.data?.result_payload) {
       const result = evaluationQuery.data.result_payload;
+      const metadata = result.metadata || {};
+
+      const dimensions = result.dimensions || {
+        innovation: 75,
+        market_potential: 70,
+        technical_feasibility: 65,
+        business_viability: 70,
+        scalability: 75,
+        execution_complexity: 60,
+        competitive_differentiation: 70
+      };
+
+      const keys = [
+        { name: "Innovation", val: dimensions.innovation },
+        { name: "Market", val: dimensions.market_potential },
+        { name: "Execution", val: dimensions.execution_complexity },
+        { name: "Technical", val: dimensions.technical_feasibility },
+        { name: "Business", val: dimensions.business_viability },
+        { name: "Scalability", val: dimensions.scalability },
+        { name: "Investment", val: dimensions.competitive_differentiation }
+      ];
+
+      // Calculate coordinates for 300x300 SVG Radar Chart
+      const cx = 150;
+      const cy = 150;
+      const r = 90;
+      
+      const gridCircles = [0.25, 0.5, 0.75, 1.0];
+      const polygonPoints = keys.map((key, i) => {
+        const angle = (i * 2 * Math.PI) / keys.length - Math.PI / 2;
+        const x = cx + (key.val / 100) * r * Math.cos(angle);
+        const y = cy + (key.val / 100) * r * Math.sin(angle);
+        return `${x},${y}`;
+      }).join(" ");
+
+      const handleExport = async (format: "markdown" | "json") => {
+        try {
+          const res = await fetch(`http://localhost:8000/api/v1/exports/${format}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ evaluation_id: evaluationQuery.data?.id })
+          });
+          const data = await res.json();
+          const blob = new Blob([data.content], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = data.filename;
+          link.click();
+        } catch (err) {
+          alert("Export failed.");
+        }
+      };
+
       return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex justify-between items-center bg-[#0b0b0d] border border-zinc-800 p-6 rounded-2xl">
+          <div className="flex flex-col md:flex-row justify-between md:items-center bg-[#0b0b0d] border border-zinc-800 p-6 rounded-2xl gap-4">
              <div>
                <h2 className="text-2xl font-bold text-white mb-2">Evaluation Complete</h2>
-               <p className="text-zinc-400">Here is the architectural and strategic breakdown of your idea.</p>
+               <p className="text-zinc-400 text-sm">Here is the architectural and strategic breakdown of your idea.</p>
              </div>
-             <div className="w-20 h-20 rounded-full border-4 border-indigo-500 flex items-center justify-center bg-indigo-500/10">
-                <span className="text-2xl font-black text-indigo-400">{result.score || 85}</span>
+             <div className="flex items-center gap-4">
+               <div className="w-20 h-20 rounded-full border-4 border-indigo-500 flex items-center justify-center bg-indigo-500/10">
+                  <span className="text-2xl font-black text-indigo-400">{result.score || 85}</span>
+               </div>
+               <div className="flex flex-col gap-2">
+                 <button onClick={() => handleExport("markdown")} className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-lg text-xs font-semibold transition-colors">
+                   Download Markdown
+                 </button>
+                 <button onClick={() => handleExport("json")} className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-lg text-xs font-semibold transition-colors">
+                   Download JSON
+                 </button>
+               </div>
              </div>
+          </div>
+
+          {/* Premium Radar Visualization & Category Scores */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-[#0b0b0d] border border-zinc-800/80 p-6 rounded-2xl flex flex-col items-center justify-center">
+              <h3 className="text-sm font-bold text-zinc-400 mb-4 tracking-wider uppercase">Visual Score Dimensions</h3>
+              <svg width="300" height="300" className="overflow-visible">
+                {/* Outer/Inner Grid Circles */}
+                {gridCircles.map((factor, idx) => (
+                  <circle
+                    key={idx}
+                    cx={cx}
+                    cy={cy}
+                    r={r * factor}
+                    fill="none"
+                    stroke="#27272a"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                  />
+                ))}
+                
+                {/* Axis Lines & Labels */}
+                {keys.map((key, i) => {
+                  const angle = (i * 2 * Math.PI) / keys.length - Math.PI / 2;
+                  const xGrid = cx + r * Math.cos(angle);
+                  const yGrid = cy + r * Math.sin(angle);
+                  const xLabel = cx + (r + 20) * Math.cos(angle);
+                  const yLabel = cy + (r + 10) * Math.sin(angle);
+                  return (
+                    <g key={i}>
+                      <line x1={cx} y1={cy} x2={xGrid} y2={yGrid} stroke="#27272a" strokeWidth="1" />
+                      <text
+                        x={xLabel}
+                        y={yLabel}
+                        fill="#a1a1aa"
+                        fontSize="10"
+                        fontWeight="600"
+                        textAnchor="middle"
+                        alignmentBaseline="middle"
+                      >
+                        {key.name}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* Score Area Polygon */}
+                <polygon
+                  points={polygonPoints}
+                  fill="rgba(99, 102, 241, 0.15)"
+                  stroke="#6366f1"
+                  strokeWidth="2"
+                />
+              </svg>
+            </div>
+
+            <div className="bg-[#0b0b0d] border border-zinc-800/80 p-6 rounded-2xl space-y-4">
+              <h3 className="text-sm font-bold text-zinc-400 tracking-wider uppercase mb-2">Detailed Category Scores</h3>
+              <div className="space-y-3">
+                {keys.map((key, i) => (
+                  <div key={i} className="space-y-1">
+                    <div className="flex justify-between text-xs font-semibold text-zinc-300">
+                      <span>{key.name}</span>
+                      <span className="text-indigo-400">{key.val}/100</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+                      <div className="h-full bg-indigo-500" style={{ width: `${key.val}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -124,7 +289,175 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
                <ReactMarkdown>{result.architecture_breakdown || "No breakdown provided."}</ReactMarkdown>
              </div>
           </div>
-          
+
+          {/* Explainability & Debugging Metadata */}
+          <div className="bg-[#0b0b0d]/60 border border-zinc-800/40 p-4 rounded-xl text-xs text-zinc-500 flex flex-wrap gap-x-8 gap-y-2">
+            <div><strong>Provider:</strong> {metadata.provider || "N/A"}</div>
+            <div><strong>Model:</strong> {metadata.model || "N/A"}</div>
+            <div><strong>Prompt Version:</strong> {metadata.prompt_version || "1.0"}</div>
+            <div><strong>Latency:</strong> {metadata.duration_ms ? `${metadata.duration_ms}ms` : "N/A"}</div>
+            <div><strong>Cached:</strong> {metadata.cached ? "Yes" : "No"}</div>
+          </div>
+
+          {/* --- INSIGHTS MODULE DASHBOARD --- */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">Deep Analysis Modules</h3>
+              <Link
+                href={`/projects/${slug}/history`}
+                className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-white transition-colors"
+              >
+                <History className="w-3.5 h-3.5" /> View History
+              </Link>
+            </div>
+
+            {insightsQuery.isLoading && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+              </div>
+            )}
+
+            {insights && (
+              <>
+                {/* SWOT */}
+                <InsightModule title="SWOT Analysis" icon={Target} color="bg-indigo-500/10 text-indigo-400">
+                  <div className="grid grid-cols-2 gap-3">
+                    {(["strengths", "weaknesses", "opportunities", "threats"] as const).map((key) => (
+                      <div key={key} className={`rounded-xl p-3.5 space-y-2 ${
+                        key === "strengths" ? "bg-emerald-500/5 border border-emerald-500/15" :
+                        key === "weaknesses" ? "bg-red-500/5 border border-red-500/15" :
+                        key === "opportunities" ? "bg-indigo-500/5 border border-indigo-500/15" :
+                        "bg-orange-500/5 border border-orange-500/15"
+                      }`}>
+                        <span className={`text-[9px] font-bold uppercase tracking-widest block ${
+                          key === "strengths" ? "text-emerald-400" :
+                          key === "weaknesses" ? "text-red-400" :
+                          key === "opportunities" ? "text-indigo-400" :
+                          "text-orange-400"
+                        }`}>{key}</span>
+                        <ul className="space-y-1">
+                          {insights.swot[key].map((item, i) => (
+                            <li key={i} className="text-[11px] text-zinc-400 leading-relaxed flex gap-1.5"><span className="text-zinc-600 mt-0.5">•</span>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </InsightModule>
+
+                {/* Market Analysis */}
+                <InsightModule title="Market Analysis" icon={Users} color="bg-purple-500/10 text-purple-400">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    {[
+                      { label: "TAM", value: insights.market_analysis.tam },
+                      { label: "SAM", value: insights.market_analysis.sam.split("—")[0] },
+                      { label: "SOM", value: insights.market_analysis.som.split("—")[0] },
+                    ].map(m => (
+                      <div key={m.label} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-3 text-center">
+                        <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1">{m.label}</div>
+                        <div className="text-sm font-black text-white">{m.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[11px] text-zinc-400 space-y-1.5">
+                    <div><span className="text-zinc-500 font-bold">Maturity:</span> {insights.market_analysis.market_maturity}</div>
+                    <div><span className="text-zinc-500 font-bold">Barriers:</span> {insights.market_analysis.adoption_barriers.join(", ")}</div>
+                  </div>
+                </InsightModule>
+
+                {/* Competitor Analysis */}
+                <InsightModule title="Competitor Analysis" icon={Swords} color="bg-rose-500/10 text-rose-400">
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Competitive Advantages</div>
+                      <div className="flex flex-wrap gap-2">
+                        {insights.competitor_analysis.competitive_advantages.map((a, i) => (
+                          <span key={i} className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Competitive Gaps</div>
+                      <div className="flex flex-wrap gap-2">
+                        {insights.competitor_analysis.competitive_gaps.map((g, i) => (
+                          <span key={i} className="text-[10px] bg-orange-500/10 border border-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-semibold">{g}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </InsightModule>
+
+                {/* Technical Feasibility */}
+                <InsightModule title="Technical Feasibility" icon={Wrench} color="bg-sky-500/10 text-sky-400">
+                  <div className="grid grid-cols-2 gap-4 text-[11px] text-zinc-400">
+                    <div><span className="text-zinc-500 font-bold block mb-0.5">Complexity</span>{insights.technical_feasibility.engineering_complexity}</div>
+                    <div><span className="text-zinc-500 font-bold block mb-0.5">Timeline</span>{insights.technical_feasibility.development_timeline}</div>
+                    <div className="col-span-2"><span className="text-zinc-500 font-bold block mb-0.5">Infrastructure</span>{insights.technical_feasibility.infrastructure}</div>
+                  </div>
+                </InsightModule>
+
+                {/* Business Model */}
+                <InsightModule title="Business Model" icon={DollarSign} color="bg-emerald-500/10 text-emerald-400">
+                  <div className="space-y-2 text-[11px] text-zinc-400">
+                    <div><span className="text-zinc-500 font-bold">Revenue Model:</span> {insights.business_model.revenue_model}</div>
+                    <div><span className="text-zinc-500 font-bold">Pricing:</span> {insights.business_model.pricing}</div>
+                    <div><span className="text-zinc-500 font-bold">Acquisition:</span> {insights.business_model.customer_acquisition}</div>
+                    <div className="flex gap-6 pt-1">
+                      <div className="text-center">
+                        <div className="text-xl font-black text-white">{insights.business_model.viability_score}</div>
+                        <div className="text-[9px] text-zinc-500 uppercase tracking-widest">Viability</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-black text-white">{insights.business_model.scalability_score}</div>
+                        <div className="text-[9px] text-zinc-500 uppercase tracking-widest">Scalability</div>
+                      </div>
+                    </div>
+                  </div>
+                </InsightModule>
+
+                {/* Risk Analysis */}
+                <InsightModule title="Risk Matrix" icon={Shield} color="bg-orange-500/10 text-orange-400">
+                  <div className="space-y-3">
+                    {Object.entries(insights.risk_analysis).map(([key, risk]) => (
+                      <div key={key} className="flex items-start gap-3">
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-widest shrink-0 mt-0.5 ${
+                          risk.level === "Low" || risk.level === "Low–Medium" ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" :
+                          risk.level === "Medium" ? "bg-orange-500/10 border border-orange-500/20 text-orange-400" :
+                          "bg-red-500/10 border border-red-500/20 text-red-400"
+                        }`}>{risk.level}</span>
+                        <div>
+                          <div className="text-[10px] font-bold text-white capitalize">{key.replace("_", " ")}</div>
+                          <div className="text-[10px] text-zinc-500">{risk.description}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </InsightModule>
+
+                {/* Recommendations */}
+                <InsightModule title="AI Recommendations" icon={Lightbulb} color="bg-yellow-500/10 text-yellow-400">
+                  <div className="space-y-4">
+                    {(["quick_wins", "medium_term", "long_term"] as const).map((tier) => (
+                      <div key={tier}>
+                        <div className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                          {tier === "quick_wins" ? "⚡ Quick Wins" : tier === "medium_term" ? "📈 Medium-Term" : "🚀 Long-Term"}
+                        </div>
+                        <div className="space-y-1.5">
+                          {insights.recommendations[tier].map((rec, i) => (
+                            <div key={i} className="flex gap-2 text-[11px] text-zinc-400">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5" />
+                              {rec}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </InsightModule>
+              </>
+            )}
+          </div>
+
           <div className="flex justify-end">
             <button onClick={() => setJobId(null)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors">
               Rerun Analysis
@@ -133,6 +466,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
         </div>
       );
     }
+
 
     if (jobStatus === "FAILED") {
       return <div className="text-red-500 p-6 bg-red-500/10 rounded-xl border border-red-500/20">Evaluation Failed. Please try again.</div>;
