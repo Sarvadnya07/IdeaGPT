@@ -14,7 +14,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     clerk_id: str
-    email: str
+    email: Optional[str] = None
 
 class UserUpdate(UserBase):
     pass
@@ -22,7 +22,7 @@ class UserUpdate(UserBase):
 class UserResponse(UserBase):
     id: int
     clerk_id: str
-    email: str
+    email: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

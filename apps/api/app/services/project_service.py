@@ -108,6 +108,33 @@ class ProjectService:
         db.add(db_project)
         await db.commit()
         await db.refresh(db_project)
+
+        # Clone all active ideas from the original project into the new project
+        from app.models.idea import Idea
+        result = await db.execute(
+            select(Idea).where(Idea.project_id == original.id).order_by(Idea.created_at.asc())
+        )
+        original_ideas = result.scalars().all()
+        for orig_idea in original_ideas:
+            cloned_idea = Idea(
+                id=str(uuid.uuid4()),
+                project_id=db_project.id,
+                title=orig_idea.title,
+                problem_statement=orig_idea.problem_statement,
+                solution_description=orig_idea.solution_description,
+                target_users=orig_idea.target_users,
+                industry=orig_idea.industry,
+                business_model=orig_idea.business_model,
+                stage=orig_idea.stage,
+                tags=orig_idea.tags,
+                notes=orig_idea.notes,
+                is_draft=orig_idea.is_draft,
+            )
+            db.add(cloned_idea)
+
+        if original_ideas:
+            await db.commit()
+
         return db_project
 
 project_service = ProjectService()

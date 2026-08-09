@@ -142,11 +142,15 @@ async def export_evaluation_json(
 ):
     """
     Exports evaluation payload as raw JSON.
+    Ownership is verified via evaluation_service.get_evaluation.
     """
-    evaluation = await db.get(Evaluation, evaluation_id)
-    if not evaluation:
-        raise HTTPException(status_code=404, detail="Evaluation not found")
-    return {"filename": f"evaluation_{evaluation_id}.json", "content": export_service.to_json(evaluation.result_payload or {})}
+    from app.models.evaluation import Evaluation
+    # Verify ownership before exporting
+    evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
+    return {
+        "filename": f"evaluation_{evaluation_id}.json",
+        "content": export_service.to_json(evaluation.result_payload or {}),
+    }
 
 @router.post("/exports/markdown")
 async def export_evaluation_markdown(
@@ -156,11 +160,15 @@ async def export_evaluation_markdown(
 ):
     """
     Exports evaluation payload as Markdown.
+    Ownership is verified via evaluation_service.get_evaluation.
     """
-    evaluation = await db.get(Evaluation, evaluation_id)
-    if not evaluation:
-        raise HTTPException(status_code=404, detail="Evaluation not found")
-    return {"filename": f"evaluation_{evaluation_id}.md", "content": export_service.to_markdown(evaluation.result_payload or {})}
+    from app.models.evaluation import Evaluation
+    # Verify ownership before exporting
+    evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
+    return {
+        "filename": f"evaluation_{evaluation_id}.md",
+        "content": export_service.to_markdown(evaluation.result_payload or {}),
+    }
 
 @router.get("/prompts")
 async def list_available_prompts():
@@ -196,6 +204,7 @@ async def global_search(
 ):
     """
     Global search across ideas and evaluations.
+    Results are scoped to the authenticated user's projects only.
     """
     from app.models.idea import Idea
     from app.models.evaluation import Evaluation
@@ -206,11 +215,11 @@ async def global_search(
 
     query = q.lower()
 
-    # Search ideas
+    # Search ideas — scoped to current_user's projects via Project.owner_id
     ideas_result = await db.execute(
         select(Idea, Project.title.label("project_title"))
         .join(Project, Idea.project_id == Project.id)
-        .where(Project.owner_id == current_user.id)
+        .where(Project.user_id == current_user.id)
         .where(
             or_(
                 func.lower(Idea.title).contains(query),
@@ -234,4 +243,3 @@ async def global_search(
         })
 
     return {"results": results, "count": len(results), "query": q}
-

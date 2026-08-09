@@ -31,13 +31,10 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Configure CORS (Restricted)
+# Configure CORS (env-driven — set CORS_ORIGINS as comma-separated list)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://ideagpt.dev" # Production example
-    ],
+    allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
@@ -56,6 +53,13 @@ async def health_check():
         "status": "healthy",
         "service": "IdeaGPT API"
     }
+
+@app.get("/health/config")
+async def health_config():
+    """
+    Returns security configuration state (configured/missing/absent) without leaking secret values.
+    """
+    return settings.get_config_status()
 
 @app.get("/health/ai")
 async def health_ai():
