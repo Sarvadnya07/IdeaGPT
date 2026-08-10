@@ -1,9 +1,9 @@
 import uuid
 from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, JSON
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from app.db.base import Base
 
@@ -21,11 +21,11 @@ class Evaluation(Base):
     model: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     evaluation_type: Mapped[str] = mapped_column(String, default="startup_evaluation", index=True)
     
-    # Status: 'PENDING', 'QUEUED', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED'
+    # Status: 'PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'CANCELLED'
     status: Mapped[str] = mapped_column(String, default="PENDING", index=True)
     
-    # Progress: 'QUEUED', 'INITIALIZING', 'GENERATING', 'PARSING', 'SAVING', 'COMPLETED'
-    progress: Mapped[str] = mapped_column(String, default="QUEUED", index=True)
+    # Progress stage: 'PENDING', 'VALIDATION', 'RULE_EXECUTION', 'SCORING', 'INSIGHTS', 'SAVING', 'COMPLETED', 'FAILED', 'CANCELLED'
+    progress: Mapped[str] = mapped_column(String, default="PENDING", index=True)
     
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -39,3 +39,7 @@ class Evaluation(Base):
     
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Audit history relationship
+    history_events: Mapped[List["EvaluationHistory"]] = relationship("EvaluationHistory", back_populates="evaluation", cascade="all, delete-orphan", order_by="EvaluationHistory.created_at.asc()")
+

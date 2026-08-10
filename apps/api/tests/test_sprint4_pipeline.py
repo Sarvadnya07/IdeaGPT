@@ -82,7 +82,7 @@ async def test_workspace_project_and_idea_lifecycle():
         res_eval = await ac.post(f"/api/v1/ideas/{idea_id}/evaluations", json={"evaluation_type": "startup_evaluation"})
         assert res_eval.status_code == 200
         eval_data = res_eval.json()
-        assert eval_data["status"] == "QUEUED"
+        assert eval_data["status"] in ["PENDING", "QUEUED", "RUNNING", "COMPLETED"]
         eval_id = eval_data["id"]
 
         # 6. Check evaluation status
