@@ -62,7 +62,7 @@ class AIRegistryService:
             },
         ]
 
-        if settings.APP_ENV == "test" or settings.DEFAULT_PROVIDER == "mock":
+        if settings.APP_ENV == "test" or (settings.APP_ENV == "development" and settings.DEFAULT_PROVIDER == "mock"):
             providers_info.append({
                 "id": "mock",
                 "name": "Mock Provider (Test)",

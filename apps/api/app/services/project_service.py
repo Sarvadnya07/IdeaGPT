@@ -1,16 +1,21 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from fastapi import HTTPException
 import uuid
 import re
+import logging
 
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.project_schema import ProjectCreate, ProjectUpdate
 
+logger = logging.getLogger(__name__)
+
 def _generate_slug(title: str) -> str:
-    # simple slug generator
     slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+    if not slug:
+        slug = "project"
     random_suffix = str(uuid.uuid4())[:8]
     return f"{slug}-{random_suffix}"
 
@@ -64,8 +69,27 @@ class ProjectService:
             user_id=user_id
         )
         db.add(db_project)
-        await db.commit()
-        await db.refresh(db_project)
+        try:
+            await db.commit()
+            await db.refresh(db_project)
+        except IntegrityError as exc:
+            await db.rollback()
+            logger.warning(
+                "Project creation integrity error for user_id=%s slug=%s error_type=%s",
+                user_id,
+                slug,
+                type(exc).__name__,
+            )
+            raise HTTPException(status_code=409, detail="Project already exists") from exc
+        except SQLAlchemyError as exc:
+            await db.rollback()
+            logger.error(
+                "Project creation database error for user_id=%s error_type=%s",
+                user_id,
+                type(exc).__name__,
+                exc_info=True,
+            )
+            raise HTTPException(status_code=500, detail="Could not create project") from exc
         return db_project
 
     async def update_project(self, db: AsyncSession, project_id: str, project_in: ProjectUpdate, user_id: int):

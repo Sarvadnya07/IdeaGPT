@@ -27,8 +27,12 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }
     )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 async def unhandled_exception_handler(request: Request, exc: Exception):
-    # Log the exception stack trace here (via core.logging)
+    logger.error("Unhandled exception during %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(
         status_code=500,
         content={

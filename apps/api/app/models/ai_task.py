@@ -8,6 +8,10 @@ from app.db.base import Base
 def utc_now():
     return datetime.now(timezone.utc)
 
+from sqlalchemy.dialects import postgresql
+
+JSON_TYPE = JSON().with_variant(postgresql.JSONB, "postgresql")
+
 class AiTask(Base):
     __tablename__ = "ai_tasks"
 
@@ -25,8 +29,8 @@ class AiTask(Base):
     attempt: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     idempotency_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
 
-    input_payload: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    result_payload: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    input_payload: Mapped[Optional[dict]] = mapped_column(JSON_TYPE, nullable=True)
+    result_payload: Mapped[Optional[dict]] = mapped_column(JSON_TYPE, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 

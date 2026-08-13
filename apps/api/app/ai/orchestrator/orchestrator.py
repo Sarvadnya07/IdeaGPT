@@ -47,16 +47,21 @@ class AIOrchestrator:
             idea_text = user_prompt
 
         # Router selection
-        provider_name = AIRouter.route(strategy=strategy, preferred=preferred_provider)
+        decision = AIRouter.route_task(
+            task_type="idea_evaluation",
+            requested_provider=preferred_provider or strategy
+        )
+        provider_name = decision["actual_provider"]
+        target_model = decision["actual_model"]
+
         provider = ProviderFactory.create_provider(provider_name)
-        model_name = getattr(provider, "model", "default-model")
 
         # Cache Check
         if not force_fresh:
             cached_result = evaluation_cache.get(
                 idea_text=idea_text,
                 prompt_version=p_version,
-                model=model_name,
+                model=target_model,
                 provider=provider_name
             )
             if cached_result:
@@ -68,9 +73,11 @@ class AIOrchestrator:
         raw_response = await provider.generate(
             prompt=user_prompt,
             system_prompt=system_prompt,
-            response_format="json"
+            response_format="json",
+            model_override=target_model
         )
         duration_ms = int((time.time() - start_time) * 1000)
+        actual_model = raw_response.get("_actual_model") or target_model
 
         # Output Validator & Repair
         validated_model, error_msg = OutputValidator.validate_and_repair(raw_response)
@@ -115,12 +122,12 @@ class AIOrchestrator:
         # Add metadata
         result_dict["metadata"] = {
             "provider": provider_name,
-            "model": model_name,
+            "model": actual_model,
             "prompt_version": p_version,
             "temperature": temp,
             "max_tokens": max_t,
             "duration_ms": duration_ms,
-            "token_usage": 1500,
+            "token_usage": raw_response.get("_usage", {}).get("total_tokens", 1500),
             "estimated_cost": 0.003,
             "cached": False
         }
@@ -129,7 +136,7 @@ class AIOrchestrator:
         evaluation_cache.set(
             idea_text=idea_text,
             prompt_version=p_version,
-            model=model_name,
+            model=actual_model,
             provider=provider_name,
             result_payload=result_dict
         )

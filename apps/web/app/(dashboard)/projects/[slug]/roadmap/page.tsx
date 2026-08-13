@@ -82,11 +82,11 @@ export default function ProjectRoadmapPage({
                   >
                     <div className="flex items-center gap-3">
                       {task.status === "completed" ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       ) : task.status === "in_progress" ? (
-                        <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
                       ) : (
-                        <Circle className="w-4 h-4 text-neutral-600 flex-shrink-0" />
+                        <Circle className="w-4 h-4 text-neutral-600 shrink-0" />
                       )}
                       <div>
                         <div className="font-medium text-neutral-200">{task.title}</div>

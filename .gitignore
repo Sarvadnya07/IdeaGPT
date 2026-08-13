@@ -91,3 +91,8 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 $RECYCLE.BIN/
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/

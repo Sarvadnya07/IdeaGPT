@@ -33,16 +33,22 @@ async def test_router_fallbacks_to_mock_by_default():
     old_openai = settings.ENABLE_OPENAI
     old_gemini = settings.ENABLE_GEMINI
     old_ollama = settings.ENABLE_OLLAMA
-    
+    old_groq = settings.GROQ_API_KEY
+
     settings.ENABLE_OPENAI = False
     settings.ENABLE_GEMINI = False
     settings.ENABLE_OLLAMA = False
-    
+    settings.GROQ_API_KEY = None
+    settings.ENABLE_GROQ = False
+
     routed = AIRouter.route()
     assert routed == "mock"
-    
+
     settings.ENABLE_OPENAI = old_openai
     settings.ENABLE_GEMINI = old_gemini
+    settings.ENABLE_OLLAMA = old_ollama
+    settings.GROQ_API_KEY = old_groq
+    settings.ENABLE_GROQ = None
     settings.ENABLE_OLLAMA = old_ollama
 
 @pytest.mark.anyio
