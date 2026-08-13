@@ -1,9 +1,10 @@
+import uuid
 import logging
 import json
+import time
 from datetime import datetime, timezone
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-import time
 
 class JSONLogFormatter(logging.Formatter):
     def format(self, record):
@@ -31,12 +32,20 @@ logger = setup_logging()
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
+        
+        # Correlation ID
+        request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
+        request.state.request_id = request_id
+
         response = await call_next(request)
         process_time = time.time() - start_time
         
+        response.headers["x-request-id"] = request_id
+
         log_dict = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": "INFO",
+            "request_id": request_id,
             "method": request.method,
             "url": str(request.url),
             "status_code": response.status_code,

@@ -127,6 +127,21 @@ class Settings(BaseSettings):
         """Parse the comma-separated CORS_ORIGINS into a list."""
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
+    def validate_production_config(self):
+        """
+        Validates critical configuration parameters when running in production mode.
+        Fails fast with RuntimeError if insecure or missing settings are detected.
+        """
+        if self.APP_ENV == "production":
+            if not self.clerk_issuer:
+                raise RuntimeError("PRODUCTION CONFIG ERROR: CLERK_PUBLISHABLE_KEY or CLERK_JWT_ISSUER must be configured in production.")
+            if self.CLERK_JWT_TEST_SECRET:
+                raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CLERK_JWT_TEST_SECRET must NOT be set in production.")
+            if "*" in self.cors_origins_list:
+                raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CORS_ORIGINS cannot contain wildcard '*' in production.")
+            if "sqlite" in (self.DATABASE_URL or ""):
+                raise RuntimeError("PRODUCTION CONFIG ERROR: SQLite DATABASE_URL cannot be used in production. PostgreSQL is required.")
+
     def get_config_status(self) -> dict[str, str]:
         """
         Return the status of key security configuration variables without exposing sensitive secret values.
@@ -142,3 +157,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+try:
+    settings.validate_production_config()
+except RuntimeError as err:
+    import logging
+    logging.getLogger("uvicorn.error").error(str(err))
+

@@ -7,7 +7,13 @@ from typing import List, Annotated, Dict, Any, Optional
 from app.db.session import get_db
 from app.models.user import User
 from app.api.dependencies.auth import get_current_user
-from app.schemas.evaluation_schema import EvaluationResponse, EvaluationCreate, EvaluationHistoryResponse
+from app.schemas.evaluation_schema import (
+    EvaluationResponse,
+    EvaluationCreate,
+    EvaluationHistoryResponse,
+    IdeaCompareRequest,
+    IdeaComparisonResponse
+)
 from app.services.evaluation_service import evaluation_service
 from app.services.project_service import project_service
 from app.services.insight_service import insight_service, scoring_service
@@ -139,6 +145,18 @@ async def get_evaluation_history(
     Retrieves historical lifecycle audit events for an evaluation.
     """
     return await evaluation_service.get_history(db, evaluation_id, current_user.id)
+
+@router.post("/evaluations/compare", response_model=IdeaComparisonResponse)
+async def compare_ideas(
+    payload: IdeaCompareRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Compares 2-5 user-owned ideas using real persisted data and evaluation metrics.
+    Enforces user ownership isolation across all selected ideas.
+    """
+    return await comparison_service.compare_ideas(db, current_user.id, payload.idea_ids)
 
 @router.get("/projects/{project_id}/comparisons")
 async def get_project_comparisons(
