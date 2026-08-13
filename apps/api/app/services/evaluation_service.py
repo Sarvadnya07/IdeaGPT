@@ -23,6 +23,9 @@ class EvaluationService:
         )
         return result.scalars().all()
 
+    async def list_project_evaluations(self, db: AsyncSession, project_id: str, user_id: int) -> List[Evaluation]:
+        return await EvaluationCoordinator.list_project_evaluations(db, project_id, user_id)
+
     async def trigger_evaluation(self, db: AsyncSession, idea_id: str, evaluation_type: str, user_id: int) -> Evaluation:
         evaluation = await EvaluationCoordinator.create_evaluation(db, idea_id, evaluation_type, user_id)
         # Execute deterministic pipeline

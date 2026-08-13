@@ -105,11 +105,9 @@ async def test_compare_validation_rejections():
         assert i_res.status_code == 200
         idea_id = i_res.json()["id"]
 
-        # Less than 2 ideas -> 400
         res_less = await client.post("/api/v1/evaluations/compare", json={"idea_ids": [idea_id]}, headers=headers)
         assert res_less.status_code == 400
 
-        # Duplicate ideas -> 400
         res_dup = await client.post("/api/v1/evaluations/compare", json={"idea_ids": [idea_id, idea_id]}, headers=headers)
         assert res_dup.status_code == 400
 
@@ -133,6 +131,29 @@ async def test_compare_unauthorized_idea_matrix():
             headers=headers_b
         )).json()["id"]
 
-        # User B trying to compare User A's idea -> 403 Forbidden
         res_unauth = await client.post("/api/v1/evaluations/compare", json={"idea_ids": [ia, ib]}, headers=headers_b)
         assert res_unauth.status_code == 403
+
+@pytest.mark.asyncio
+async def test_list_project_evaluations_endpoint_and_security():
+    headers_a = _make_auth_header("user_proj_eval_a")
+    headers_b = _make_auth_header("user_proj_eval_b")
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        pa = (await client.post("/api/v1/projects/", json={"title": "PA", "slug": "pa-eval"}, headers=headers_a)).json()["id"]
+        ia = (await client.post(
+            f"/api/v1/projects/{pa}/ideas",
+            json={"title": "IA", "problem_statement": "Problem statement long enough", "solution_description": "Solution description long enough", "is_draft": False},
+            headers=headers_a
+        )).json()["id"]
+        ea = await client.post(f"/api/v1/ideas/{ia}/evaluations", json={"evaluation_type": "full"}, headers=headers_a)
+        assert ea.status_code == 200
+
+        res_a = await client.get(f"/api/v1/projects/{pa}/evaluations", headers=headers_a)
+        assert res_a.status_code == 200
+        items_a = res_a.json()
+        assert len(items_a) == 1
+        assert items_a[0]["id"] == ea.json()["id"]
+
+        res_b = await client.get(f"/api/v1/projects/{pa}/evaluations", headers=headers_b)
+        assert res_b.status_code == 403

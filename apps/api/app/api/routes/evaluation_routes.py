@@ -63,6 +63,17 @@ async def get_idea_evaluations(
     """
     return await evaluation_service.list_idea_evaluations(db, idea_id, current_user.id)
 
+@router.get("/projects/{project_id}/evaluations", response_model=List[EvaluationResponse])
+async def get_project_evaluations(
+    project_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Lists all evaluation jobs for all ideas in a specific project.
+    """
+    return await evaluation_service.list_project_evaluations(db, project_id, current_user.id)
+
 @router.post("/evaluations/{evaluation_id}/retry", response_model=EvaluationResponse)
 @limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def retry_evaluation(

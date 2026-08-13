@@ -53,6 +53,34 @@ class EvaluationCoordinator:
         return idea
 
     @classmethod
+    async def list_project_evaluations(cls, db: AsyncSession, project_id: str, user_id: int) -> List[Evaluation]:
+        """Fetch all evaluations for a project across all statuses, enforcing user ownership isolation."""
+        res_proj = await db.execute(
+            select(Project).where(
+                Project.id == project_id,
+                Project.user_id == user_id,
+                Project.deleted_at.is_(None),
+            )
+        )
+        project = res_proj.scalar_one_or_none()
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied or project not found"
+            )
+
+        res_ideas = await db.execute(select(Idea.id).where(Idea.project_id == project_id))
+        idea_ids = res_ideas.scalars().all()
+        if not idea_ids:
+            return []
+
+        res_evals = await db.execute(
+            select(Evaluation)
+            .where(Evaluation.idea_id.in_(idea_ids))
+            .order_by(Evaluation.created_at.desc())
+        )
+        return res_evals.scalars().all()
+
+    @classmethod
     async def get_evaluation(cls, db: AsyncSession, evaluation_id: str, user_id: int) -> Evaluation:
         """Fetch evaluation and enforce strict user ownership isolation."""
         res = await db.execute(select(Evaluation).where(Evaluation.id == evaluation_id))

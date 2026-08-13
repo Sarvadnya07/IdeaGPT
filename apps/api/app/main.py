@@ -16,9 +16,29 @@ from app.db.session import get_db
 from app.models.ai_task import AiTask
 from app.api.routes import project_routes, user_routes, idea_routes, evaluation_routes, roadmap_routes, ai_routes, analytics_routes
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Pre-warm database connection pool
+    try:
+        from app.core.database import engine
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception:
+        pass
+    yield
+    # Shutdown: Dispose engine gracefully
+    try:
+        from app.core.database import engine
+        await engine.dispose()
+    except Exception:
+        pass
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
+    lifespan=lifespan,
 )
 
 app.add_middleware(RequestLoggingMiddleware)
