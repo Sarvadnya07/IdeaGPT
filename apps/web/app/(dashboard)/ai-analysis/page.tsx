@@ -216,7 +216,7 @@ export default function AIAnalysisPage() {
 
       {/* Task Status Banner */}
       {task && (
-        <div className="bg-[#0b0b0d] border border-zinc-800 rounded-2xl p-4 flex items-center justify-between text-xs text-zinc-300">
+        <div className="bg-[#0b0b0d] border border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-zinc-300">
           <div className="flex items-center gap-3">
             <span className="font-mono text-zinc-500">TASK #{task.id.slice(0, 8)}</span>
             <span
@@ -231,6 +231,12 @@ export default function AIAnalysisPage() {
               {task.status}
             </span>
           </div>
+
+          <div className="flex items-center gap-4 text-[11px] text-zinc-400 font-mono">
+            <span>Provider Used: <strong className="text-indigo-400 uppercase">{task.provider}</strong></span>
+            <span>Model Used: <strong className="text-emerald-400">{task.model}</strong></span>
+          </div>
+
           {task.error_message && (
             <span className="text-red-400 font-mono text-[11px] max-w-md truncate">
               {task.error_message}

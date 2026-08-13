@@ -57,8 +57,21 @@ async def get_providers():
 async def get_models():
     """
     Returns list of supported AI models across configured providers.
+    Uses dynamic model discovery and 60s TTL cache.
     """
-    return AIRegistryService.get_available_models()
+    return await AIRegistryService.get_available_models_async()
+
+@router.post("/registry/refresh", summary="Refresh AI provider and model registry cache")
+async def refresh_registry():
+    """
+    Invalidates cached provider health and dynamic model metadata.
+    """
+    AIRegistryService.refresh_registry_cache()
+    models = await AIRegistryService.get_available_models_async(force_refresh=True)
+    return {
+        "message": "Registry cache refreshed successfully.",
+        "models_count": len(models)
+    }
 
 @router.post("/tasks", status_code=status.HTTP_202_ACCEPTED, summary="Create and enqueue an AI task")
 async def create_ai_task(

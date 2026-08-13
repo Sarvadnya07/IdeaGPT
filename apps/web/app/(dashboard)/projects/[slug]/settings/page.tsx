@@ -2,7 +2,7 @@
 
 import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useProjectBySlug, useUpdateProject, useDeleteProject } from "@/hooks/useProjects";
+import { useProjects } from "@/hooks/useProjects";
 import { Settings, Save, Trash2, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 
 export default function ProjectSettingsPage({
@@ -13,11 +13,8 @@ export default function ProjectSettingsPage({
   const { slug } = use(params);
   const router = useRouter();
 
-  const { projectQuery } = useProjectBySlug(slug);
-  const project = projectQuery.data;
-
-  const updateProject = useUpdateProject();
-  const deleteProject = useDeleteProject();
+  const { projectsQuery, updateProject, deleteProject } = useProjects();
+  const project = projectsQuery.data?.items.find((p) => p.slug === slug);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -96,7 +93,7 @@ export default function ProjectSettingsPage({
         </div>
       </div>
 
-      {projectQuery.isLoading ? (
+      {projectsQuery.isLoading ? (
         <div className="flex items-center justify-center py-16 text-neutral-400 gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
           <span className="text-xs">Loading project settings...</span>

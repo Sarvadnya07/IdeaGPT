@@ -19,12 +19,14 @@ registry = ProviderRegistry()
 # Register all providers
 from app.ai.providers.openai import OpenAIProvider
 from app.ai.providers.gemini import GeminiProvider
+from app.ai.providers.groq import GroqProvider
 from app.ai.providers.ollama import OllamaProvider
 from app.ai.providers.openai_compatible import OpenAICompatibleProvider
 from app.ai.providers.mock import MockProvider
 
 registry.register("openai", OpenAIProvider)
 registry.register("gemini", GeminiProvider)
+registry.register("groq", GroqProvider)
 registry.register("ollama", OllamaProvider)
 registry.register("custom", OpenAICompatibleProvider)
 registry.register("mock", MockProvider)

@@ -2,9 +2,8 @@
 
 import React, { use } from "react";
 import Link from "next/link";
-import { useProjectBySlug } from "@/hooks/useProjects";
-import { useEvaluationHistory } from "@/hooks/useEvaluationHistory";
-import { FileText, Download, ArrowRight, RefreshCw, Calendar, CheckCircle2 } from "lucide-react";
+import { useProjects } from "@/hooks/useProjects";
+import { FileText, ArrowRight, RefreshCw } from "lucide-react";
 
 export default function ProjectReportsPage({
   params,
@@ -12,8 +11,8 @@ export default function ProjectReportsPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { projectQuery } = useProjectBySlug(slug);
-  const project = projectQuery.data;
+  const { projectsQuery } = useProjects();
+  const project = projectsQuery.data?.items.find((p) => p.slug === slug);
 
   return (
     <div className="space-y-6">
@@ -41,7 +40,7 @@ export default function ProjectReportsPage({
         </Link>
       </div>
 
-      {projectQuery.isLoading ? (
+      {projectsQuery.isLoading ? (
         <div className="flex items-center justify-center py-16 text-neutral-400 gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
           <span className="text-xs">Loading project reports...</span>

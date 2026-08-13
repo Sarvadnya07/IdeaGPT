@@ -6,6 +6,7 @@ export interface AIProviderInfo {
   name: string;
   configured: boolean;
   enabled: boolean;
+  state?: "NOT_CONFIGURED" | "DISABLED" | "UNAVAILABLE" | "AVAILABLE" | "DEGRADED";
 }
 
 export interface AIModelInfo {
@@ -13,6 +14,10 @@ export interface AIModelInfo {
   name: string;
   provider: string;
   capabilities: string[];
+  capability_source?: string;
+  capability_confidence?: string;
+  context_window?: number;
+  state?: "ACTIVE" | "INACTIVE" | "UNKNOWN" | "STALE";
   configured: boolean;
   available: boolean;
 }
@@ -43,5 +48,7 @@ export function useAIProviders() {
     models: modelsQuery.data || [],
     isLoading: providersQuery.isLoading || modelsQuery.isLoading,
     isError: providersQuery.isError || modelsQuery.isError,
+    refetchProviders: providersQuery.refetch,
+    refetchModels: modelsQuery.refetch,
   };
 }

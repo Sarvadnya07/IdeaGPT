@@ -69,6 +69,11 @@ class Settings(BaseSettings):
     CUSTOM_PROVIDER_URL: Optional[str] = None
     CUSTOM_PROVIDER_KEY: Optional[str] = None
 
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_BASE_URL: str = "https://api.groq.com/openai/v1"
+    ENABLE_GROQ: Optional[bool] = None
+    GROQ_DEFAULT_MODEL: str = "auto"
+
     # ---------------------------------------------------------------------------
     # Clerk Authentication
     #

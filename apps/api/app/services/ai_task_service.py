@@ -160,17 +160,26 @@ class AiTaskService:
                 db=db,
                 idea_id=idea_id,
                 preferred_provider=preferred,
-                strategy="user_selected" if preferred else "auto"
+                strategy=task.provider
             )
 
             duration_ms = int((time.time() - start_time) * 1000)
-            return await cls.update_task_status(
-                db=db,
-                task=task,
-                new_status="COMPLETED",
+
+            # Record actual provider/model used in execution
+            meta = result.get("metadata", {})
+            if meta.get("provider"):
+                task.provider = meta["provider"]
+            if meta.get("model"):
+                task.model = meta["model"]
+
+            await cls.update_task_status(
+                db,
+                task,
+                "COMPLETED",
                 result_payload=result,
                 duration_ms=duration_ms
             )
+            return task
 
         except AIUnavailableException as exc:
             duration_ms = int((time.time() - start_time) * 1000)

@@ -2,9 +2,9 @@
 
 import React, { use } from "react";
 import Link from "next/link";
-import { useProjectBySlug } from "@/hooks/useProjects";
+import { useProjects } from "@/hooks/useProjects";
 import { useRoadmaps } from "@/hooks/useRoadmaps";
-import { Map, Plus, CheckCircle2, Circle, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { Map, Plus, CheckCircle2, Circle, Clock, RefreshCw } from "lucide-react";
 
 export default function ProjectRoadmapPage({
   params,
@@ -12,8 +12,8 @@ export default function ProjectRoadmapPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
-  const { projectQuery } = useProjectBySlug(slug);
-  const project = projectQuery.data;
+  const { projectsQuery } = useProjects();
+  const project = projectsQuery.data?.items.find((p) => p.slug === slug);
 
   const { roadmapsQuery } = useRoadmaps(project?.id || null);
   const roadmaps = roadmapsQuery.data || [];
@@ -37,7 +37,7 @@ export default function ProjectRoadmapPage({
         </div>
       </div>
 
-      {projectQuery.isLoading || roadmapsQuery.isLoading ? (
+      {projectsQuery.isLoading || roadmapsQuery.isLoading ? (
         <div className="flex items-center justify-center py-16 text-neutral-400 gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
           <span className="text-xs">Loading project roadmap...</span>
