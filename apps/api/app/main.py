@@ -10,7 +10,7 @@ from app.core.exceptions import (
     unhandled_exception_handler,
 )
 
-from app.api.routes import project_routes, user_routes, idea_routes, evaluation_routes
+from app.api.routes import project_routes, user_routes, idea_routes, evaluation_routes, roadmap_routes, ai_routes
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -23,13 +23,11 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from app.core.rate_limit import limiter, custom_rate_limit_exceeded_handler
 
-limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, custom_rate_limit_exceeded_handler)
 
 # Configure CORS (env-driven — set CORS_ORIGINS as comma-separated list)
 app.add_middleware(
@@ -45,6 +43,8 @@ app.include_router(project_routes.router, prefix="/api/v1/projects", tags=["proj
 app.include_router(user_routes.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(idea_routes.router, prefix="/api/v1", tags=["ideas"])
 app.include_router(evaluation_routes.router, prefix="/api/v1", tags=["evaluations"])
+app.include_router(roadmap_routes.router, prefix="/api/v1", tags=["roadmaps"])
+app.include_router(ai_routes.router, prefix="/api/v1", tags=["ai"])
 
 @app.get("/")
 @app.get("/health")

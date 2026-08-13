@@ -48,6 +48,14 @@ class Settings(BaseSettings):
     DATABASE_URL: Optional[str] = "sqlite+aiosqlite:///./ideagpt.db"
     REDIS_URL: Optional[str] = None
 
+    # Rate Limiting & Abuse Protection
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_STORAGE_URL: Optional[str] = None
+    AI_EVALUATION_RATE_LIMIT: str = "5/minute"
+    AI_GENERATION_RATE_LIMIT: str = "10/minute"
+    WRITE_API_RATE_LIMIT: str = "30/minute"
+    DEFAULT_API_RATE_LIMIT: str = "60/minute"
+
     # AI Providers (Loaded lazily, no placeholder text)
     OPENAI_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None

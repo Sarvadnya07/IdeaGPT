@@ -31,6 +31,7 @@ interface SidebarGroup {
     name: string;
     href: string;
     icon: React.ComponentType<any>;
+    isComingSoon?: boolean;
   }[];
 }
 
@@ -48,21 +49,21 @@ const navigationGroups: SidebarGroup[] = [
     heading: "Evaluation Tools",
     items: [
       { name: "Roadmaps", href: "/roadmap", icon: Map },
-      { name: "Tech Stacks", href: "/tech-stack", icon: Layers },
-      { name: "Investor Analysis", href: "/investor", icon: TrendingUp },
-      { name: "PRD Generator", href: "/prd-generator", icon: FileText },
-      { name: "Pitch Deck Gen", href: "/pitch-deck", icon: Presentation },
+      { name: "Tech Stacks", href: "/tech-stack", icon: Layers, isComingSoon: true },
+      { name: "Investor Analysis", href: "/investor", icon: TrendingUp, isComingSoon: true },
+      { name: "PRD Generator", href: "/prd-generator", icon: FileText, isComingSoon: true },
+      { name: "Pitch Deck Gen", href: "/pitch-deck", icon: Presentation, isComingSoon: true },
     ],
   },
   {
     heading: "Simulations & Operations",
     items: [
-      { name: "AI Mentor", href: "/mentor", icon: Cpu },
-      { name: "Recruiter Sim", href: "/recruiter", icon: UserCheck },
-      { name: "Platform Ops", href: "/analytics", icon: Activity },
-      { name: "GitHub Lab", href: "/github-lab", icon: Cpu },
-      { name: "Blueprint Studio", href: "/architecture", icon: Boxes },
-      { name: "Strategy Lab", href: "/strategy-lab", icon: Target },
+      { name: "AI Mentor", href: "/mentor", icon: Cpu, isComingSoon: true },
+      { name: "Recruiter Sim", href: "/recruiter", icon: UserCheck, isComingSoon: true },
+      { name: "Platform Ops", href: "/analytics", icon: Activity, isComingSoon: true },
+      { name: "GitHub Lab", href: "/github-lab", icon: Cpu, isComingSoon: true },
+      { name: "Blueprint Studio", href: "/architecture", icon: Boxes, isComingSoon: true },
+      { name: "Strategy Lab", href: "/strategy-lab", icon: Target, isComingSoon: true },
     ],
   },
 ];
@@ -116,12 +117,16 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                       // if (item.isComingSoon) e.preventDefault();
+                       setMobileMenuOpen(false);
+                    }}
                     className={cn(
                       "flex items-center gap-3 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 group relative",
                       isActive
                         ? "bg-[#141417] text-white border-l-2 border-indigo-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-                        : "text-zinc-500 hover:text-zinc-300 hover:bg-[#0f0f12]"
+                        : "text-zinc-500 hover:text-zinc-300 hover:bg-[#0f0f12]",
+                      item.isComingSoon && "opacity-60"
                     )}
                   >
                     <item.icon
@@ -131,7 +136,10 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                       )}
                     />
                     {item.name}
-                    {isActive && (
+                    {item.isComingSoon && (
+                      <span className="ml-auto text-[8px] uppercase tracking-widest bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-bold">Soon</span>
+                    )}
+                    {isActive && !item.isComingSoon && (
                       <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></span>
                     )}
                   </Link>

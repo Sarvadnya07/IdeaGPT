@@ -462,9 +462,9 @@ def test_19_config_derives_jwks_url_from_publishable_key():
     """Settings.clerk_jwks_url is correctly derived from CLERK_PUBLISHABLE_KEY."""
     from app.core.config import _derive_clerk_issuer
 
-    pk = "pk_test_c21hcnQtZHVja2xpbmctNzAuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    pk = "pk_test_aGVhbHRoeS1zdW5iZWFtLTY4LmNsZXJrLmFjY291bnRzLmRldiQ"
     issuer = _derive_clerk_issuer(pk)
-    assert issuer == "https://smart-duckling-70.clerk.accounts.dev", (
+    assert issuer == "https://healthy-sunbeam-68.clerk.accounts.dev", (
         f"Unexpected issuer: {issuer}"
     )
 
@@ -489,7 +489,7 @@ def test_20_config_invalid_publishable_key_returns_none():
 @pytest.mark.asyncio
 async def test_21_issuer_validation_correct_issuer_succeeds():
     """Token with correct `iss` claim matching configured issuer → 200."""
-    valid_issuer = "https://smart-duckling-70.clerk.accounts.dev"
+    valid_issuer = "https://healthy-sunbeam-68.clerk.accounts.dev"
     with patch.object(settings, "CLERK_JWT_ISSUER", valid_issuer):
         token = _make_token(
             sub="user_issuer_test_001",
@@ -503,7 +503,7 @@ async def test_21_issuer_validation_correct_issuer_succeeds():
 @pytest.mark.asyncio
 async def test_22_issuer_validation_wrong_issuer_returns_401():
     """Token with wrong `iss` claim mismatching configured issuer → 401."""
-    valid_issuer = "https://smart-duckling-70.clerk.accounts.dev"
+    valid_issuer = "https://healthy-sunbeam-68.clerk.accounts.dev"
     wrong_issuer = "https://attacker-fake-issuer.com"
     with patch.object(settings, "CLERK_JWT_ISSUER", valid_issuer):
         token = _make_token(
@@ -518,7 +518,7 @@ async def test_22_issuer_validation_wrong_issuer_returns_401():
 @pytest.mark.asyncio
 async def test_23_issuer_validation_missing_issuer_claim_returns_401():
     """Token missing `iss` claim entirely when strict issuer validation is enabled → 401."""
-    valid_issuer = "https://smart-duckling-70.clerk.accounts.dev"
+    valid_issuer = "https://healthy-sunbeam-68.clerk.accounts.dev"
     with patch.object(settings, "CLERK_JWT_ISSUER", valid_issuer):
         # Token crafted without 'iss' claim
         token = _make_token(sub="user_issuer_test_003", extra_claims={"iss": None})

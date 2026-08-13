@@ -44,7 +44,7 @@ def _make_token(sub: str, email: str = None) -> str:
         "email": email,
         "iat": now,
         "exp": now + 3600,
-        "iss": "https://smart-duckling-70.clerk.accounts.dev"
+        "iss": "https://healthy-sunbeam-68.clerk.accounts.dev"
     }
     return pyjwt.encode(payload, TEST_SECRET, algorithm="HS256")
 

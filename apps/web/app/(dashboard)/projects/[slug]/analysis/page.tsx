@@ -6,6 +6,7 @@ import { useIdea, IdeaData } from "../../../../../hooks/useIdea";
 import { useEvaluation } from "../../../../../hooks/useEvaluation";
 import { useInsights } from "../../../../../hooks/useInsights";
 import { BrainCircuit, Loader2, ArrowRight, CheckCircle2, ChevronRight, AlertTriangle, ChevronDown, Target, Users, Swords, Wrench, DollarSign, Shield, Lightbulb, History } from "lucide-react";
+import { useApiClient } from "@/lib/api/client";
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 
@@ -35,6 +36,7 @@ function InsightModule({ title, icon: Icon, color, children }: { title: string; 
 }
 
 export default function AnalysisPage({ params }: { params: Promise<{ slug: string }> }) {
+  const api = useApiClient();
   const { projectsQuery } = useProjects();
   const { slug } = use(params);
   const project = projectsQuery.data?.items.find(p => p.slug === slug);
@@ -153,12 +155,10 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
       const handleExport = async (format: "markdown" | "json") => {
         try {
-          const res = await fetch(`http://localhost:8000/api/v1/exports/${format}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ evaluation_id: evaluationQuery.data?.id })
+          const res = await api.post(`/exports/${format}`, {
+            evaluation_id: evaluationQuery.data?.id
           });
-          const data = await res.json();
+          const data = res.data;
           const blob = new Blob([data.content], { type: "text/plain" });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");

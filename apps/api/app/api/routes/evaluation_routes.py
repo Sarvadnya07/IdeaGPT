@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_, func
@@ -15,12 +15,16 @@ from app.services.comparison_service import comparison_service
 from app.services.export_service import export_service
 from app.services.visualization_service import visualization_service
 from app.evaluation.coordinator import EvaluationCoordinator
+from app.core.rate_limit import limiter
+from app.core.config import settings
 
 router = APIRouter()
 
 
 @router.post("/ideas/{idea_id}/evaluations", response_model=EvaluationResponse)
+@limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def trigger_evaluation(
+    request: Request,
     idea_id: str,
     payload: EvaluationCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -54,7 +58,9 @@ async def get_idea_evaluations(
     return await evaluation_service.list_idea_evaluations(db, idea_id, current_user.id)
 
 @router.post("/evaluations/{evaluation_id}/retry", response_model=EvaluationResponse)
+@limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def retry_evaluation(
+    request: Request,
     evaluation_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
@@ -87,7 +93,9 @@ async def delete_evaluation(
     return await evaluation_service.delete_evaluation(db, evaluation_id, current_user.id)
 
 @router.post("/evaluations/{evaluation_id}/run", response_model=EvaluationResponse)
+@limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def run_evaluation_pipeline(
+    request: Request,
     evaluation_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
@@ -146,7 +154,9 @@ async def get_project_comparisons(
     return await comparison_service.compare_evaluations(db, evaluation_ids)
 
 @router.post("/exports/json")
+@limiter.limit("20/minute")
 async def export_evaluation_json(
+    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     evaluation_id: str = Body(..., embed=True),
     db: AsyncSession = Depends(get_db)
@@ -161,7 +171,9 @@ async def export_evaluation_json(
     }
 
 @router.post("/exports/markdown")
+@limiter.limit("20/minute")
 async def export_evaluation_markdown(
+    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     evaluation_id: str = Body(..., embed=True),
     db: AsyncSession = Depends(get_db)
@@ -188,7 +200,9 @@ async def get_evaluation_charts(
     return await visualization_service.get_chart_data(db, evaluation_id)
 
 @router.get("/search")
+@limiter.limit("30/minute")
 async def global_search(
+    request: Request,
     q: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)

@@ -1,12 +1,14 @@
 from app.core.config import settings
+from app.ai.exceptions.ai_exceptions import AIUnavailableException
 
 class AIRouter:
     @staticmethod
     def route(strategy: str = "auto", preferred: str = None) -> str:
         """
         Routes a request to a provider name based on strategy and availability.
+        Enforces Safeguard #2: Raises AIUnavailableException if no real provider is available in production.
         """
-        if strategy == "user_selected" and preferred:
+        if preferred and preferred != "auto":
             return preferred
 
         # Auto Strategy: check keys & enabled flags
@@ -19,5 +21,8 @@ class AIRouter:
         if settings.CUSTOM_PROVIDER_URL:
             return "custom"
 
-        # Fallback to DEFAULT_PROVIDER
-        return settings.DEFAULT_PROVIDER
+        # Allow mock ONLY in test mode or if explicitly set as DEFAULT_PROVIDER in dev
+        if settings.APP_ENV == "test" or settings.DEFAULT_PROVIDER == "mock":
+            return "mock"
+
+        raise AIUnavailableException("No active AI provider is enabled on this system.")

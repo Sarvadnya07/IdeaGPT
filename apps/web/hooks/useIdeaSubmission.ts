@@ -1,10 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/nextjs";
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
-});
+import { useApiClient } from "@/lib/api/client";
 
 export interface IdeaData {
   id?: string;
@@ -39,20 +34,14 @@ export interface IdeaData {
 }
 
 export const useIdeaSubmission = (projectId: string | null, ideaId: string | null = null) => {
-  const { getToken } = useAuth();
+  const api = useApiClient();
   const queryClient = useQueryClient();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
 
   const ideaQuery = useQuery({
     queryKey: ["idea", ideaId],
     queryFn: async () => {
       if (!ideaId) return null;
-      const headers = await getHeaders();
-      const res = await api.get<IdeaData>(`/ideas/${ideaId}`, { headers });
+      const res = await api.get<IdeaData>(`/ideas/${ideaId}`);
       return res.data;
     },
     enabled: !!ideaId,
@@ -62,8 +51,7 @@ export const useIdeaSubmission = (projectId: string | null, ideaId: string | nul
     queryKey: ["ideas", projectId],
     queryFn: async () => {
       if (!projectId) return [];
-      const headers = await getHeaders();
-      const res = await api.get<IdeaData[]>(`/projects/${projectId}/ideas`, { headers });
+      const res = await api.get<IdeaData[]>(`/projects/${projectId}/ideas`);
       return res.data;
     },
     enabled: !!projectId,
@@ -71,15 +59,14 @@ export const useIdeaSubmission = (projectId: string | null, ideaId: string | nul
 
   const saveIdeaMutation = useMutation({
     mutationFn: async (data: Partial<IdeaData>) => {
-      const headers = await getHeaders();
       if (ideaId) {
         // Update existing
-        const res = await api.patch<IdeaData>(`/ideas/${ideaId}`, data, { headers });
+        const res = await api.patch<IdeaData>(`/ideas/${ideaId}`, data);
         return res.data;
       } else {
         // Create new
         if (!projectId) throw new Error("No project ID for new idea creation");
-        const res = await api.post<IdeaData>(`/projects/${projectId}/ideas`, data, { headers });
+        const res = await api.post<IdeaData>(`/projects/${projectId}/ideas`, data);
         return res.data;
       }
     },
@@ -93,8 +80,7 @@ export const useIdeaSubmission = (projectId: string | null, ideaId: string | nul
     mutationFn: async (targetIdeaId?: string) => {
       const activeId = targetIdeaId || ideaId;
       if (!activeId) throw new Error("No idea ID to evaluate");
-      const headers = await getHeaders();
-      const res = await api.post(`/ideas/${activeId}/evaluations`, { evaluation_type: "startup_evaluation" }, { headers });
+      const res = await api.post(`/ideas/${activeId}/evaluations`, { evaluation_type: "startup_evaluation" });
       return res.data; // returns EvaluationResponse
     },
   });

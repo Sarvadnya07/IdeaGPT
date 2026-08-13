@@ -15,6 +15,7 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.idea import Idea
 from app.models.evaluation import Evaluation
+from app.models.roadmap import Roadmap
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

@@ -1,26 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/nextjs";
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
-});
+import { useApiClient } from "@/lib/api/client";
 
 export const useEvaluationPolling = (jobId: number | null) => {
-  const { getToken } = useAuth();
+  const api = useApiClient();
   const queryClient = useQueryClient();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
 
   const statusQuery = useQuery({
     queryKey: ["evaluationStatus", jobId],
     queryFn: async () => {
       if (!jobId) return null;
-      const headers = await getHeaders();
-      const res = await api.get(`/evaluations/${jobId}/status`, { headers });
+      const res = await api.get(`/evaluations/${jobId}/status`);
       return res.data;
     },
     enabled: !!jobId,
@@ -37,8 +26,7 @@ export const useEvaluationPolling = (jobId: number | null) => {
   const retryMutation = useMutation({
     mutationFn: async () => {
       if (!jobId) throw new Error("No job ID");
-      const headers = await getHeaders();
-      const res = await api.post(`/evaluations/${jobId}/retry`, {}, { headers });
+      const res = await api.post(`/evaluations/${jobId}/retry`);
       return res.data;
     },
     onSuccess: (data) => {

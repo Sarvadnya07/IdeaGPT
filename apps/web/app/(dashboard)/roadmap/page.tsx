@@ -1,333 +1,390 @@
 "use client";
 
 import React, { useState } from "react";
-import { useIdea } from "../../providers";
+import { useProjects } from "../../../hooks/useProjects";
+import { useRoadmaps, Milestone, Task, Roadmap } from "../../../hooks/useRoadmaps";
 import {
   Map,
-  Share2,
-  Edit2,
-  CheckSquare,
-  Square,
-  AlertOctagon,
-  Calendar,
-  Layers,
+  Plus,
+  Loader2,
+  Trash2,
+  CheckCircle2,
+  Circle,
+  Clock,
   ChevronRight,
+  Sparkles,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface TaskItem {
-  id: string;
-  name: string;
-  done: boolean;
-}
-
-interface Phase {
-  number: number;
-  title: string;
-  status: "In Progress" | "Upcoming" | "Completed";
-  timeline: string;
-  description: string;
-  progress: number;
-  tasks: TaskItem[];
-}
-
 export default function RoadmapPage() {
-  const { idea } = useIdea();
+  const { projectsQuery } = useProjects();
+  const projects = projectsQuery.data?.items || [];
+  
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
 
-  // Dynamic roadmap title
-  const roadmapName = idea.title === "Nexus Protocol" ? "Project Genesis" : `${idea.title} Roadmap`;
+  // Default to first project if available and none selected
+  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : null);
+  const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  // Local state for interactive checkboxes in roadmap
-  const [phases, setPhases] = useState<Phase[]>([
-    {
-      number: 1,
-      title: "MVP Development",
-      status: "In Progress",
-      timeline: "Q3 2024 - Q2 2025",
-      description: "Core functionality focusing on data ingestion and basic generative outputs. Validating core assumptions.",
-      progress: 65,
-      tasks: [
-        { id: "1-1", name: "Database Schema & Auth Setup", done: true },
-        { id: "1-2", name: "API Integration (OpenAI / Claude)", done: true },
-        { id: "1-3", name: "Basic UI/Dashboard Implementation", done: false },
-      ],
-    },
-    {
-      number: 2,
-      title: "Closed Beta & Refinement",
-      status: "Upcoming",
-      timeline: "Q3 2025 - Q4 2025",
-      description: "Onboarding first 50 early adopters. Refining UX and improving generation latency.",
-      progress: 0,
-      tasks: [
-        { id: "2-1", name: "User Feedback Loop System", done: false },
-        { id: "2-2", name: "Latency Optimization (< 2s)", done: false },
-      ],
-    },
-    {
-      number: 3,
-      title: "Public Launch & Scaling",
-      status: "Upcoming",
-      timeline: "Q1 2026 - Q2 2026",
-      description: "Marketing push, self-serve onboarding, and infrastructure scaling to handle 10k+ concurrent users.",
-      progress: 0,
-      tasks: [
-        { id: "3-1", name: "Automated Billing & Stripe setup", done: false },
-        { id: "3-2", name: "Multi-region CDN deployment", done: false },
-      ],
-    },
-  ]);
+  const { roadmapsQuery, createRoadmap, updateRoadmap, deleteRoadmap } = useRoadmaps(activeProjectId);
+  const roadmaps = roadmapsQuery.data || [];
+  const activeRoadmap = roadmaps.length > 0 ? roadmaps[0] : null;
 
-  const toggleTask = (phaseIndex: number, taskIndex: number) => {
-    setPhases((prev) => {
-      const copy = [...prev];
-      const task = copy[phaseIndex].tasks[taskIndex];
-      task.done = !task.done;
+  // New Milestone Form State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [milestoneTitle, setMilestoneTitle] = useState("");
+  const [milestoneObjective, setMilestoneObjective] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDays, setTaskDays] = useState<number>(3);
 
-      // Recalculate progress for this phase
-      const completedCount = copy[phaseIndex].tasks.filter((t) => t.done).length;
-      copy[phaseIndex].progress = Math.round(
-        (completedCount / copy[phaseIndex].tasks.length) * 100
-      );
+  const handleCreateRoadmap = async () => {
+    if (!activeProjectId) return;
+    try {
+      const initialMilestones: Milestone[] = [
+        {
+          title: "Phase 1: Foundation & Architecture",
+          objective: "Establish core project infrastructure and database models",
+          tasks: [
+            { title: "Define Database Schemas & Migrations", estimated_days: 2, status: "completed" },
+            { title: "Setup Authentication & User Sync", estimated_days: 3, status: "completed" },
+            { title: "Configure API Routes & Middleware", estimated_days: 2, status: "in_progress" },
+          ],
+        },
+        {
+          title: "Phase 2: MVP Execution",
+          objective: "Deliver key evaluation feature set and analytics",
+          tasks: [
+            { title: "Integrate AI Provider Pipeline", estimated_days: 5, status: "pending" },
+            { title: "Build Interactive Analysis Dashboard", estimated_days: 4, status: "pending" },
+          ],
+        },
+      ];
 
-      if (copy[phaseIndex].progress === 100) {
-        copy[phaseIndex].status = "Completed";
-      } else if (copy[phaseIndex].progress > 0) {
-        copy[phaseIndex].status = "In Progress";
-      } else {
-        copy[phaseIndex].status = "Upcoming";
+      await createRoadmap.mutateAsync({
+        milestones: initialMilestones,
+        status: "active",
+      });
+      toast.success("Product roadmap initialized!");
+    } catch (err) {
+      toast.error("Failed to create roadmap.");
+    }
+  };
+
+  const handleAddMilestone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeRoadmap || !milestoneTitle.trim()) return;
+
+    const newMilestone: Milestone = {
+      title: milestoneTitle,
+      objective: milestoneObjective || "Milestone objective",
+      tasks: taskTitle.trim()
+        ? [{ title: taskTitle, estimated_days: taskDays, status: "pending" }]
+        : [],
+    };
+
+    const updatedMilestones = [...activeRoadmap.milestones, newMilestone];
+
+    try {
+      await updateRoadmap.mutateAsync({
+        roadmapId: activeRoadmap.id,
+        data: { milestones: updatedMilestones },
+      });
+      toast.success("Milestone added to roadmap!");
+      setIsModalOpen(false);
+      setMilestoneTitle("");
+      setMilestoneObjective("");
+      setTaskTitle("");
+    } catch (err) {
+      toast.error("Failed to update roadmap.");
+    }
+  };
+
+  const handleToggleTaskStatus = async (milestoneIdx: number, taskIdx: number) => {
+    if (!activeRoadmap) return;
+
+    const updatedMilestones = JSON.parse(JSON.stringify(activeRoadmap.milestones)) as Milestone[];
+    const currentStatus = updatedMilestones[milestoneIdx].tasks[taskIdx].status;
+
+    const nextStatus: Task["status"] =
+      currentStatus === "pending"
+        ? "in_progress"
+        : currentStatus === "in_progress"
+        ? "completed"
+        : "pending";
+
+    updatedMilestones[milestoneIdx].tasks[taskIdx].status = nextStatus;
+
+    try {
+      await updateRoadmap.mutateAsync({
+        roadmapId: activeRoadmap.id,
+        data: { milestones: updatedMilestones },
+      });
+    } catch (err) {
+      toast.error("Failed to update task status.");
+    }
+  };
+
+  const handleDeleteRoadmap = async () => {
+    if (!activeRoadmap) return;
+    if (confirm("Are you sure you want to delete this roadmap?")) {
+      try {
+        await deleteRoadmap.mutateAsync(activeRoadmap.id);
+        toast.success("Roadmap deleted.");
+      } catch (err) {
+        toast.error("Failed to delete roadmap.");
       }
-
-      return copy;
-    });
-    toast.success("Task status updated!");
+    }
   };
 
   return (
-    <div className="space-y-8 py-4 select-none">
-      {/* Title Segment */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-900 pb-6">
-        <div className="space-y-2">
-          <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest block">
-            Roadmaps
-          </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
-            {roadmapName}
-          </h1>
-          <p className="text-sm text-zinc-400 max-w-2xl leading-relaxed">
-            Strategic implementation timeline and milestone tracking for your AI-driven validated idea. Execution prioritized for market entry.
+    <div className="space-y-8 py-4 select-none max-w-6xl mx-auto">
+      {/* Top Heading & Project Selector */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-900 pb-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <Map className="w-4 h-4" />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Product Roadmaps</h1>
+          </div>
+          <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
+            Track execution timelines, milestones, and task statuses across your projects.
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => toast.success("Roadmap exported!")}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-zinc-300 bg-[#0c0c0e] border border-zinc-800 hover:bg-zinc-800 active:scale-95 rounded-xl transition-all"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            Export
-          </button>
-          <button
-            onClick={() => toast.success("Phase edit modes opened!")}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:scale-95 rounded-xl transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)]"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            Edit Phases
-          </button>
-        </div>
+        {/* Project Dropdown */}
+        {projects.length > 0 && (
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Project:</label>
+            <select
+              value={activeProjectId || ""}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="bg-[#0b0b0d] border border-zinc-800 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
-      {/* Primary Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Vertical Timeline Phases */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-            <div className="flex items-center justify-between border-b border-zinc-900/60 pb-4 mb-6">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Implementation Phases
-              </h3>
-              <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wide">
-                Q3 2024 - Q2 2026
+      {/* Loading State */}
+      {projectsQuery.isLoading || roadmapsQuery.isLoading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        </div>
+      ) : projects.length === 0 ? (
+        /* Empty State: No Projects */
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <Layers className="w-12 h-12 text-zinc-700 mb-2" />
+          <h3 className="text-lg font-bold text-white">No Projects Available</h3>
+          <p className="text-xs text-zinc-500 max-w-md">
+            Create your first project from the dashboard before generating a product roadmap.
+          </p>
+        </div>
+      ) : !activeRoadmap ? (
+        /* Empty State: Project Has No Roadmap */
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 mb-2">
+            <Sparkles className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-white">No Roadmap for {activeProject?.title}</h3>
+          <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
+            Initialize an active execution roadmap with key phases, objectives, and task trackers.
+          </p>
+          <button
+            onClick={handleCreateRoadmap}
+            disabled={createRoadmap.isPending}
+            className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-2"
+          >
+            {createRoadmap.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" />
+            )}
+            Initialize Roadmap
+          </button>
+        </div>
+      ) : (
+        /* Populated State: Active Roadmap View */
+        <div className="space-y-6">
+          {/* Action Header */}
+          <div className="flex items-center justify-between bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-4 px-6">
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Status:</span>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                {activeRoadmap.status}
+              </span>
+              <span className="text-xs text-zinc-600">
+                • {activeRoadmap.milestones.length} Milestones
               </span>
             </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Milestone
+              </button>
+              <button
+                onClick={handleDeleteRoadmap}
+                className="p-1.5 rounded-lg hover:bg-red-500/10 text-zinc-500 hover:text-red-400 border border-transparent hover:border-red-500/20 transition-all"
+                title="Delete Roadmap"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
 
-            {/* Vertical timeline line */}
-            <div className="relative pl-6 border-l border-zinc-800 space-y-8 py-2 ml-3">
-              {phases.map((phase, pIdx) => (
-                <div key={phase.number} className="relative">
-                  {/* Outer Timeline Dot Indicator */}
-                  <span className="absolute -left-[31px] top-1 flex items-center justify-center w-[11px] h-[11px] rounded-full bg-zinc-950 border border-zinc-800">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        phase.status === "Completed"
-                          ? "bg-green-500"
-                          : phase.status === "In Progress"
-                          ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)] animate-pulse"
-                          : "bg-zinc-700"
-                      }`}
-                    ></span>
-                  </span>
-
-                  {/* Phase Details Card */}
-                  <div className="bg-[#070709] border border-zinc-900/60 rounded-xl p-5 space-y-4 hover:border-zinc-800 transition-all">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
-                          Phase {phase.number}
-                        </span>
-                        <h4 className="text-sm font-bold text-white mt-0.5">
-                          {phase.title}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {/* Phase Status tag */}
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                            phase.status === "Completed"
-                              ? "bg-green-500/10 border-green-500/20 text-green-400"
-                              : phase.status === "In Progress"
-                              ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
-                              : "bg-zinc-900 border-zinc-800 text-zinc-400"
-                          }`}
-                        >
-                          {phase.status}
-                        </span>
-                        <span className="text-[10px] font-semibold text-zinc-600 flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {phase.timeline}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-[11px] text-zinc-500 leading-relaxed font-medium">
-                      {phase.description}
+          {/* Timeline Milestones */}
+          <div className="space-y-6">
+            {activeRoadmap.milestones.map((milestone, mIdx) => (
+              <div
+                key={mIdx}
+                className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)] space-y-4"
+              >
+                <div className="flex items-start justify-between border-b border-zinc-900/60 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs font-black">
+                        {mIdx + 1}
+                      </span>
+                      {milestone.title}
+                    </h3>
+                    <p className="text-xs text-zinc-500 mt-1 font-medium leading-relaxed">
+                      {milestone.objective}
                     </p>
-
-                    {/* Progress tracking details */}
-                    {phase.status !== "Upcoming" && (
-                      <div className="space-y-1.5 border-t border-zinc-900/60 pt-3">
-                        <div className="flex justify-between text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                          <span>Progress</span>
-                          <span>{phase.progress}%</span>
-                        </div>
-                        <div className="w-full h-1 bg-zinc-900 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-indigo-500 rounded-full transition-all duration-300"
-                            style={{ width: `${phase.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Task checklist selection */}
-                    <div className="space-y-2 border-t border-zinc-900/60 pt-3">
-                      {phase.tasks.map((task, tIdx) => (
-                        <div
-                          key={task.id}
-                          onClick={() => toggleTask(pIdx, tIdx)}
-                          className="flex items-center gap-2.5 text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer select-none py-1 group"
-                        >
-                          {task.done ? (
-                            <CheckSquare className="w-4 h-4 text-indigo-400 shrink-0" />
-                          ) : (
-                            <Square className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 shrink-0" />
-                          )}
-                          <span className={task.done ? "line-through text-zinc-600 font-medium" : "font-medium"}>
-                            {task.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Tasks List */}
+                <div className="space-y-2 pt-2">
+                  {milestone.tasks.length === 0 ? (
+                    <div className="text-xs text-zinc-600 italic">No tasks listed for this milestone.</div>
+                  ) : (
+                    milestone.tasks.map((task, tIdx) => (
+                      <div
+                        key={tIdx}
+                        onClick={() => handleToggleTaskStatus(mIdx, tIdx)}
+                        className="flex items-center justify-between p-3 bg-[#070709] border border-zinc-900 rounded-xl hover:border-zinc-800 transition-all cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3">
+                          {task.status === "completed" ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          ) : task.status === "in_progress" ? (
+                            <Clock className="w-4 h-4 text-indigo-400 shrink-0 animate-pulse" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-zinc-600 shrink-0 group-hover:text-zinc-400" />
+                          )}
+                          <span
+                            className={`text-xs font-semibold ${
+                              task.status === "completed"
+                                ? "text-zinc-500 line-through"
+                                : "text-zinc-200"
+                            }`}
+                          >
+                            {task.title}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          {task.estimated_days && (
+                            <span className="text-[10px] text-zinc-600 font-medium">
+                              {task.estimated_days}d est.
+                            </span>
+                          )}
+                          <span
+                            className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${
+                              task.status === "completed"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : task.status === "in_progress"
+                                ? "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                                : "bg-zinc-900 text-zinc-500 border-zinc-800"
+                            }`}
+                          >
+                            {task.status.replace("_", " ")}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Right Column: MVP Scope and Key Risks */}
-        <div className="space-y-6">
-          {/* MVP Feature Scope Card */}
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-zinc-900/60 pb-3 mb-4 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-400" />
-              MVP Feature Scope
-            </h3>
-
-            <div className="space-y-4">
-              {/* Feature 1 */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Core Data Ingestion</span>
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold bg-red-500/10 border border-red-500/20 text-red-400">
-                    P0
-                  </span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  CSV/JSON upload and basic parsing logic.
-                </p>
+      {/* Add Milestone Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-[#0b0b0d] border border-zinc-800 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-white">Add Milestone</h3>
+            <form onSubmit={handleAddMilestone} className="space-y-4">
+              <div>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">
+                  Milestone Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Phase 3: Scaling & Analytics"
+                  value={milestoneTitle}
+                  onChange={(e) => setMilestoneTitle(e.target.value)}
+                  className="w-full bg-[#070709] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              {/* Feature 2 */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Basic Report Gen</span>
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    P1
-                  </span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  Standardized PDF export of analysis.
-                </p>
+              <div>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">
+                  Objective
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Implement multi-region caching and load testing"
+                  value={milestoneObjective}
+                  onChange={(e) => setMilestoneObjective(e.target.value)}
+                  className="w-full bg-[#070709] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              {/* Feature 3 */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Dark Mode UI</span>
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[8px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-400">
-                    P2
-                  </span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  Theming support for user preferences.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Key Risks Card */}
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider border-b border-zinc-900/60 pb-3 mb-4 flex items-center gap-2">
-              <AlertOctagon className="w-4 h-4 text-orange-400" />
-              Key Risks
-            </h3>
-
-            <div className="space-y-4">
-              {/* Risk 1 */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-orange-400">API Rate Limits</span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  <span className="text-zinc-300 font-semibold">Mitigation:</span> Implement queues and local cache layer in Phase 2.
-                </p>
+              <div>
+                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">
+                  Initial Task
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Setup Redis cluster"
+                  value={taskTitle}
+                  onChange={(e) => setTaskTitle(e.target.value)}
+                  className="w-full bg-[#070709] border border-zinc-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                />
               </div>
 
-              {/* Risk 2 */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-400">User Retention</span>
-                </div>
-                <p className="text-[10px] text-zinc-500 leading-relaxed font-medium">
-                  <span className="text-zinc-300 font-semibold">Mitigation:</span> Focus on immediate value delivery in the initial MVP output.
-                </p>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateRoadmap.isPending}
+                  className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all"
+                >
+                  {updateRoadmap.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Milestone"}
+                </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

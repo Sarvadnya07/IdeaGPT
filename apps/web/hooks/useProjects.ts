@@ -1,16 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/nextjs";
-import axios from "axios";
-
-// Setup axios instance with dynamic token
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
-});
-
-api.interceptors.request.use(async (config) => {
-  // We can inject the clerk token here, but it's easier to pass it from the hook
-  return config;
-});
+import { useApiClient } from "@/lib/api/client";
 
 export interface Project {
   id: string;
@@ -45,18 +34,12 @@ export const useProjects = (
     sort_by?: string;
   } = {}
 ) => {
-  const { getToken } = useAuth();
+  const api = useApiClient();
   const queryClient = useQueryClient();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
 
   const projectsQuery = useQuery({
     queryKey: ["projects", options],
     queryFn: async () => {
-      const headers = await getHeaders();
       const params = new URLSearchParams();
       if (options.limit) params.append("limit", options.limit.toString());
       if (options.offset) params.append("offset", options.offset.toString());
@@ -68,15 +51,14 @@ export const useProjects = (
         params.append("is_pinned", options.is_pinned.toString());
       if (options.sort_by) params.append("sort_by", options.sort_by);
 
-      const res = await api.get<PaginatedProjects>(`/projects/?${params.toString()}`, { headers });
+      const res = await api.get<PaginatedProjects>(`/projects/?${params.toString()}`);
       return res.data;
     },
   });
 
   const createProject = useMutation({
     mutationFn: async (data: Partial<Project>) => {
-      const headers = await getHeaders();
-      const res = await api.post<Project>("/projects/", data, { headers });
+      const res = await api.post<Project>("/projects/", data);
       return res.data;
     },
     onSuccess: () => {
@@ -86,8 +68,7 @@ export const useProjects = (
 
   const updateProject = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Project> }) => {
-      const headers = await getHeaders();
-      const res = await api.patch<Project>(`/projects/${id}`, data, { headers });
+      const res = await api.patch<Project>(`/projects/${id}`, data);
       return res.data;
     },
     onSuccess: () => {
@@ -97,8 +78,7 @@ export const useProjects = (
   
   const togglePin = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      const res = await api.patch<Project>(`/projects/${id}/pin`, {}, { headers });
+      const res = await api.patch<Project>(`/projects/${id}/pin`);
       return res.data;
     },
     onSuccess: () => {
@@ -108,8 +88,7 @@ export const useProjects = (
   
   const toggleArchive = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      const res = await api.patch<Project>(`/projects/${id}/archive`, {}, { headers });
+      const res = await api.patch<Project>(`/projects/${id}/archive`);
       return res.data;
     },
     onSuccess: () => {
@@ -119,8 +98,7 @@ export const useProjects = (
 
   const deleteProject = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      await api.delete(`/projects/${id}`, { headers });
+      await api.delete(`/projects/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
@@ -129,8 +107,7 @@ export const useProjects = (
 
   const duplicateProject = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      const res = await api.post<Project>(`/projects/${id}/duplicate`, {}, { headers });
+      const res = await api.post<Project>(`/projects/${id}/duplicate`);
       return res.data;
     },
     onSuccess: () => {

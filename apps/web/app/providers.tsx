@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "next-themes";
-import { ClerkProvider } from "@clerk/nextjs";
 import { ModalProvider } from "../providers/ModalProvider";
 
 // Mock idea context to prevent existing pages from breaking
@@ -63,17 +62,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ClerkProvider>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-        <QueryClientProvider client={queryClient}>
-          <IdeaContext.Provider value={{ idea, setIdea, isAnalyzing, setIsAnalyzing }}>
-            <ModalProvider>
-              {children}
-              <Toaster theme="system" position="top-right" closeButton richColors />
-            </ModalProvider>
-          </IdeaContext.Provider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </ClerkProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={queryClient}>
+        <IdeaContext.Provider value={{ idea, setIdea, isAnalyzing, setIsAnalyzing }}>
+          <ModalProvider>
+            {children}
+            <Toaster theme="system" position="top-right" closeButton richColors />
+          </ModalProvider>
+        </IdeaContext.Provider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

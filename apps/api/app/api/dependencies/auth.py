@@ -28,7 +28,7 @@ Logging rules:
 
 import logging
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -51,6 +51,7 @@ clerk_auth = ClerkAuth()
 
 
 async def get_current_user(
+    request: Request,
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_http_bearer)],
     db: AsyncSession = Depends(get_db),
 ) -> User:
@@ -114,6 +115,8 @@ async def get_current_user(
             detail="Internal server error",
         )
 
+    request.state.user_id = str(user.id)
+    request.state.clerk_id = clerk_id
     return user
 
 

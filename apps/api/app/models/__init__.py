@@ -3,5 +3,7 @@ from app.models.project import Project
 from app.models.idea import Idea
 from app.models.evaluation import Evaluation
 from app.models.evaluation_history import EvaluationHistory
+from app.models.roadmap import Roadmap
+from app.models.ai_task import AiTask
 
-__all__ = ["User", "Project", "Idea", "Evaluation", "EvaluationHistory"]
+__all__ = ["User", "Project", "Idea", "Evaluation", "EvaluationHistory", "Roadmap", "AiTask"]
