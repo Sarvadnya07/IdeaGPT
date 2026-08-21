@@ -31,14 +31,18 @@
 
 - **🧠 Automated Idea Analysis:** Instantly evaluate technical complexity, time-to-market metrics, and strategic strengths/weaknesses.
 - **📂 Isolated Workspaces:** Fully paginated, searchable, and isolated project domains.
-- **🤖 Provider-Agnostic AI Orchestrator:** Seamlessly integrates with OpenAI, Gemini, and Ollama through a decoupled Backend Registry.
-- **🔒 Enterprise-Grade Security:** Strict multi-tenant data isolation via PostgreSQL and secure JWT-based session management through Clerk.
+- **🤖 Provider-Agnostic AI Orchestrator:** Seamlessly integrates with Groq (Llama 3.3), OpenAI, Gemini, and Ollama with dynamic model discovery and cached fallback routing.
+- **⚖️ Idea Benchmarking Engine:** Side-by-side comparative matrices evaluating 2–5 ideas with score deltas and ranking.
+- **📊 Platform Analytics & Velocity:** Real-time metrics on project velocity, evaluation score distributions, and dimensional criteria averages.
+- **🛠️ Tech Stack Architect:** 5-layer tailored recommendations across Frontend, Backend, Database, AI, and DevOps with architectural trade-offs.
+- **🏛️ Architecture Blueprints Studio:** System topologies, Mermaid data flow diagrams, RESTful API registries, and database ER models.
+- **📋 PRD & Pitch Deck Generator:** Automated Product Requirements Documents and 10-slide VC pitch deck outlines with Markdown/JSON exports.
+- **📑 Saved Reports & Exports Hub:** Instant preview, clipboard copy, and `.md` / `.json` downloads for all evaluations.
 - **🗺️ Intelligent Roadmapping:** Project-specific milestone timelines, objectives, and task trackers backed by PostgreSQL.
-- **⚙️ Identity-Safe Profile Management:** User settings wired to FastAPI endpoints with Clerk authentication safeguards.
+- **🔒 Enterprise-Grade Security:** Strict multi-tenant data isolation via PostgreSQL and secure JWT-based session management through Clerk.
 
-### 🚧 Planned Features
-- **📊 Advanced Analytics:** Deep insights reporting for venture evaluation.
-- **🛠️ Tech Stack Recommendations & PRD Generation:** Automated project specs and pitch deck generation.
+### 🚧 Future Vision & Roadmap
+- **🤝 Extended Simulations:** AI Mentor, Recruiter Sim, GitHub Lab, and Strategy Lab (see [FUTURE_SCOPE.md](./FUTURE_SCOPE.md)).
 
 ---
 
@@ -55,10 +59,10 @@
 ## 🛠️ Tech Stack
 
 **Frontend Environment:**
-- **Framework:** Next.js 14+ (App Router)
+- **Framework:** Next.js 16+ (React 19, App Router, Turbopack)
 - **Language:** TypeScript
 - **Styling:** TailwindCSS, Framer Motion
-- **State Management:** Zustand, TanStack React Query
+- **State Management:** TanStack React Query v5, Zustand
 - **Authentication:** Clerk
 
 **Backend Environment:**

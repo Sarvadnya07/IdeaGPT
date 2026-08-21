@@ -146,3 +146,97 @@ async def get_ai_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="AI task not found or access denied."
         )
+
+# ---------------------------------------------------------------------------
+# Architecture, Tech Stack, PRD & Pitch Deck Endpoints
+# ---------------------------------------------------------------------------
+
+class TechStackRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    focus: Optional[str] = Field(default="balanced", max_length=50)
+
+class ArchitectureRequest(BaseModel):
+    title: str = Field(default="Startup System", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    description: Optional[str] = Field(default="", max_length=1000)
+
+class PRDRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    problem_statement: Optional[str] = Field(default="", max_length=2000)
+    solution_description: Optional[str] = Field(default="", max_length=2000)
+    target_users: Optional[str] = Field(default="", max_length=500)
+
+class PitchDeckRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    problem: Optional[str] = Field(default="", max_length=2000)
+    solution: Optional[str] = Field(default="", max_length=2000)
+
+@router.post("/tech-stack", summary="Generate tailored technology stack recommendations")
+async def generate_tech_stack(
+    payload: TechStackRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates deterministic tech stack recommendations across Frontend, Backend, Database, AI, and DevOps layers.
+    """
+    from app.services.architecture_service import architecture_service
+    return architecture_service.generate_tech_stack(
+        category=payload.category,
+        title=payload.title,
+        requirements_focus=payload.focus or "balanced"
+    )
+
+@router.post("/architecture", summary="Generate system architecture blueprint and topology")
+async def generate_architecture(
+    payload: ArchitectureRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates system topology, database ER schema, API specs, and security blueprints.
+    """
+    from app.services.architecture_service import architecture_service
+    return architecture_service.generate_architecture_blueprint(
+        title=payload.title,
+        category=payload.category,
+        description=payload.description or ""
+    )
+
+@router.post("/prd", summary="Generate Product Requirements Document (PRD)")
+async def generate_prd(
+    payload: PRDRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs.
+    """
+    from app.services.architecture_service import architecture_service
+    return architecture_service.generate_prd(
+        title=payload.title,
+        category=payload.category,
+        problem_statement=payload.problem_statement or "Founders lack rapid technical feasibility validation.",
+        solution_description=payload.solution_description or "Automated AI co-founder that scopes architectures and analyzes risk.",
+        target_users=payload.target_users or "Startup Founders, Product Managers, Software Engineers"
+    )
+
+@router.post("/pitch-deck", summary="Generate 10-slide startup pitch deck outline")
+async def generate_pitch_deck(
+    payload: PitchDeckRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates a structured 10-slide venture pitch deck outline.
+    """
+    from app.services.architecture_service import architecture_service
+    return {
+        "title": payload.title,
+        "category": payload.category,
+        "slides": architecture_service.generate_pitch_deck_outline(
+            title=payload.title,
+            category=payload.category,
+            problem=payload.problem or "",
+            solution=payload.solution or ""
+        )
+    }

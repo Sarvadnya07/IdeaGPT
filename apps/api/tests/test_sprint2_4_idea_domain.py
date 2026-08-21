@@ -352,3 +352,113 @@ async def test_global_search_idea_matching_and_user_isolation():
         results_a2 = res_sa2.json()["results"]
         titles_a2 = [r["title"] for r in results_a2]
         assert "Quantum Fusion Reactor" not in titles_a2, "Soft-deleted project ideas must be excluded from search"
+
+
+# ============================================================
+# 6. CQ-01 STRUCTURED METADATA PERSISTENCE & EVALUATION CONTEXT
+# ============================================================
+
+@pytest.mark.asyncio
+async def test_idea_cq01_structured_metadata_persistence_and_evaluation_context():
+    """
+    CQ-01 Regression Test:
+    Verifies that structured idea definitions (including custom USP, tech stack,
+    budget, timeline serialized into notes JSON) are:
+      1. Successfully persisted via POST /api/v1/projects/{id}/ideas
+      2. Accurately retrieved via GET /api/v1/ideas/{id}
+      3. Accurately updated via PATCH /api/v1/ideas/{id}
+      4. Fully retained upon POST /api/v1/ideas/{id}/duplicate
+      5. Accessible to ContextBuilder for AI evaluation pipeline
+    """
+    import json
+    from app.ai.pipelines.context import ContextBuilder
+
+    token = _make_token("user_cq01_test_001")
+    headers = {"Authorization": f"Bearer {token}"}
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Create parent project
+        res_p = await ac.post("/api/v1/projects/", json={"title": "CQ-01 Test Project"}, headers=headers)
+        proj_id = res_p.json()["id"]
+
+        custom_notes = json.dumps({
+            "usp": "10x faster deterministic evaluation engine",
+            "tech_stack": "Next.js 14, FastAPI, PostgreSQL, Asyncpg",
+            "budget": "$15,000",
+            "timeline": "Q4 2026"
+        })
+
+        # 1. Create Idea with structured notes metadata
+        res_create = await ac.post(
+            f"/api/v1/projects/{proj_id}/ideas",
+            json={
+                "title": "Autonomous DevOps Agent",
+                "problem_statement": "Infrastructure deployment requires manual configuration and debugging.",
+                "solution_description": "An autonomous AI agent managing Terraform, Docker, and Kubernetes deployment workflows.",
+                "target_users": "DevOps Engineers and Platform Architects",
+                "industry": "DevOps / Cloud Infrastructure",
+                "business_model": "Usage-based B2B SaaS",
+                "stage": "MVP",
+                "tags": "devops,ai-agents,cloud",
+                "notes": custom_notes,
+                "is_draft": True
+            },
+            headers=headers
+        )
+        assert res_create.status_code == 200
+        created_data = res_create.json()
+        idea_id = created_data["id"]
+
+        # Verify initial persistence
+        assert created_data["title"] == "Autonomous DevOps Agent"
+        assert created_data["target_users"] == "DevOps Engineers and Platform Architects"
+        assert created_data["notes"] == custom_notes
+
+        # 2. Retrieve Idea
+        res_get = await ac.get(f"/api/v1/ideas/{idea_id}", headers=headers)
+        assert res_get.status_code == 200
+        get_data = res_get.json()
+        parsed_notes = json.loads(get_data["notes"])
+        assert parsed_notes["usp"] == "10x faster deterministic evaluation engine"
+        assert parsed_notes["tech_stack"] == "Next.js 14, FastAPI, PostgreSQL, Asyncpg"
+        assert parsed_notes["budget"] == "$15,000"
+        assert parsed_notes["timeline"] == "Q4 2026"
+
+        # 3. Update Idea
+        updated_notes = json.dumps({
+            "usp": "10x faster deterministic evaluation engine with real-time audit",
+            "tech_stack": "Next.js 14, FastAPI, PostgreSQL, Asyncpg, Redis",
+            "budget": "$25,000",
+            "timeline": "Q1 2027"
+        })
+        res_patch = await ac.patch(
+            f"/api/v1/ideas/{idea_id}",
+            json={
+                "notes": updated_notes,
+                "stage": "Beta"
+            },
+            headers=headers
+        )
+        assert res_patch.status_code == 200
+        patch_data = res_patch.json()
+        assert patch_data["stage"] == "Beta"
+        assert patch_data["notes"] == updated_notes
+
+        # 4. Duplicate Idea
+        res_dup = await ac.post(f"/api/v1/ideas/{idea_id}/duplicate", headers=headers)
+        assert res_dup.status_code == 200
+        dup_data = res_dup.json()
+        assert dup_data["id"] != idea_id
+        assert dup_data["title"] == "Autonomous DevOps Agent (Copy)"
+        assert dup_data["notes"] == updated_notes, "Duplication must retain full structured notes metadata"
+        assert dup_data["target_users"] == "DevOps Engineers and Platform Architects"
+
+        # 5. Verify ContextBuilder evaluation context integration
+        async with AsyncSessionLocal() as db:
+            context = await ContextBuilder.build_context(db, idea_id)
+            assert context["idea_id"] == idea_id
+            assert context["idea_title"] == "Autonomous DevOps Agent"
+            assert context["target_users"] == "DevOps Engineers and Platform Architects"
+            assert context["notes"] == updated_notes
+            parsed_eval_notes = json.loads(context["notes"])
+            assert parsed_eval_notes["budget"] == "$25,000"
