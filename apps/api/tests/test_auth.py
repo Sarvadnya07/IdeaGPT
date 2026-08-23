@@ -76,7 +76,7 @@ def _make_token(
         if "iss" in extra_claims and extra_claims["iss"] is None:
             payload.pop("iss", None)
 
-    signing_secret = "wrong-secret-that-will-fail" if sign_with_wrong_secret else secret
+    signing_secret = "wrong-secret-that-will-fail-and-is-32-bytes!" if sign_with_wrong_secret else secret
     return pyjwt.encode(payload, signing_secret, algorithm=algorithm)
 
 
@@ -164,7 +164,7 @@ async def test_07_token_missing_sub():
 @pytest.mark.asyncio
 async def test_08_forged_token_wrong_secret():
     """Token signed with a completely different secret → 401."""
-    token = _make_token(secret="attacker-controlled-secret")
+    token = _make_token(secret="attacker-controlled-secret-that-is-32b!")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.get(PROTECTED_URL, headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 401, f"Forged token must be rejected, got {res.status_code}"
@@ -409,13 +409,13 @@ def test_18_test_mode_requires_both_flags():
     try:
         with patch("app.core.security.settings") as mock_settings:
             mock_settings.APP_ENV = "production"   # NOT test
-            mock_settings.CLERK_JWT_TEST_SECRET = "some-secret"
+            mock_settings.CLERK_JWT_TEST_SECRET = "some-secret-key-that-is-32-bytes-long!"
             # Provide a real JWKS URL so _get_jwks_client() succeeds
             mock_settings.clerk_jwks_url = settings.clerk_jwks_url
 
             auth = ClerkAuth()
             # HS256 token signed with the "test" secret — must NOT be accepted
-            token = _make_token(secret="some-secret")
+            token = _make_token(secret="some-secret-key-that-is-32-bytes-long!")
 
             async def _run():
                 return await auth.verify_token(token)
@@ -435,7 +435,7 @@ def test_18_test_mode_requires_both_flags():
                 # would have been ACCEPTED by the HS256 path (i.e., the secret is correct)
                 if exc.status_code == 401:
                     valid_in_test_mode = pyjwt.decode(
-                        token, "some-secret", algorithms=["HS256"]
+                        token, "some-secret-key-that-is-32-bytes-long!", algorithms=["HS256"]
                     )
                     assert valid_in_test_mode.get("sub") is not None, (
                         "Token is valid under HS256 but was correctly rejected in production mode"

@@ -147,6 +147,68 @@ async def get_ai_task(
             detail="AI task not found or access denied."
         )
 
+@router.get("/tasks/{task_id}/stream", summary="Stream AI task lifecycle events via Server-Sent Events (SSE)")
+async def stream_ai_task(
+    task_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Streams task status and incremental progress updates in real-time via Server-Sent Events (SSE).
+    Terminates when the task reaches COMPLETED, FAILED, or CANCELLED, or on client disconnect / timeout.
+    """
+    import asyncio
+    import json
+    from fastapi.responses import StreamingResponse
+    from app.db.session import AsyncSessionLocal
+
+    async def event_generator():
+        # First verify user ownership
+        try:
+            task = await AiTaskService.get_task_by_id(db, current_user, task_id)
+        except KeyError:
+            yield f"event: error\ndata: {json.dumps({'error': 'AI task not found or access denied.'})}\n\n"
+            return
+
+        max_polls = 60  # 60 * 0.5s = 30s timeout
+        for _ in range(max_polls):
+            try:
+                async with AsyncSessionLocal() as session:
+                    task = await AiTaskService.get_task_by_id(session, current_user, task_id)
+
+                payload = {
+                    "id": task.id,
+                    "task_type": task.task_type,
+                    "status": task.status,
+                    "provider": task.provider,
+                    "model": task.model,
+                    "duration_ms": task.duration_ms,
+                    "error_message": task.error_message,
+                    "result_payload": task.result_payload if task.status == "COMPLETED" else None,
+                }
+
+                yield f"event: task_update\ndata: {json.dumps(payload)}\n\n"
+
+                if task.status in ("COMPLETED", "FAILED", "CANCELLED"):
+                    yield f"event: done\ndata: {json.dumps({'status': task.status})}\n\n"
+                    break
+
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+                break
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
 # ---------------------------------------------------------------------------
 # Architecture, Tech Stack, PRD & Pitch Deck Endpoints
 # ---------------------------------------------------------------------------
