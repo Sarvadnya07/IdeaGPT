@@ -134,10 +134,24 @@ class AiTaskService:
         return task
 
     @classmethod
-    async def execute_task(cls, db: AsyncSession, task_id: str) -> AiTask:
+    async def execute_task(cls, first_arg: Any, second_arg: Optional[str] = None) -> AiTask:
         """
         Executes an AI task asynchronously with bounded retries and timeouts.
+        Supports both execute_task(task_id) for background tasks with isolated session,
+        and legacy execute_task(db, task_id) for synchronous test suites.
         """
+        if isinstance(first_arg, AsyncSession) and second_arg is not None:
+            db = first_arg
+            task_id = second_arg
+            return await cls._execute_task_internal(db, task_id)
+        
+        task_id = str(first_arg)
+        from app.db.session import AsyncSessionLocal
+        async with AsyncSessionLocal() as session:
+            return await cls._execute_task_internal(session, task_id)
+
+    @classmethod
+    async def _execute_task_internal(cls, db: AsyncSession, task_id: str) -> AiTask:
         stmt = select(AiTask).where(AiTask.id == task_id)
         res = await db.execute(stmt)
         task = res.scalars().first()

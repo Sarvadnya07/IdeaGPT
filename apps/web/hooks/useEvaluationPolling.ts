@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useApiClient } from "@/lib/api/client";
 
-export const useEvaluationPolling = (jobId: number | null) => {
+export const useEvaluationPolling = (jobId: string | null) => {
   const api = useApiClient();
   const queryClient = useQueryClient();
 
@@ -9,14 +9,14 @@ export const useEvaluationPolling = (jobId: number | null) => {
     queryKey: ["evaluationStatus", jobId],
     queryFn: async () => {
       if (!jobId) return null;
-      const res = await api.get(`/evaluations/${jobId}/status`);
+      const res = await api.get(`/evaluations/${jobId}`);
       return res.data;
     },
     enabled: !!jobId,
-    // Poll every 3 seconds if status is queued or processing
+    // Poll every 3 seconds if status is active (PENDING, RUNNING, or QUEUED)
     refetchInterval: (query) => {
       const data = query.state.data as any;
-      if (data && (data.status === "queued" || data.status === "processing")) {
+      if (data && (["PENDING", "RUNNING", "QUEUED", "queued", "processing"].includes(data.status))) {
         return 3000;
       }
       return false;

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Annotated
 
@@ -22,8 +22,8 @@ async def create_project(
 async def get_projects(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
-    limit: int = 50,
-    offset: int = 0,
+    limit: int = Query(50, ge=1, le=100, description="Page size limit (1-100)"),
+    offset: int = Query(0, ge=0, description="Page offset"),
     search: str = None,
     category: str = None,
     is_archived: bool = False,

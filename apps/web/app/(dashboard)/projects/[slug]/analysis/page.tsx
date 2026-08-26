@@ -7,6 +7,7 @@ import { useEvaluation } from "../../../../../hooks/useEvaluation";
 import { useInsights } from "../../../../../hooks/useInsights";
 import { BrainCircuit, Loader2, ArrowRight, CheckCircle2, ChevronRight, AlertTriangle, ChevronDown, Target, Users, Swords, Wrench, DollarSign, Shield, Lightbulb, History } from "lucide-react";
 import { useApiClient } from "@/lib/api/client";
+import { useQuery } from "@tanstack/react-query";
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 

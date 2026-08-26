@@ -40,6 +40,7 @@ export default function PitchDeckPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
   const [deckData, setDeckData] = useState<PitchDeckResponse | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,6 +57,8 @@ export default function PitchDeckPage() {
         category: category || "B2B SaaS",
         problem: description || "",
         solution: "Automated AI co-founder validating startup concepts and scoping architectures.",
+        provider: "groq",
+        model: selectedModel,
       });
       setDeckData(res.data);
       setCurrentSlideIndex(0);
@@ -88,7 +91,7 @@ export default function PitchDeckPage() {
 ${slides
   .map(
     (s) => `## Slide ${s.slide_number}: ${s.title}
-### "${s.headline}"
+### ${s.headline}
 
 ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
 `
@@ -103,7 +106,16 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
     a.download = `${deckData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-pitch-deck.md`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Pitch deck Markdown downloaded!");
+    toast.success("Pitch deck exported!");
+  };
+
+  const handleCopySlide = () => {
+    if (!currentSlide) return;
+    const text = `Slide ${currentSlide.slide_number}: ${currentSlide.title}\n${currentSlide.headline}\n\n${currentSlide.bullet_points.join("\n")}`;
+    navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    toast.success(`Copied Slide ${currentSlide.slide_number} to clipboard!`);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -113,16 +125,28 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
         <div>
           <div className="flex items-center gap-2 text-indigo-400 font-medium text-sm mb-1">
             <Presentation className="w-4 h-4" />
-            <span>Venture Capital & Investor Readiness</span>
+            <span>Venture Pitch Deck Generator</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Pitch Deck Generator</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Pitch Deck Architect</h1>
           <p className="text-neutral-400 text-sm mt-1">
             Structured 10-slide startup narrative covering problem, solution, TAM/SAM/SOM, and financial ask.
           </p>
         </div>
 
         {/* Project Selector & Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              if (activeProject) fetchPitchDeck(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+            }}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+          </select>
           {projects.length > 0 && (
             <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
               <Layers className="w-4 h-4 text-neutral-400 ml-1" />

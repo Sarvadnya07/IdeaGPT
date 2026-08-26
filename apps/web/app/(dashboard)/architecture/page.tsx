@@ -44,6 +44,7 @@ export default function ArchitecturePage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
   const [activeTab, setActiveTab] = useState<"topology" | "apis" | "database" | "security">("topology");
   const [blueprint, setBlueprint] = useState<ArchitectureBlueprintResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,6 +59,8 @@ export default function ArchitecturePage() {
         title: title || "Startup Concept",
         category: category || "B2B SaaS",
         description: desc || "",
+        provider: "groq",
+        model: selectedModel,
       });
       setBlueprint(res.data);
     } catch (err) {
@@ -91,23 +94,38 @@ export default function ArchitecturePage() {
           </p>
         </div>
 
-        {/* Project Selector */}
-        {projects.length > 0 && (
-          <div className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
-            <Layers className="w-4 h-4 text-neutral-400 ml-2" />
-            <select
-              value={activeProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="bg-transparent text-sm text-neutral-200 focus:outline-none cursor-pointer pr-4"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* Project Selector & AI Model */}
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              if (activeProject) fetchBlueprint(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+            }}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+          </select>
+
+          {projects.length > 0 && (
+            <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
+              <Layers className="w-4 h-4 text-neutral-400 ml-1" />
+              <select
+                value={activeProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer pr-2"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}

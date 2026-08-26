@@ -2,7 +2,9 @@
 
 import React, { useState } from "react";
 import { useProjects } from "../../../hooks/useProjects";
+import { useIdea } from "../../../hooks/useIdea";
 import { useRoadmaps, Milestone, Task, Roadmap } from "../../../hooks/useRoadmaps";
+import { useApiClient } from "@/lib/api/client";
 import {
   Map,
   Plus,
@@ -14,14 +16,16 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
+  BrainCircuit,
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RoadmapPage() {
+  const api = useApiClient();
   const { projectsQuery } = useProjects();
   const projects = projectsQuery.data?.items || [];
   
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("" );
 
   // Default to first project if available and none selected
   const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : null);
@@ -31,6 +35,14 @@ export default function RoadmapPage() {
   const roadmaps = roadmapsQuery.data || [];
   const activeRoadmap = roadmaps.length > 0 ? roadmaps[0] : null;
 
+  const { ideasQuery } = useIdea(activeProjectId);
+  const projectIdeas = ideasQuery.data || [];
+  const primaryIdea = projectIdeas[0];
+
+  const [selectedProvider, setSelectedProvider] = useState<string>("groq");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
+  const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
+
   // New Milestone Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [milestoneTitle, setMilestoneTitle] = useState("");
@@ -38,37 +50,44 @@ export default function RoadmapPage() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDays, setTaskDays] = useState<number>(3);
 
+  const handleGenerateAIRoadmap = async () => {
+    if (!activeProjectId) return;
+    setIsGeneratingAI(true);
+    try {
+      const res = await api.post<any>("/ai/roadmap", {
+        title: primaryIdea?.title || activeProject?.title || "Startup Product",
+        category: primaryIdea?.industry || activeProject?.category || "B2B SaaS",
+        problem_statement: primaryIdea?.problem_statement || "",
+        solution_description: primaryIdea?.solution_description || "",
+        target_users: primaryIdea?.target_users || "",
+        provider: selectedProvider,
+        model: selectedModel,
+      });
+
+      const generatedMilestones: Milestone[] = res.data.milestones;
+
+      if (activeRoadmap) {
+        await updateRoadmap.mutateAsync({
+          roadmapId: activeRoadmap.id,
+          data: { milestones: generatedMilestones },
+        });
+      } else {
+        await createRoadmap.mutateAsync({
+          milestones: generatedMilestones,
+          status: "active",
+        });
+      }
+      toast.success(`Dynamic AI roadmap generated with ${selectedModel}!`);
+    } catch (err) {
+      toast.error("Failed to generate AI roadmap.");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   const handleCreateRoadmap = async () => {
     if (!activeProjectId) return;
-    try {
-      const initialMilestones: Milestone[] = [
-        {
-          title: "Phase 1: Foundation & Architecture",
-          objective: "Establish core project infrastructure and database models",
-          tasks: [
-            { title: "Define Database Schemas & Migrations", estimated_days: 2, status: "completed" },
-            { title: "Setup Authentication & User Sync", estimated_days: 3, status: "completed" },
-            { title: "Configure API Routes & Middleware", estimated_days: 2, status: "in_progress" },
-          ],
-        },
-        {
-          title: "Phase 2: MVP Execution",
-          objective: "Deliver key evaluation feature set and analytics",
-          tasks: [
-            { title: "Integrate AI Provider Pipeline", estimated_days: 5, status: "pending" },
-            { title: "Build Interactive Analysis Dashboard", estimated_days: 4, status: "pending" },
-          ],
-        },
-      ];
-
-      await createRoadmap.mutateAsync({
-        milestones: initialMilestones,
-        status: "active",
-      });
-      toast.success("Product roadmap initialized!");
-    } catch (err) {
-      toast.error("Failed to create roadmap.");
-    }
+    await handleGenerateAIRoadmap();
   };
 
   const handleAddMilestone = async (e: React.FormEvent) => {
@@ -194,26 +213,42 @@ export default function RoadmapPage() {
           </div>
           <h3 className="text-lg font-bold text-white">No Roadmap for {activeProject?.title}</h3>
           <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-            Initialize an active execution roadmap with key phases, objectives, and task trackers.
+            Generate an AI-synthesized execution roadmap tailored specifically to your startup idea.
           </p>
-          <button
-            onClick={handleCreateRoadmap}
-            disabled={createRoadmap.isPending}
-            className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-2"
-          >
-            {createRoadmap.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Plus className="w-4 h-4" />
-            )}
-            Initialize Roadmap
-          </button>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="bg-black/80 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+              <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+              <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+            </select>
+
+            <button
+              onClick={handleCreateRoadmap}
+              disabled={isGeneratingAI || createRoadmap.isPending}
+              className="flex items-center gap-2 px-6 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] disabled:opacity-50"
+            >
+              {isGeneratingAI || createRoadmap.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Generating with AI...
+                </>
+              ) : (
+                <>
+                  <BrainCircuit className="w-4 h-4" /> Generate AI Roadmap
+                </>
+              )}
+            </button>
+          </div>
         </div>
       ) : (
         /* Populated State: Active Roadmap View */
         <div className="space-y-6">
           {/* Action Header */}
-          <div className="flex items-center justify-between bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-4 px-6">
+          <div className="flex flex-wrap items-center justify-between bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-4 px-6 gap-3">
             <div className="flex items-center gap-3">
               <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Status:</span>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
@@ -223,13 +258,34 @@ export default function RoadmapPage() {
                 • {activeRoadmap.milestones.length} Milestones
               </span>
             </div>
+
             <div className="flex items-center gap-3">
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="bg-black/80 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+              >
+                <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+                <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+                <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+              </select>
+
+              <button
+                onClick={handleGenerateAIRoadmap}
+                disabled={isGeneratingAI}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-950/60 border border-indigo-500/40 hover:bg-indigo-900/60 text-indigo-300 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+              >
+                {isGeneratingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                Regenerate with Groq
+              </button>
+
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Milestone
               </button>
+
               <button
                 onClick={handleDeleteRoadmap}
                 className="p-1.5 rounded-lg hover:bg-red-500/10 text-zinc-500 hover:text-red-400 border border-transparent hover:border-red-500/20 transition-all"

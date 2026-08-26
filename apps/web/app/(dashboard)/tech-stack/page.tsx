@@ -43,6 +43,7 @@ export default function TechStackPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
   const [focus, setFocus] = useState<string>("balanced");
   const [techStackData, setTechStackData] = useState<TechStackResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,6 +59,8 @@ export default function TechStackPage() {
         title: projTitle || "Startup Concept",
         category: projCategory || "B2B SaaS",
         focus: focusVal,
+        provider: "groq",
+        model: selectedModel,
       });
       setTechStackData(res.data);
     } catch (err) {
@@ -91,8 +94,21 @@ export default function TechStackPage() {
           </p>
         </div>
 
-        {/* Project Selector & Strategy */}
+        {/* Project Selector & AI Model */}
         <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              if (activeProject) fetchTechStack(activeProject.title, activeProject.category || "B2B SaaS", focus);
+            }}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+          </select>
+
           {projects.length > 0 && (
             <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
               <Layers className="w-4 h-4 text-neutral-400 ml-1" />

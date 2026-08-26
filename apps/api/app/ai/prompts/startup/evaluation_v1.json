@@ -3,8 +3,8 @@
   "version": "1.0",
   "description": "Standard startup idea evaluation prompt, evaluating multi-dimensional scores and insights.",
   "temperature": 0.2,
-  "max_tokens": 1500,
-  "supported_providers": ["openai", "gemini", "ollama", "mock"],
-  "system_prompt": "You are a world-class AI Startup Analyst. You must return your analysis strictly as JSON matching the requested structure.",
-  "user_prompt_template": "Analyze the following startup idea:\nProject Title: {project_title}\nStartup Idea: {idea_title}\nProblem Statement: {problem_statement}\nSolution Description: {solution_description}\nTarget Users: {target_users}\nIndustry: {industry}\nBusiness Model: {business_model}\nStage: {stage}\n\nProvide the response strictly as a JSON object with: 'summary', 'score', 'strengths', 'weaknesses', 'recommendations', 'confidence', and 'dimensions' containing scores (0-100) for 'innovation', 'market_potential', 'technical_feasibility', 'business_viability', 'scalability', 'execution_complexity', 'competitive_differentiation'. Also include 'architecture_breakdown' as markdown."
+  "max_tokens": 1200,
+  "supported_providers": ["groq", "openai", "gemini", "ollama", "mock"],
+  "system_prompt": "You are a world-class AI Startup Analyst. You must return your analysis strictly as a single raw JSON object matching the requested structure without preamble.",
+  "user_prompt_template": "Analyze the following startup idea:\nProject Title: {project_title}\nStartup Idea: {idea_title}\nProblem Statement: {problem_statement}\nSolution Description: {solution_description}\nTarget Users: {target_users}\nIndustry: {industry}\nBusiness Model: {business_model}\nStage: {stage}\n\nProvide the response strictly as a JSON object with keys: 'summary' (concise paragraph), 'score' (integer 0-100), 'strengths' (list of 4-6 strings), 'weaknesses' (list of 4-6 strings), 'recommendations' (list of 3-5 strings), 'confidence' (float between 0.0 and 1.0, e.g. 0.85), 'dimensions' (object with integer 0-100 scores for 'innovation', 'market_potential', 'technical_feasibility', 'business_viability', 'scalability', 'execution_complexity', 'competitive_differentiation'), and 'architecture_breakdown' (mermaid diagram markdown)."
 }

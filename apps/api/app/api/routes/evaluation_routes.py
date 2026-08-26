@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Request
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_, func
@@ -180,7 +180,7 @@ async def compare_ideas(
 async def get_project_comparisons(
     project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
-    evaluation_ids: List[str] = Body(..., embed=True),
+    evaluation_ids: Optional[List[str]] = Query(default=None),
     db: AsyncSession = Depends(get_db)
 ):
     """

@@ -104,7 +104,7 @@ async def create_ai_task(
 
     # Schedule background execution if newly queued
     if task.status == "QUEUED":
-        background_tasks.add_task(AiTaskService.execute_task, db, task.id)
+        background_tasks.add_task(AiTaskService.execute_task, task.id)
 
     return {
         "id": task.id,
@@ -230,11 +230,46 @@ class PRDRequest(BaseModel):
     solution_description: Optional[str] = Field(default="", max_length=2000)
     target_users: Optional[str] = Field(default="", max_length=500)
 
+class RoadmapRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    problem_statement: Optional[str] = Field(default="", max_length=2000)
+    solution_description: Optional[str] = Field(default="", max_length=2000)
+    target_users: Optional[str] = Field(default="", max_length=500)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+
 class PitchDeckRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     problem: Optional[str] = Field(default="", max_length=2000)
     solution: Optional[str] = Field(default="", max_length=2000)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+
+@router.post("/roadmap", summary="Generate AI-powered startup roadmap milestones and tasks")
+async def generate_roadmap(
+    payload: RoadmapRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata.
+    """
+    from app.services.architecture_service import architecture_service
+    milestones = architecture_service.generate_ai_roadmap(
+        title=payload.title,
+        category=payload.category,
+        problem_statement=payload.problem_statement or "",
+        solution_description=payload.solution_description or "",
+        target_users=payload.target_users or "",
+    )
+    return {
+        "title": payload.title,
+        "category": payload.category,
+        "milestones": milestones,
+        "provider": payload.provider or "groq",
+        "model": payload.model or "openai/gpt-oss-120b",
+    }
 
 @router.post("/tech-stack", summary="Generate tailored technology stack recommendations")
 async def generate_tech_stack(

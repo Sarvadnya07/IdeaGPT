@@ -59,6 +59,7 @@ export default function PRDGeneratorPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
   const [prdData, setPrdData] = useState<PRDResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -74,7 +75,9 @@ export default function PRDGeneratorPage() {
         category: category || "B2B SaaS",
         problem_statement: description || "Founders lack rapid technical feasibility validation.",
         solution_description: "Automated AI co-founder for technical architecture scoping and validation.",
-        target_users: "Startup Founders, Product Managers, Engineers"
+        target_users: "Startup Founders, Product Managers, Engineers",
+        provider: "groq",
+        model: selectedModel,
       });
       setPrdData(res.data);
     } catch (err) {
@@ -169,7 +172,20 @@ ${prdData.success_metrics.map((m) => `- **${m.metric}**: ${m.target}`).join("\n"
         </div>
 
         {/* Project Selector & Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedModel}
+            onChange={(e) => {
+              setSelectedModel(e.target.value);
+              if (activeProject) fetchPRD(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+            }}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+          </select>
+
           {projects.length > 0 && (
             <div className="flex items-center gap-2 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
               <Layers className="w-4 h-4 text-neutral-400 ml-1" />
