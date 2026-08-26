@@ -66,6 +66,8 @@ class AIRouter:
         """
         req_prov = (requested_provider or "auto").lower()
         req_mod = (requested_model or "auto").lower()
+        if req_mod in ("default", "none", ""):
+            req_mod = "auto"
 
         # Step 1: Explicit Provider & Explicit Model Validation
         if req_prov != "auto" and req_mod != "auto":

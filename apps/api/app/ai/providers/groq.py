@@ -27,7 +27,7 @@ def classify_groq_model(model_id: str) -> Dict[str, Any]:
     """
     mid = model_id.lower()
 
-    if "whisper" in mid:
+    if "whisper" in mid or "audio" in mid:
         return {
             "capabilities": ["SPEECH_TO_TEXT", "AUDIO_INPUT"],
             "capability_source": "model_metadata",
@@ -36,7 +36,7 @@ def classify_groq_model(model_id: str) -> Dict[str, Any]:
             "supports_structured_output": False,
         }
 
-    if "guard" in mid or "moderation" in mid:
+    if "guard" in mid or "moderation" in mid or "safeguard" in mid:
         return {
             "capabilities": ["MODERATION"],
             "capability_source": "model_metadata",
@@ -63,7 +63,7 @@ def classify_groq_model(model_id: str) -> Dict[str, Any]:
             "supports_structured_output": True,
         }
 
-    if any(k in mid for k in ("llama-3.3", "llama-3.1", "mixtral", "gemma")):
+    if any(k in mid for k in ("llama-3.3", "llama-3.1", "llama3", "mixtral", "gemma")):
         return {
             "capabilities": ["TEXT_GENERATION", "STRUCTURED_OUTPUT"],
             "capability_source": "provider_metadata",
@@ -72,7 +72,7 @@ def classify_groq_model(model_id: str) -> Dict[str, Any]:
             "supports_structured_output": True,
         }
 
-    if any(k in mid for k in ("gpt-oss", "qwen")):
+    if any(k in mid for k in ("gpt-oss", "qwen", "allam", "compound")):
         return {
             "capabilities": ["TEXT_GENERATION", "STRUCTURED_OUTPUT"],
             "capability_source": "provider_metadata",
@@ -231,22 +231,37 @@ class GroqProvider(AIProvider):
 
         # Build prioritized list of model candidates
         candidate_models: List[str] = []
-        if model_override and model_override != "auto":
+        if model_override and model_override not in ("auto", "default", "none"):
             candidate_models.append(model_override)
 
         models = await self.list_models_async()
-        active_chat_models = [m["id"] for m in models if m.get("available") and m.get("category") == "CHAT"]
+        active_chat_models = [
+            m["id"] for m in models 
+            if m.get("available") and m.get("category") == "CHAT" and m.get("supports_structured_output", True)
+        ]
 
-        # Standard unblocked production models
-        for fallback in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"]:
+        # Prioritize production-ready versatile models
+        for fallback in [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "llama-3.1-70b-versatile",
+            "llama3-70b-8192",
+            "mixtral-8x7b-32768",
+            "qwen/qwen3.8-27b",
+            "qwen/qwen3.6-27b",
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+        ]:
             if fallback in active_chat_models and fallback not in candidate_models:
                 candidate_models.append(fallback)
         for m in active_chat_models:
             if m not in candidate_models:
                 candidate_models.append(m)
 
-        if not candidate_models:
-            candidate_models = ["llama-3.3-70b-versatile"]
+        # Baseline fallback candidate list in case dynamic discovery returned empty or restricted models
+        for baseline in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-70b-8192", "mixtral-8x7b-32768"]:
+            if baseline not in candidate_models:
+                candidate_models.append(baseline)
 
         kwargs: Dict[str, Any] = {
             "messages": messages,
@@ -288,22 +303,34 @@ class GroqProvider(AIProvider):
                 return parsed_data
 
             except Exception as e:
-                err_str = str(e)
-                if "model_permission_blocked_project" in err_str or "blocked at the project level" in err_str:
-                    logger.warning(f"Groq model {target_model} blocked at project level, trying next candidate...")
+                err_str = str(e).lower()
+                is_model_specific_error = (
+                    "model_permission_blocked_project" in err_str
+                    or "blocked at the project level" in err_str
+                    or "model_terms_required" in err_str
+                    or "terms acceptance" in err_str
+                    or "model_not_found" in err_str
+                    or "does not exist or you do not have access" in err_str
+                    or "model_decommissioned" in err_str
+                    or "decommissioned" in err_str
+                    or "404" in err_str
+                    or "403" in err_str
+                    or ("400" in err_str and "model" in err_str)
+                )
+
+                if is_model_specific_error:
+                    logger.warning(f"Groq candidate model '{target_model}' unavailable: {e}. Trying next candidate...")
                     last_exc = e
                     continue
                 else:
-                    if "401" in err_str or "auth" in err_str.lower() or "api key" in err_str.lower():
-                        raise AIAuthenticationException(f"Groq API authentication failed: {err_str}")
-                    elif "429" in err_str or "rate limit" in err_str.lower():
-                        raise AIRateLimitException(f"Groq rate limit exceeded: {err_str}")
-                    elif "timeout" in err_str.lower():
-                        raise AITimeoutException(f"Groq request timed out: {err_str}")
-                    elif "400" in err_str or "model" in err_str.lower():
-                        raise AIInvalidModelException(f"Groq model or request invalid: {err_str}")
+                    if "401" in err_str or "auth" in err_str or "api key" in err_str:
+                        raise AIAuthenticationException(f"Groq API authentication failed: {str(e)}")
+                    elif "429" in err_str or "rate limit" in err_str:
+                        raise AIRateLimitException(f"Groq rate limit exceeded: {str(e)}")
+                    elif "timeout" in err_str:
+                        raise AITimeoutException(f"Groq request timed out: {str(e)}")
                     else:
-                        raise AINetworkException(f"Groq provider error: {err_str}")
+                        raise AINetworkException(f"Groq provider error: {str(e)}")
 
         if last_exc:
-            raise AIInvalidModelException(f"Groq model or request invalid: {last_exc}")
+            raise AIInvalidModelException(f"All Groq model candidates failed: {last_exc}")

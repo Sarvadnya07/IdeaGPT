@@ -78,6 +78,13 @@ export default function AIAnalysisPage() {
   const completedEval = evaluations.find((e) => e.status === "COMPLETED") || evaluations[0];
   const evalResult = completedEval?.result_payload;
 
+  // Automatically refetch evaluations when background task finishes
+  React.useEffect(() => {
+    if (task?.status === "COMPLETED") {
+      evaluationsQuery.refetch();
+    }
+  }, [task?.status]);
+
   const handleStartTask = async () => {
     if (!latestIdea || !activeProjectId) return;
     try {
@@ -87,7 +94,7 @@ export default function AIAnalysisPage() {
         idea_id: latestIdea.id,
         project_id: activeProjectId,
         input_payload: { prompt: `Analyze idea: ${latestIdea.title}` },
-        idempotency_key: `idea-eval-${latestIdea.id}-${selectedProvider}`,
+        idempotency_key: `idea-eval-${latestIdea.id}-${selectedProvider}-${selectedModel}-${Date.now()}`,
       });
       setActiveTaskId(res.id);
     } catch (e) {

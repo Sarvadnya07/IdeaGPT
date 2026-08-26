@@ -152,6 +152,7 @@ class AiTaskService:
             prompt = (task.input_payload or {}).get("prompt", "Analyze startup idea.")
             idea_id = task.idea_id
             preferred = task.provider if task.provider != "auto" else None
+            req_model = task.model if task.model not in ("auto", "default", None) else None
 
             # Execute via Orchestrator wrapped with AIRetryPolicy
             result = await AIRetryPolicy.execute_with_retry(
@@ -160,6 +161,7 @@ class AiTaskService:
                 db=db,
                 idea_id=idea_id,
                 preferred_provider=preferred,
+                requested_model=req_model,
                 strategy=task.provider
             )
 
