@@ -6,6 +6,7 @@ import { Menu, Search, Bell, BookOpen, Moon, Sun, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { CommandPalette } from "../shared/CommandPalette";
+import { toast } from "sonner";
 
 interface TopNavProps {
   setMobileMenuOpen: (open: boolean) => void;
@@ -51,21 +52,20 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute top-[1.35rem] right-[5.8rem] h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </button>
 
-        <button className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+
+        <button 
+          onClick={() => toast.info("Notifications center coming soon")}
+          className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
           <Bell className="w-4 h-4" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
         </button>
 
-        <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+        <button 
+          onClick={() => toast.info("Documentation center coming soon")}
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
           <BookOpen className="w-4 h-4" />
         </button>
 

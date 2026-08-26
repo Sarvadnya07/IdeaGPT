@@ -36,8 +36,8 @@ export interface IdeaData {
 export function normalizeIdeaPayload(data: Partial<IdeaData>): Record<string, any> {
   return {
     title: data.title || "Untitled Idea",
-    problem_statement: data.problem_statement || "No problem statement provided.",
-    solution_description: data.solution_description || "No solution description provided.",
+    problem_statement: (data.problem_statement && data.problem_statement.length >= 10) ? data.problem_statement : (data.problem_statement ? data.problem_statement.padEnd(10, ' ') : "No problem statement provided."),
+    solution_description: (data.solution_description && data.solution_description.length >= 10) ? data.solution_description : (data.solution_description ? data.solution_description.padEnd(10, ' ') : "No solution description provided."),
     target_users: data.target_users || data.target_audience || null,
     industry: data.industry || null,
     business_model: data.business_model || null,

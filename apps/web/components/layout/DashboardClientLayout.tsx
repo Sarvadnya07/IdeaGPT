@@ -13,12 +13,12 @@ export function DashboardClientLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
       <Sidebar 
         mobileMenuOpen={mobileMenuOpen} 
         setMobileMenuOpen={setMobileMenuOpen} 
       />
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         <TopNav setMobileMenuOpen={setMobileMenuOpen} />
         <PageContainer>
           {children}
