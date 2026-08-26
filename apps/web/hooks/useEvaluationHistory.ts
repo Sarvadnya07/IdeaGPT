@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../lib/api";
+import { useApiClient } from "@/lib/api/client";
 
 export function useEvaluationHistory(ideaId: string | null) {
+  const api = useApiClient();
+
   return useQuery({
     queryKey: ["evaluation-history", ideaId],
     queryFn: async () => {

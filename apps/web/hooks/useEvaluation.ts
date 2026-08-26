@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../lib/api";
-import { useAuth } from "@clerk/nextjs";
+import { useApiClient } from "@/lib/api/client";
 
 export interface Evaluation {
   id: string;
@@ -23,21 +22,14 @@ export interface Evaluation {
 }
 
 export const useEvaluation = (evaluationId?: string | null) => {
-  const { getToken } = useAuth();
+  const api = useApiClient();
   const queryClient = useQueryClient();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
 
   const triggerEvaluation = useMutation({
     mutationFn: async ({ ideaId, evaluationType }: { ideaId: string; evaluationType?: string }) => {
-      const headers = await getHeaders();
       const res = await api.post<Evaluation>(
         `/ideas/${ideaId}/evaluations`,
-        { evaluation_type: evaluationType || "startup_evaluation" },
-        { headers }
+        { evaluation_type: evaluationType || "startup_evaluation" }
       );
       return res.data;
     },
@@ -50,8 +42,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
     queryKey: ["evaluation", evaluationId],
     queryFn: async () => {
       if (!evaluationId) return null;
-      const headers = await getHeaders();
-      const res = await api.get<Evaluation>(`/evaluations/${evaluationId}`, { headers });
+      const res = await api.get<Evaluation>(`/evaluations/${evaluationId}`);
       return res.data;
     },
     enabled: !!evaluationId,
@@ -72,8 +63,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
 
   const retryEvaluation = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      const res = await api.post<Evaluation>(`/evaluations/${id}/retry`, {}, { headers });
+      const res = await api.post<Evaluation>(`/evaluations/${id}/retry`, {});
       return res.data;
     },
     onSuccess: (data) => {
@@ -84,8 +74,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
 
   const cancelEvaluation = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      const res = await api.post<Evaluation>(`/evaluations/${id}/cancel`, {}, { headers });
+      const res = await api.post<Evaluation>(`/evaluations/${id}/cancel`, {});
       return res.data;
     },
     onSuccess: (data) => {
@@ -96,8 +85,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
 
   const deleteEvaluation = useMutation({
     mutationFn: async (id: string) => {
-      const headers = await getHeaders();
-      await api.delete(`/evaluations/${id}`, { headers });
+      await api.delete(`/evaluations/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
@@ -114,19 +102,13 @@ export const useEvaluation = (evaluationId?: string | null) => {
 };
 
 export const useIdeaEvaluations = (ideaId?: string | null) => {
-  const { getToken } = useAuth();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
+  const api = useApiClient();
 
   return useQuery({
     queryKey: ["evaluations", ideaId],
     queryFn: async () => {
       if (!ideaId) return [];
-      const headers = await getHeaders();
-      const res = await api.get<Evaluation[]>(`/ideas/${ideaId}/evaluations`, { headers });
+      const res = await api.get<Evaluation[]>(`/ideas/${ideaId}/evaluations`);
       return res.data;
     },
     enabled: !!ideaId,

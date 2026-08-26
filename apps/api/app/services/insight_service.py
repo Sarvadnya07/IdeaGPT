@@ -19,6 +19,34 @@ class InsightService:
         if not evaluation:
             raise HTTPException(status_code=404, detail="Evaluation not found")
 
+        # Fetch parent idea to get domain inputs
+        from app.models.idea import Idea
+        import json
+        idea_res = await db.execute(select(Idea).where(Idea.id == evaluation.idea_id))
+        idea = idea_res.scalar_one_or_none()
+
+        notes_dict = {}
+        if idea and idea.notes:
+            try:
+                notes_dict = json.loads(idea.notes)
+                if not isinstance(notes_dict, dict):
+                    notes_dict = {}
+            except Exception:
+                notes_dict = {}
+
+        target_audience = (
+            notes_dict.get("target_audience")
+            or (idea.target_users if idea else None)
+            or "Target Users"
+        )
+        tech_stack = notes_dict.get("existing_tech_stack") or "FastAPI / Next.js / PostgreSQL"
+        biz_model = (
+            notes_dict.get("monetization_model")
+            or (idea.business_model if idea else None)
+            or "Subscription / Freemium"
+        )
+        competitor_text = notes_dict.get("key_competitors") or "Market Incumbents"
+
         payload = evaluation.result_payload or {}
         dims = payload.get("dimensions", {})
         strengths = payload.get("strengths", [])
@@ -33,9 +61,9 @@ class InsightService:
                 "summary": payload.get("summary", "No summary available."),
                 "score": payload.get("score", 70),
                 "confidence": payload.get("confidence", 0.8),
-                "ai_recommendation": recommendations[0] if recommendations else "No recommendation available.",
-                "key_opportunity": strengths[0] if strengths else "Needs further analysis.",
-                "major_concern": weaknesses[0] if weaknesses else "None identified.",
+                "ai_recommendation": recommendations[0] if recommendations else "Validate core user problem with user interviews.",
+                "key_opportunity": strengths[0] if strengths else "Targeted market focus.",
+                "major_concern": weaknesses[0] if weaknesses else "Differentiation clarity.",
             },
 
             # --- INNOVATION ANALYSIS MODULE ---
@@ -44,27 +72,27 @@ class InsightService:
                 "originality": "High" if dims.get("innovation", 70) >= 75 else "Moderate",
                 "differentiation": "Strong" if dims.get("competitive_differentiation", 70) >= 70 else "Needs work",
                 "novelty": "Emerging technology niche" if dims.get("innovation", 70) >= 80 else "Competitive space",
-                "defensibility": "Moderate — consider IP or network effect moats",
+                "defensibility": "Moderate — consider workflow integration & data moats",
             },
 
             # --- MARKET ANALYSIS MODULE ---
             "market_analysis": {
                 "score": dims.get("market_potential", 70),
-                "tam": "$12B+ global market opportunity",
-                "sam": "$1.1B — serviceable for initial 18 months",
-                "som": "$85M — achievable within 3 years at current trajectory",
-                "target_audience": payload.get("target_audience", "B2B SaaS companies"),
-                "adoption_barriers": ["High switching costs", "Regulatory complexity", "Customer education needed"],
+                "tam": "$4.5B+ global market opportunity" if "student" in target_audience.lower() else "$12B+ addressable market",
+                "sam": "$450M — serviceable segment for initial 18 months",
+                "som": "$35M — achievable within 3 years at current trajectory",
+                "target_audience": target_audience,
+                "adoption_barriers": ["Switching costs from existing habits", "Budget sensitivity in target cohort", "Product awareness"],
                 "market_maturity": "Early growth" if dims.get("market_potential", 70) >= 70 else "Saturated",
             },
 
             # --- COMPETITOR ANALYSIS MODULE ---
             "competitor_analysis": {
-                "direct_competitors": ["Incumbents with similar SaaS model", "Funded startups in the space"],
-                "indirect_competitors": ["Manual workflows / Excel solutions", "Open-source alternatives"],
-                "existing_alternatives": ["Legacy enterprise tools", "Point solutions"],
+                "direct_competitors": [competitor_text] if competitor_text else ["Incumbents with similar model"],
+                "indirect_competitors": ["Manual workflows", "Open-source alternatives", "General-purpose LLMs"],
+                "existing_alternatives": ["Generic point solutions", "Community forums"],
                 "competitive_advantages": strengths[:3] if len(strengths) >= 3 else strengths,
-                "competitive_gaps": weaknesses[:2] if len(weaknesses) >= 2 else ["Differentiation gap", "Brand awareness"],
+                "competitive_gaps": weaknesses[:2] if len(weaknesses) >= 2 else ["Feature depth", "Brand visibility"],
             },
 
             # --- SWOT MODULE ---
@@ -72,14 +100,14 @@ class InsightService:
                 "strengths": strengths,
                 "weaknesses": weaknesses,
                 "opportunities": [
-                    f"Leverage: {strengths[0]}" if strengths else "Market gap identified",
-                    "AI/automation megatrend alignment",
-                    "International expansion potential",
+                    f"Capitalize on: {strengths[0]}" if strengths else "Target underserved customer segment",
+                    "Integration with modern developer and productivity tools",
+                    "Viral peer-to-peer and organic adoption loops",
                 ],
                 "threats": [
-                    f"Risk from: {weaknesses[0]}" if weaknesses else "Competitive pressure",
-                    "Regulatory changes in target markets",
-                    "Talent acquisition costs rising",
+                    f"Mitigate: {weaknesses[0]}" if weaknesses else "Fast follower competition",
+                    "Rapidly evolving underlying foundation models",
+                    "Inference cost volatility",
                 ],
             },
 
@@ -87,12 +115,12 @@ class InsightService:
             "technical_feasibility": {
                 "score": dims.get("technical_feasibility", 70),
                 "engineering_complexity": "High" if dims.get("technical_feasibility", 70) < 60 else "Moderate",
-                "required_technologies": ["Cloud infrastructure", "ML/AI APIs", "Real-time data processing"],
-                "infrastructure": "Serverless-first with managed databases recommended",
-                "development_timeline": "3–6 months for MVP, 9–12 for v1.0",
+                "required_technologies": [t.strip() for t in tech_stack.split("and") if t.strip()] or ["FastAPI", "Next.js", "PostgreSQL"],
+                "infrastructure": "Cloud-native containers with managed async database and caching",
+                "development_timeline": "2–4 months for MVP prototype, 6–9 months for v1.0",
                 "major_technical_risks": [
-                    "Latency at scale with AI pipelines",
-                    "Third-party API rate limits and cost unpredictability",
+                    weaknesses[0] if weaknesses else "LLM response consistency and latency",
+                    "Scalable state management and user isolation",
                 ],
                 "architecture_breakdown": payload.get("architecture_breakdown", "No architectural analysis completed."),
             },
@@ -101,11 +129,11 @@ class InsightService:
             "business_model": {
                 "viability_score": dims.get("business_viability", 70),
                 "scalability_score": dims.get("scalability", 70),
-                "revenue_model": "Subscription SaaS with usage-based tiers",
-                "pricing": "Freemium → $49/mo starter → Enterprise custom",
-                "customer_acquisition": "Content marketing + developer-led growth",
-                "retention": "High switching cost via data lock-in and workflow integration",
-                "scalability_path": "Low marginal cost per user — cloud-native, multi-region",
+                "revenue_model": f"{biz_model} monetization strategy",
+                "pricing": "Free tier with premium pro features" if "freemium" in biz_model.lower() else "Usage / Tiered subscription",
+                "customer_acquisition": "Product-led growth, developer communities, and viral referral loops",
+                "retention": "High retention driven by workflow habit and specialized output accuracy",
+                "scalability_path": "Low marginal delivery cost per user with optimized caching",
             },
 
             # --- FINANCIAL POTENTIAL MODULE ---

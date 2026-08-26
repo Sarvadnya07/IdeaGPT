@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../lib/api";
+import { useApiClient } from "@/lib/api/client";
 import { useState, useCallback, useRef, useEffect } from "react";
 
 export interface SearchResult {
@@ -12,6 +12,7 @@ export interface SearchResult {
 }
 
 export function useSearch() {
+  const api = useApiClient();
   const [query, setQueryRaw] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

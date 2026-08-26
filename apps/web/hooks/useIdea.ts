@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "../lib/api";
-import { useAuth } from "@clerk/nextjs";
+import { useApiClient } from "@/lib/api/client";
 
 export interface IdeaData {
   id?: string;
@@ -60,20 +59,14 @@ export function normalizeIdeaPayload(data: Partial<IdeaData>): Record<string, an
 }
 
 export const useIdea = (projectId?: string | null) => {
-  const { getToken } = useAuth();
+  const api = useApiClient();
   const queryClient = useQueryClient();
-
-  const getHeaders = async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  };
 
   const ideasQuery = useQuery({
     queryKey: ["ideas", projectId],
     queryFn: async () => {
       if (!projectId) return [];
-      const headers = await getHeaders();
-      const res = await api.get<IdeaData[]>(`/projects/${projectId}/ideas`, { headers });
+      const res = await api.get<IdeaData[]>(`/projects/${projectId}/ideas`);
       return res.data;
     },
     enabled: !!projectId,
@@ -81,9 +74,8 @@ export const useIdea = (projectId?: string | null) => {
 
   const saveIdea = useMutation({
     mutationFn: async ({ projectId, payload }: { projectId: string; payload: Partial<IdeaData> }) => {
-      const headers = await getHeaders();
       const normalized = normalizeIdeaPayload(payload);
-      const res = await api.post<IdeaData>(`/projects/${projectId}/ideas`, normalized, { headers });
+      const res = await api.post<IdeaData>(`/projects/${projectId}/ideas`, normalized);
       return res.data;
     },
     onSuccess: (data, variables) => {

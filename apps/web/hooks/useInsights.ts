@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../lib/api";
+import { useApiClient } from "@/lib/api/client";
 
 export interface InsightData {
   evaluation_id: string;
@@ -80,6 +80,8 @@ export interface InsightData {
 }
 
 export function useInsights(evaluationId: string | null) {
+  const api = useApiClient();
+
   return useQuery<InsightData>({
     queryKey: ["insights", evaluationId],
     queryFn: async () => {
@@ -93,6 +95,8 @@ export function useInsights(evaluationId: string | null) {
 }
 
 export function useEvaluationScores(evaluationId: string | null) {
+  const api = useApiClient();
+
   return useQuery({
     queryKey: ["evaluation-scores", evaluationId],
     queryFn: async () => {
@@ -105,6 +109,8 @@ export function useEvaluationScores(evaluationId: string | null) {
 }
 
 export function useEvaluationCharts(evaluationId: string | null) {
+  const api = useApiClient();
+
   return useQuery({
     queryKey: ["evaluation-charts", evaluationId],
     queryFn: async () => {

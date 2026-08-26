@@ -20,11 +20,15 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Pre-warm database connection pool
+    # Startup: Pre-warm database connection pool & recover stale jobs
     try:
         from app.core.database import engine
+        from app.db.session import AsyncSessionLocal
+        from app.evaluation.coordinator import EvaluationCoordinator
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
+        async with AsyncSessionLocal() as db:
+            await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
     except Exception:
         pass
     yield
