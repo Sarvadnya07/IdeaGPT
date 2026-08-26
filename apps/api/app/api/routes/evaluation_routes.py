@@ -37,9 +37,16 @@ async def trigger_evaluation(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Creates and executes a deterministic evaluation job for an idea.
+    Creates and executes an AI or deterministic evaluation job for an idea.
     """
-    return await evaluation_service.trigger_evaluation(db, idea_id, payload.evaluation_type, current_user.id)
+    return await evaluation_service.trigger_evaluation(
+        db=db,
+        idea_id=idea_id,
+        evaluation_type=payload.evaluation_type or "startup_evaluation",
+        user_id=current_user.id,
+        provider=payload.provider,
+        model=payload.model
+    )
 
 @router.get("/evaluations/{evaluation_id}", response_model=EvaluationResponse)
 async def get_evaluation(

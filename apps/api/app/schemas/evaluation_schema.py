@@ -4,6 +4,8 @@ from datetime import datetime
 
 class EvaluationCreate(BaseModel):
     evaluation_type: Optional[str] = "startup_evaluation"
+    provider: Optional[str] = None
+    model: Optional[str] = None
 
 class EvaluationResponse(BaseModel):
     id: str

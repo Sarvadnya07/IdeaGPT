@@ -47,6 +47,10 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const insightsQuery = useInsights(evaluationQuery.data?.status === "COMPLETED" ? evaluationQuery.data?.id || null : null);
   const insights = insightsQuery.data;
 
+  const [selectedProvider, setSelectedProvider] = useState<string>("groq");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
+  const [isEditingIdea, setIsEditingIdea] = useState<boolean>(false);
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<IdeaData>>({
     elevator_pitch: "",
@@ -95,11 +99,16 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
 
   const handleSubmit = async () => {
     try {
+      setIsEditingIdea(false);
       // 1. Save Idea
       const savedIdea = await saveIdea.mutateAsync({ projectId: project.id, payload: formData });
       
-      // 2. Trigger Evaluation
-      const job = await triggerEvaluation.mutateAsync({ ideaId: savedIdea.id || firstIdea?.id || '' });
+      // 2. Trigger Evaluation with chosen AI Provider & Model
+      const job = await triggerEvaluation.mutateAsync({
+        ideaId: savedIdea.id || firstIdea?.id || '',
+        provider: selectedProvider,
+        model: selectedModel,
+      });
       
       // 3. Set Job ID to start polling
       setJobId(job.id);
@@ -112,7 +121,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const jobStatus = evaluationQuery.data?.status;
 
   // Render Polling / Results State
-  if (jobId || jobStatus) {
+  if (!isEditingIdea && (jobId || jobStatus)) {
     if (jobStatus === "PENDING" || jobStatus === "QUEUED" || jobStatus === "RUNNING" || !jobStatus) {
       return (
         <div className="flex flex-col items-center justify-center py-32 space-y-6">
@@ -475,8 +484,15 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
           </div>
 
           <div className="flex justify-end">
-            <button onClick={() => setJobId(null)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors">
-              Rerun Analysis
+            <button
+              onClick={() => {
+                setJobId(null);
+                setIsEditingIdea(true);
+                setStep(3);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+            >
+              <BrainCircuit className="w-4 h-4" /> Rerun Analysis with Different AI Model
             </button>
           </div>
         </div>
@@ -604,6 +620,81 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 h-24 resize-none"
                   placeholder="e.g. High latency in AI processing, data privacy"
                 />
+              </div>
+
+              {/* AI Engine & Model Selector */}
+              <div className="pt-4 border-t border-zinc-800/60">
+                <label className="block text-sm font-bold text-white mb-1 flex items-center justify-between">
+                  <span>AI Evaluation Engine & Intelligence Model</span>
+                  <span className="text-xs text-indigo-400 font-normal">Powered by Groq Cloud</span>
+                </label>
+                <p className="text-xs text-zinc-400 mb-3">Choose the AI model used to perform deep strategic evaluation and SWOT analysis.</p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("llama-3.3-70b-versatile"); }}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      selectedProvider === "groq" && selectedModel === "llama-3.3-70b-versatile"
+                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Groq AI (Llama 3.3 70B)</span>
+                      <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded font-mono font-bold">Fast</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">Deep strategic reasoning & market analysis</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("llama-3.1-8b-instant"); }}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      selectedProvider === "groq" && selectedModel === "llama-3.1-8b-instant"
+                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Groq AI (Llama 3.1 8B)</span>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">Instant</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">Ultra-low latency sub-second evaluation</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvider("openai"); setSelectedModel("gpt-4o"); }}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      selectedProvider === "openai"
+                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>OpenAI (GPT-4o)</span>
+                      <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-mono font-bold">Deep</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">Comprehensive enterprise evaluations</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvider("deterministic"); setSelectedModel("rule-based-v2.6"); }}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      selectedProvider === "deterministic"
+                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>Offline Rule Engine</span>
+                      <span className="text-[10px] bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded font-mono font-bold">0-Token</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">Instant offline scoring & heuristics</p>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

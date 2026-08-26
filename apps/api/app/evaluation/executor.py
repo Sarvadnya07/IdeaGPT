@@ -108,7 +108,7 @@ class EvaluationExecutor:
         logger.info(f"Evaluation '{evaluation_id}' marked RUNNING. DB Tx 1 committed.")
 
         # ---------------------------------------------------------------------
-        # COMPUTATION STAGE: Fetch Idea & Run Deterministic Engine (Outside DB Tx)
+        # COMPUTATION STAGE: Fetch Idea & Run AI Pipeline / Engine (Outside DB Tx)
         # ---------------------------------------------------------------------
         try:
             async with AsyncSessionLocal() as db:
@@ -117,19 +117,48 @@ class EvaluationExecutor:
                 if not idea:
                     raise ValueError(f"Parent Idea '{idea_id}' not found.")
 
-            # Run 100% deterministic rule-based evaluation engine
-            result_payload = DeterministicEvaluationEngine.evaluate(idea)
+                eval_meta = await db.execute(select(Evaluation).where(Evaluation.id == evaluation_id))
+                eval_obj = eval_meta.scalar_one_or_none()
+                requested_provider = eval_obj.provider if eval_obj else "groq"
+                requested_model = eval_obj.model if eval_obj else None
+
+            # If user explicitly requested deterministic engine:
+            if requested_provider in ("deterministic", "rule-based", "deterministic-engine-v2.6"):
+                result_payload = DeterministicEvaluationEngine.evaluate(idea)
+            else:
+                # Execute via AI Orchestrator (Groq / OpenAI) with fallback
+                from app.ai.orchestrator.orchestrator import orchestrator
+                prompt_text = f"Analyze startup idea: {idea.title}. Problem: {idea.problem_statement}. Solution: {idea.solution_description}"
+                async with AsyncSessionLocal() as db:
+                    result_payload = await orchestrator.analyze_startup_idea(
+                        prompt=prompt_text,
+                        db=db,
+                        idea_id=idea.id,
+                        preferred_provider=requested_provider,
+                        requested_model=requested_model,
+                    )
+
             duration_ms = int((time.time() - start_time) * 1000)
+            if "metadata" not in result_payload:
+                result_payload["metadata"] = {}
             result_payload["metadata"]["duration_ms"] = duration_ms
 
         except Exception as exc:
-            logger.error(f"Execution failed for evaluation '{evaluation_id}': {str(exc)}")
-            # Handle failure in isolated transaction
-            return await cls._handle_execution_failure(
-                evaluation_id=evaluation_id,
-                error_message=str(exc),
-                duration_ms=int((time.time() - start_time) * 1000),
-            )
+            logger.error(f"Execution failed for evaluation '{evaluation_id}': {str(exc)}", exc_info=True)
+            # Resilient fallback to deterministic engine
+            try:
+                result_payload = DeterministicEvaluationEngine.evaluate(idea)
+                duration_ms = int((time.time() - start_time) * 1000)
+                if "metadata" not in result_payload:
+                    result_payload["metadata"] = {}
+                result_payload["metadata"]["duration_ms"] = duration_ms
+                result_payload["metadata"]["fallback_reason"] = str(exc)[:200]
+            except Exception as fallback_exc:
+                return await cls._handle_execution_failure(
+                    evaluation_id=evaluation_id,
+                    error_message=str(fallback_exc),
+                    duration_ms=int((time.time() - start_time) * 1000),
+                )
 
         # ---------------------------------------------------------------------
         # TRANSACTION 2: Persist Result & Mark COMPLETED

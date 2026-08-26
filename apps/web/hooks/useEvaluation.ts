@@ -26,10 +26,24 @@ export const useEvaluation = (evaluationId?: string | null) => {
   const queryClient = useQueryClient();
 
   const triggerEvaluation = useMutation({
-    mutationFn: async ({ ideaId, evaluationType }: { ideaId: string; evaluationType?: string }) => {
+    mutationFn: async ({
+      ideaId,
+      evaluationType,
+      provider,
+      model,
+    }: {
+      ideaId: string;
+      evaluationType?: string;
+      provider?: string;
+      model?: string;
+    }) => {
       const res = await api.post<Evaluation>(
         `/ideas/${ideaId}/evaluations`,
-        { evaluation_type: evaluationType || "startup_evaluation" }
+        {
+          evaluation_type: evaluationType || "startup_evaluation",
+          provider: provider || "groq",
+          model: model || "llama-3.3-70b-versatile",
+        }
       );
       return res.data;
     },

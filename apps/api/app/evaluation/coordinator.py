@@ -95,7 +95,13 @@ class EvaluationCoordinator:
 
     @classmethod
     async def create_evaluation(
-        cls, db: AsyncSession, idea_id: str, evaluation_type: str, user_id: int
+        cls,
+        db: AsyncSession,
+        idea_id: str,
+        evaluation_type: str,
+        user_id: int,
+        provider: Optional[str] = None,
+        model: Optional[str] = None
     ) -> Evaluation:
         """Creates a new evaluation record in PENDING state."""
         idea = await cls.verify_idea_ownership(db, idea_id, user_id)
@@ -114,6 +120,10 @@ class EvaluationCoordinator:
                 detail=f"An active evaluation job '{existing_active.id}' is already in progress for this idea.",
             )
 
+        from app.core.config import settings
+        chosen_provider = provider or ("groq" if settings.GROQ_API_KEY else "deterministic-engine-v2.6")
+        chosen_model = model or ("llama-3.3-70b-versatile" if chosen_provider == "groq" else "rule-based-v2.6")
+
         evaluation = Evaluation(
             id=str(uuid.uuid4()),
             project_id=idea.project_id,
@@ -121,8 +131,8 @@ class EvaluationCoordinator:
             evaluation_type=evaluation_type,
             status=EvaluationStatus.PENDING.value,
             progress=EvaluationProgress.PENDING.value,
-            provider="deterministic-engine-v2.6",
-            model="rule-based-v2.6",
+            provider=chosen_provider,
+            model=chosen_model,
             result_payload={},
         )
         db.add(evaluation)
