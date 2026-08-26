@@ -1469,6 +1469,65 @@
         }
       }
     },
+    "/api/v1/evaluations/{evaluation_id}/export": {
+      "get": {
+        "tags": [
+          "evaluations"
+        ],
+        "summary": "Get Evaluation Export",
+        "description": "RESTful GET export for evaluation payload as JSON or Markdown.",
+        "operationId": "get_evaluation_export_api_v1_evaluations__evaluation_id__export_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "evaluation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Evaluation Id"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^(json|markdown|md)$",
+              "description": "Export format: json or markdown",
+              "default": "json",
+              "title": "Format"
+            },
+            "description": "Export format: json or markdown"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/exports/json": {
       "post": {
         "tags": [
@@ -1972,17 +2031,56 @@
           "ai"
         ],
         "summary": "Create and enqueue an AI task",
-        "description": "Creates an asynchronous AI task and enqueues execution.\nEnforces idempotency and returns 202 Accepted.",
+        "description": "Creates an asynchronous AI task and enqueues execution.\nEnforces idempotency (via Idempotency-Key header or request body) and returns 202 Accepted.",
         "operationId": "create_ai_task_api_v1_ai_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "name": "X-Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Idempotency-Key"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TaskCreateRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "202": {
@@ -2003,12 +2101,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/ai/tasks/{task_id}": {

@@ -1,5 +1,5 @@
 from typing import Optional, Any, Dict, List
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Header, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -78,12 +78,16 @@ async def create_ai_task(
     payload: TaskCreateRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    x_idempotency_key: Optional[str] = Header(None, alias="X-Idempotency-Key"),
 ):
     """
     Creates an asynchronous AI task and enqueues execution.
-    Enforces idempotency and returns 202 Accepted.
+    Enforces idempotency (via Idempotency-Key header or request body) and returns 202 Accepted.
     """
+    effective_idempotency_key = idempotency_key or x_idempotency_key or payload.idempotency_key
+
     try:
         task = await AiTaskService.create_task(
             db=db,
@@ -94,7 +98,7 @@ async def create_ai_task(
             input_payload=payload.input_payload,
             idea_id=payload.idea_id,
             project_id=payload.project_id,
-            idempotency_key=payload.idempotency_key
+            idempotency_key=effective_idempotency_key
         )
     except AIException as exc:
         raise HTTPException(

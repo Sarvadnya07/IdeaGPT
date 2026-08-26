@@ -189,6 +189,33 @@ async def get_project_comparisons(
     await project_service.get_project(db, project_id, current_user.id)
     return await comparison_service.compare_evaluations(db, evaluation_ids)
 
+@router.get("/evaluations/{evaluation_id}/export")
+@limiter.limit("20/minute")
+async def get_evaluation_export(
+    request: Request,
+    evaluation_id: str,
+    format: str = Query("json", pattern="^(json|markdown|md)$", description="Export format: json or markdown"),
+    current_user: Annotated[User, Depends(get_current_user)] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    RESTful GET export for evaluation payload as JSON or Markdown.
+    """
+    evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
+    payload = evaluation.result_payload or {}
+
+    if format in ("markdown", "md"):
+        return {
+            "filename": f"evaluation_{evaluation_id}.md",
+            "format": "markdown",
+            "content": export_service.to_markdown(payload),
+        }
+    return {
+        "filename": f"evaluation_{evaluation_id}.json",
+        "format": "json",
+        "content": export_service.to_json(payload),
+    }
+
 @router.post("/exports/json")
 @limiter.limit("20/minute")
 async def export_evaluation_json(
