@@ -78,7 +78,8 @@ class EvaluationCoordinator:
             .where(Evaluation.idea_id.in_(idea_ids))
             .order_by(Evaluation.created_at.desc())
         )
-        return res_evals.scalars().all()
+        # scalars().all() returns a Sequence; convert to list to satisfy return type List[Evaluation]
+        return list(res_evals.scalars().all())
 
     @classmethod
     async def get_evaluation(cls, db: AsyncSession, evaluation_id: str, user_id: int) -> Evaluation:
@@ -255,7 +256,8 @@ class EvaluationCoordinator:
             .where(EvaluationHistory.evaluation_id == evaluation_id)
             .order_by(EvaluationHistory.created_at.asc())
         )
-        return res.scalars().all()
+        # ensure a concrete list is returned to satisfy type List[EvaluationHistory]
+        return list(res.scalars().all())
 
     @classmethod
     async def recover_stale_evaluations(

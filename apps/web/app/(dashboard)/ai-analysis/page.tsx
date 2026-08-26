@@ -221,33 +221,118 @@ export default function AIAnalysisPage() {
         )}
       </div>
 
-      {/* Task Status Banner */}
+      {/* Task Status Banner & Live AI Task Result */}
       {task && (
-        <div className="bg-[#0b0b0d] border border-zinc-800 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-zinc-300">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-zinc-500">TASK #{task.id.slice(0, 8)}</span>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                task.status === "COMPLETED"
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                  : task.status === "FAILED"
-                  ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                  : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-              }`}
-            >
-              {task.status}
-            </span>
+        <div className="space-y-6">
+          <div className="bg-[#0b0b0d] border border-zinc-800 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs text-zinc-300 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-zinc-500">TASK #{task.id.slice(0, 8)}</span>
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  task.status === "COMPLETED"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                    : task.status === "FAILED"
+                    ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                    : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                }`}
+              >
+                {task.status}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-[11px] text-zinc-400 font-mono">
+              <span>Provider: <strong className="text-indigo-400 uppercase">{task.provider}</strong></span>
+              <span>Model: <strong className="text-emerald-400">{task.model}</strong></span>
+              {task.duration_ms && (
+                <span>Latency: <strong className="text-amber-400">{task.duration_ms}ms</strong></span>
+              )}
+            </div>
+
+            {task.error_message && (
+              <span className="text-red-400 font-mono text-[11px] max-w-md truncate">
+                {task.error_message}
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] text-zinc-400 font-mono">
-            <span>Provider Used: <strong className="text-indigo-400 uppercase">{task.provider}</strong></span>
-            <span>Model Used: <strong className="text-emerald-400">{task.model}</strong></span>
-          </div>
+          {/* Direct Live AI Task Output */}
+          {task.status === "COMPLETED" && task.result_payload && (
+            <div className="bg-[#0b0b0d] border border-indigo-500/30 rounded-2xl p-6 space-y-6 shadow-[0_0_30px_rgba(79,70,229,0.15)] animate-in fade-in duration-500">
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
+                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
+                  <BrainCircuit className="w-5 h-5" />
+                  <span>Live {task.provider.toUpperCase()} AI Evaluation Report</span>
+                </div>
+                <span className="text-[10px] font-mono text-zinc-500 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-800">
+                  Generated via {task.model}
+                </span>
+              </div>
 
-          {task.error_message && (
-            <span className="text-red-400 font-mono text-[11px] max-w-md truncate">
-              {task.error_message}
-            </span>
+              {/* Summary */}
+              {task.result_payload.summary && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">AI Executive Summary</h4>
+                  <p className="text-sm text-zinc-200 leading-relaxed bg-black/40 border border-zinc-800/60 p-4 rounded-xl">
+                    {task.result_payload.summary}
+                  </p>
+                </div>
+              )}
+
+              {/* Strengths & Weaknesses Grids */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-black/40 border border-emerald-900/30 p-5 rounded-xl space-y-3">
+                  <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> AI-Identified Strengths
+                  </h4>
+                  <ul className="space-y-2 text-xs text-zinc-300">
+                    {(task.result_payload.strengths || evalResult?.strengths || ["Robust value proposition"]).map((s: string, i: number) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-emerald-500">•</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-black/40 border border-red-900/30 p-5 rounded-xl space-y-3">
+                  <h4 className="text-xs font-bold text-red-400 uppercase tracking-wider flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" /> AI-Identified Risks & Weaknesses
+                  </h4>
+                  <ul className="space-y-2 text-xs text-zinc-300">
+                    {(task.result_payload.weaknesses || evalResult?.weaknesses || ["Market differentiation required"]).map((w: string, i: number) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="text-red-500">•</span> {w}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Technical Architecture */}
+              {(task.result_payload.architecture_breakdown || task.result_payload.technical_feasibility) && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Technical Architecture & Stack Recommendations</h4>
+                  <div className="text-xs text-zinc-300 leading-relaxed bg-black/40 border border-zinc-800/60 p-4 rounded-xl font-mono whitespace-pre-wrap">
+                    {typeof task.result_payload.architecture_breakdown === "string"
+                      ? task.result_payload.architecture_breakdown
+                      : JSON.stringify(task.result_payload.architecture_breakdown || task.result_payload.technical_feasibility, null, 2)}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              {task.result_payload.recommendations && Array.isArray(task.result_payload.recommendations) && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Strategic Recommendations</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {task.result_payload.recommendations.map((rec: string, i: number) => (
+                      <div key={i} className="bg-indigo-950/20 border border-indigo-500/20 p-3 rounded-lg text-xs text-zinc-200">
+                        <span className="font-bold text-indigo-400 mr-2">0{i+1}.</span> {rec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
