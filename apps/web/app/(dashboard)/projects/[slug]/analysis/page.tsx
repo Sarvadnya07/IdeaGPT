@@ -64,7 +64,23 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   // Pre-fill form if idea exists
   useEffect(() => {
     if (firstIdea) {
-       setFormData(firstIdea);
+      let customFields: Partial<IdeaData> = {};
+      if (firstIdea.notes) {
+        try {
+          customFields = JSON.parse(firstIdea.notes);
+        } catch {
+          // If notes isn't JSON, ignore
+        }
+      }
+      setFormData(prev => ({
+        ...prev,
+        ...firstIdea,
+        elevator_pitch: firstIdea.solution_description || prev.elevator_pitch,
+        core_problem: firstIdea.problem_statement || prev.core_problem,
+        target_audience: firstIdea.target_users || prev.target_audience,
+        monetization_model: firstIdea.business_model || prev.monetization_model,
+        ...customFields,
+      }));
     }
   }, [firstIdea]);
 

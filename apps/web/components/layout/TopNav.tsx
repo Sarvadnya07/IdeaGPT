@@ -2,8 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Bell, BookOpen, Moon, Sun, User } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu, Search, Bell, BookOpen, User } from "lucide-react";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { CommandPalette } from "../shared/CommandPalette";
 import { toast } from "sonner";
@@ -14,7 +13,6 @@ interface TopNavProps {
 
 export function TopNav({ setMobileMenuOpen }: TopNavProps) {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
   const { isLoaded, userId } = useAuth();
 
   const getSearchPlaceholder = () => {
