@@ -23,11 +23,11 @@ interface IdeaContextType {
 }
 
 const defaultIdea: IdeaData = {
-  title: "Nexus Protocol",
-  problem: "A decentralized platform for cross-chain liquidity pooling. High potential identified in current DeFi market landscape.",
-  industry: "DeFi / Web3",
-  timeline: "4-6 Mo",
-  potential: 88,
+  title: "",
+  problem: "",
+  industry: "",
+  timeline: "",
+  potential: 0,
 };
 
 const IdeaContext = createContext<IdeaContextType | undefined>(undefined);

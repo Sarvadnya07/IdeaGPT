@@ -74,6 +74,11 @@ class AIRouter:
             # Verify explicit model is not incompatible with task
             all_models = AIRegistryService.get_available_models()
             matched = next((m for m in all_models if m["id"].lower() == req_mod and m["provider"].lower() == req_prov), None)
+            if not matched and req_prov == "groq":
+                from app.ai.providers.groq import classify_groq_model
+                meta = classify_groq_model(req_mod)
+                matched = {"id": req_mod, "provider": "groq", "category": meta.get("category", "CHAT")}
+
             if matched:
                 cat = matched.get("category", "CHAT")
                 if task_type in ("idea_evaluation", "structured_report") and cat in ("SPEECH_TO_TEXT", "MODERATION"):
