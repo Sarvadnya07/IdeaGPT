@@ -169,6 +169,14 @@ class AIOrchestrator:
         Generic dynamic LLM generator for deep tool synthesis across Roadmap, PRD, Pitch Deck, Tech Stack, Architecture.
         """
         import json
+        import os
+        from app.core.config import settings
+
+        # In test mode without opt-in GROQ_E2E, immediately engage fast deterministic fallback to prevent external API calls and token consumption
+        if settings.APP_ENV == "test" and os.getenv("GROQ_E2E") != "true":
+            if fallback_fn:
+                return fallback_fn()
+
         p_name = provider or "groq"
         m_name = model or "llama-3.3-70b-versatile"
 
@@ -362,7 +370,10 @@ class AIOrchestrator:
             model=model,
             fallback_fn=fallback_fn
         )
-        return result if "executive_summary" in result else fallback_fn()
+        res_dict = result if "executive_summary" in result else fallback_fn()
+        if isinstance(res_dict, dict) and not str(res_dict.get("title", "")).startswith("PRD:"):
+            res_dict["title"] = f"PRD: {title}"
+        return res_dict
 
     @classmethod
     async def generate_pitch_deck_ai(

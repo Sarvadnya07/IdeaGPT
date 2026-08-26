@@ -119,7 +119,11 @@ class AIRouter:
             }
 
         # Step 4: AUTO Provider + AUTO Model Selection Policy
-        priority = ["groq", "openai", "gemini", "ollama", "custom", "mock"]
+        import os
+        if settings.APP_ENV == "test" and os.getenv("GROQ_E2E") != "true":
+            priority = ["mock", "groq", "openai", "gemini", "ollama", "custom"]
+        else:
+            priority = ["groq", "openai", "gemini", "ollama", "custom", "mock"]
         chosen_prov = None
         chosen_mod = "auto"
         fallback_reason = None
