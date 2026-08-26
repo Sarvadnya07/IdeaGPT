@@ -3,9 +3,12 @@ from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.evaluation_history import EvaluationHistory
 
 class Evaluation(Base):
     """
