@@ -44,11 +44,29 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const { ideasQuery, saveIdea } = useIdea(project?.id);
   const [jobId, setJobId] = useState<string | null>(null);
   const { triggerEvaluation, evaluationQuery } = useEvaluation(jobId);
-  const insightsQuery = useInsights(evaluationQuery.data?.status === "COMPLETED" ? evaluationQuery.data?.id || null : null);
+
+  // Auto-fetch existing evaluations for this project on load
+  const projectEvaluationsQuery = useQuery({
+    queryKey: ["projectEvaluations", project?.id],
+    queryFn: async () => {
+      if (!project?.id) return [];
+      const res = await api.get<any[]>(`/projects/${project.id}/evaluations`);
+      return res.data;
+    },
+    enabled: !!project?.id,
+  });
+
+  const existingEvaluations = projectEvaluationsQuery.data || [];
+  const latestCompletedEval = existingEvaluations.find((e) => e.status === "COMPLETED") || existingEvaluations[0];
+
+  // Active evaluation is the polled job (if user just triggered) or the latest persisted one
+  const activeEval = evaluationQuery.data || (jobId ? null : latestCompletedEval);
+
+  const insightsQuery = useInsights(activeEval?.status === "COMPLETED" ? activeEval?.id || null : null);
   const insights = insightsQuery.data;
 
   const [selectedProvider, setSelectedProvider] = useState<string>("groq");
-  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
   const [isEditingIdea, setIsEditingIdea] = useState<boolean>(false);
 
   const [step, setStep] = useState(1);
@@ -88,7 +106,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
     }
   }, [firstIdea]);
 
-  if (projectsQuery.isLoading || ideasQuery.isLoading) {
+  if (projectsQuery.isLoading || ideasQuery.isLoading || projectEvaluationsQuery.isLoading) {
     return <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>;
   }
 
@@ -118,11 +136,11 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
     }
   };
 
-  const jobStatus = evaluationQuery.data?.status;
+  const jobStatus = activeEval?.status;
 
   // Render Polling / Results State
   if (!isEditingIdea && (jobId || jobStatus)) {
-    if (jobStatus === "PENDING" || jobStatus === "QUEUED" || jobStatus === "RUNNING" || !jobStatus) {
+    if (jobStatus === "PENDING" || jobStatus === "QUEUED" || jobStatus === "RUNNING" || (!jobStatus && jobId)) {
       return (
         <div className="flex flex-col items-center justify-center py-32 space-y-6">
           <div className="relative">
@@ -132,7 +150,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
           <h2 className="text-2xl font-bold text-white tracking-tight">AI is Analyzing Your Idea</h2>
           <div className="flex items-center gap-2 text-zinc-400 text-sm">
             <Loader2 className="w-4 h-4 animate-spin" />
-            {jobStatus === "QUEUED" ? "Waiting in queue..." : "Processing neural evaluation..."}
+            {jobStatus === "QUEUED" ? "Waiting in queue..." : "Processing neural evaluation via Groq..."}
           </div>
           <div className="w-64 h-2 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
              <div className="h-full bg-indigo-500 w-1/2 animate-[pulse_2s_ease-in-out_infinite]" />
@@ -141,8 +159,8 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
       );
     }
 
-    if (jobStatus === "COMPLETED" && evaluationQuery.data?.result_payload) {
-      const result = evaluationQuery.data.result_payload;
+    if (jobStatus === "COMPLETED" && activeEval?.result_payload) {
+      const result = activeEval.result_payload;
       const metadata = result.metadata || {};
 
       const dimensions = result.dimensions || {
@@ -181,7 +199,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
       const handleExport = async (format: "markdown" | "json") => {
         try {
           const res = await api.post(`/exports/${format}`, {
-            evaluation_id: evaluationQuery.data?.id
+            evaluation_id: activeEval?.id || evaluationQuery.data?.id
           });
           const data = res.data;
           const blob = new Blob([data.content], { type: "text/plain" });
@@ -633,50 +651,50 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("llama-3.3-70b-versatile"); }}
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("openai/gpt-oss-120b"); }}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedProvider === "groq" && selectedModel === "llama-3.3-70b-versatile"
+                      selectedProvider === "groq" && selectedModel === "openai/gpt-oss-120b"
                         ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
                         : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                     }`}
                   >
                     <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>Groq AI (Llama 3.3 70B)</span>
-                      <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded font-mono font-bold">Fast</span>
+                      <span>GPT-OSS 120B (Groq)</span>
+                      <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded font-mono font-bold">Top Pick</span>
                     </div>
-                    <p className="text-[11px] text-zinc-400 mt-1">Deep strategic reasoning & market analysis</p>
+                    <p className="text-[11px] text-zinc-400 mt-1">120B parameter flagship reasoning & analysis</p>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("llama-3.1-8b-instant"); }}
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("qwen/qwen3.8-27b"); }}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedProvider === "groq" && selectedModel === "llama-3.1-8b-instant"
+                      selectedProvider === "groq" && selectedModel === "qwen/qwen3.8-27b"
                         ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
                         : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                     }`}
                   >
                     <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>Groq AI (Llama 3.1 8B)</span>
-                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">Instant</span>
+                      <span>Qwen 3.8 27B (Groq)</span>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono font-bold">Fast</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 mt-1">High-speed technical reasoning & architecture</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("openai/gpt-oss-20b"); }}
+                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                      selectedProvider === "groq" && selectedModel === "openai/gpt-oss-20b"
+                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
+                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
+                    }`}
+                  >
+                    <div className="text-xs font-bold text-white flex items-center justify-between">
+                      <span>GPT-OSS 20B (Groq)</span>
+                      <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-mono font-bold">Instant</span>
                     </div>
                     <p className="text-[11px] text-zinc-400 mt-1">Ultra-low latency sub-second evaluation</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedProvider("openai"); setSelectedModel("gpt-4o"); }}
-                    className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedProvider === "openai"
-                        ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
-                        : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
-                    }`}
-                  >
-                    <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>OpenAI (GPT-4o)</span>
-                      <span className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-mono font-bold">Deep</span>
-                    </div>
-                    <p className="text-[11px] text-zinc-400 mt-1">Comprehensive enterprise evaluations</p>
                   </button>
 
                   <button

@@ -122,7 +122,7 @@ class EvaluationCoordinator:
 
         from app.core.config import settings
         chosen_provider = provider or ("groq" if settings.GROQ_API_KEY else "deterministic-engine-v2.6")
-        chosen_model = model or ("llama-3.3-70b-versatile" if chosen_provider == "groq" else "rule-based-v2.6")
+        chosen_model = model or ("openai/gpt-oss-120b" if chosen_provider == "groq" else "rule-based-v2.6")
 
         evaluation = Evaluation(
             id=str(uuid.uuid4()),

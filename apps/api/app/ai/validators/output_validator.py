@@ -47,10 +47,31 @@ class OutputValidator:
                 if list_key not in parsed_json or not isinstance(parsed_json[list_key], list):
                     parsed_json[list_key] = []
                     
-            if "confidence" not in parsed_json:
+            # Normalize confidence (handles string 'medium', 'high', 'low' from various LLMs)
+            if "confidence" in parsed_json:
+                if isinstance(parsed_json["confidence"], str):
+                    c_str = parsed_json["confidence"].lower()
+                    if "high" in c_str:
+                        parsed_json["confidence"] = 0.9
+                    elif "low" in c_str:
+                        parsed_json["confidence"] = 0.5
+                    elif "med" in c_str:
+                        parsed_json["confidence"] = 0.75
+                    else:
+                        try:
+                            parsed_json["confidence"] = float(parsed_json["confidence"])
+                        except (ValueError, TypeError):
+                            parsed_json["confidence"] = 0.8
+            else:
                 parsed_json["confidence"] = 0.8
                 
-            if "score" not in parsed_json:
+            # Normalize score
+            if "score" in parsed_json:
+                try:
+                    parsed_json["score"] = int(float(parsed_json["score"]))
+                except (ValueError, TypeError):
+                    parsed_json["score"] = 70
+            else:
                 parsed_json["score"] = 70
 
             # Verify and construct dimensions sub-object
