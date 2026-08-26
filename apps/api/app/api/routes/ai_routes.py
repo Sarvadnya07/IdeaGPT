@@ -222,14 +222,14 @@ class TechStackRequest(BaseModel):
     category: str = Field(default="B2B SaaS", max_length=50)
     focus: Optional[str] = Field(default="balanced", max_length=50)
     provider: Optional[str] = Field(default="groq", max_length=50)
-    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class ArchitectureRequest(BaseModel):
     title: str = Field(default="Startup System", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     description: Optional[str] = Field(default="", max_length=1000)
     provider: Optional[str] = Field(default="groq", max_length=50)
-    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class PRDRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -238,7 +238,7 @@ class PRDRequest(BaseModel):
     solution_description: Optional[str] = Field(default="", max_length=2000)
     target_users: Optional[str] = Field(default="", max_length=500)
     provider: Optional[str] = Field(default="groq", max_length=50)
-    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class RoadmapRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -247,7 +247,7 @@ class RoadmapRequest(BaseModel):
     solution_description: Optional[str] = Field(default="", max_length=2000)
     target_users: Optional[str] = Field(default="", max_length=500)
     provider: Optional[str] = Field(default="groq", max_length=50)
-    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class PitchDeckRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -255,7 +255,7 @@ class PitchDeckRequest(BaseModel):
     problem: Optional[str] = Field(default="", max_length=2000)
     solution: Optional[str] = Field(default="", max_length=2000)
     provider: Optional[str] = Field(default="groq", max_length=50)
-    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 @router.post("/roadmap", summary="Generate AI-powered startup roadmap milestones and tasks")
 async def generate_roadmap(
@@ -273,14 +273,14 @@ async def generate_roadmap(
         solution_description=payload.solution_description or "",
         target_users=payload.target_users or "",
         provider=payload.provider or "groq",
-        model=payload.model or "openai/gpt-oss-120b"
+        model=payload.model or "llama-3.3-70b-versatile"
     )
     return {
         "title": payload.title,
         "category": payload.category,
         "milestones": milestones,
         "provider": payload.provider or "groq",
-        "model": payload.model or "openai/gpt-oss-120b",
+        "model": payload.model or "llama-3.3-70b-versatile",
     }
 
 @router.post("/tech-stack", summary="Generate tailored technology stack recommendations")
@@ -297,7 +297,7 @@ async def generate_tech_stack(
         category=payload.category,
         focus=payload.focus or "balanced",
         provider=payload.provider or "groq",
-        model=payload.model or "openai/gpt-oss-120b"
+        model=payload.model or "llama-3.3-70b-versatile"
     )
 
 @router.post("/architecture", summary="Generate system architecture blueprint and topology")
@@ -314,7 +314,7 @@ async def generate_architecture(
         category=payload.category,
         description=payload.description or "",
         provider=payload.provider or "groq",
-        model=payload.model or "openai/gpt-oss-120b"
+        model=payload.model or "llama-3.3-70b-versatile"
     )
 
 @router.post("/prd", summary="Generate Product Requirements Document (PRD)")
@@ -333,7 +333,7 @@ async def generate_prd(
         solution_description=payload.solution_description or "",
         target_users=payload.target_users or "",
         provider=payload.provider or "groq",
-        model=payload.model or "openai/gpt-oss-120b"
+        model=payload.model or "llama-3.3-70b-versatile"
     )
 
 @router.post("/pitch-deck", summary="Generate 10-slide startup pitch deck outline")
@@ -351,12 +351,12 @@ async def generate_pitch_deck(
         problem=payload.problem or "",
         solution=payload.solution or "",
         provider=payload.provider or "groq",
-        model=payload.model or "openai/gpt-oss-120b"
+        model=payload.model or "llama-3.3-70b-versatile"
     )
     return {
         "title": payload.title,
         "category": payload.category,
         "slides": slides,
         "provider": payload.provider or "groq",
-        "model": payload.model or "openai/gpt-oss-120b",
+        "model": payload.model or "llama-3.3-70b-versatile",
     }

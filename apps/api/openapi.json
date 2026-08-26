@@ -2205,7 +2205,7 @@
           "ai"
         ],
         "summary": "Generate AI-powered startup roadmap milestones and tasks",
-        "description": "Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata.",
+        "description": "Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata via Groq LLM.",
         "operationId": "generate_roadmap_api_v1_ai_roadmap_post",
         "requestBody": {
           "content": {
@@ -2251,7 +2251,7 @@
           "ai"
         ],
         "summary": "Generate tailored technology stack recommendations",
-        "description": "Generates deterministic tech stack recommendations across Frontend, Backend, Database, AI, and DevOps layers.",
+        "description": "Generates dynamic technology stack recommendations synthesized directly via Groq LLM.",
         "operationId": "generate_tech_stack_api_v1_ai_tech_stack_post",
         "requestBody": {
           "content": {
@@ -2297,7 +2297,7 @@
           "ai"
         ],
         "summary": "Generate system architecture blueprint and topology",
-        "description": "Generates system topology, database ER schema, API specs, and security blueprints.",
+        "description": "Generates dynamic system topology, database ER schema, API specs, and security blueprints via Groq LLM.",
         "operationId": "generate_architecture_api_v1_ai_architecture_post",
         "requestBody": {
           "content": {
@@ -2343,7 +2343,7 @@
           "ai"
         ],
         "summary": "Generate Product Requirements Document (PRD)",
-        "description": "Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs.",
+        "description": "Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs via Groq LLM.",
         "operationId": "generate_prd_api_v1_ai_prd_post",
         "requestBody": {
           "content": {
@@ -2389,7 +2389,7 @@
           "ai"
         ],
         "summary": "Generate 10-slide startup pitch deck outline",
-        "description": "Generates a structured 10-slide venture pitch deck outline.",
+        "description": "Generates a structured 10-slide venture pitch deck outline via Groq LLM.",
         "operationId": "generate_pitch_deck_api_v1_ai_pitch_deck_post",
         "requestBody": {
           "content": {
@@ -2747,6 +2747,32 @@
             ],
             "title": "Description",
             "default": ""
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider",
+            "default": "groq"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "default": "llama-3.3-70b-versatile"
           }
         },
         "type": "object",
@@ -3797,6 +3823,32 @@
             ],
             "title": "Target Users",
             "default": ""
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider",
+            "default": "groq"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "default": "llama-3.3-70b-versatile"
           }
         },
         "type": "object",
@@ -3887,7 +3939,7 @@
               }
             ],
             "title": "Model",
-            "default": "openai/gpt-oss-120b"
+            "default": "llama-3.3-70b-versatile"
           }
         },
         "type": "object",
@@ -3897,7 +3949,7 @@
         "properties": {
           "title": {
             "type": "string",
-            "maxLength": 100,
+            "maxLength": 255,
             "minLength": 1,
             "title": "Title"
           },
@@ -3905,24 +3957,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 2000
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Description",
+            "default": ""
           },
           "category": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 100
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Category"
+            "title": "Category",
+            "default": "B2B SaaS"
           },
           "color": {
             "anyOf": [
@@ -3982,7 +4037,7 @@
         "properties": {
           "title": {
             "type": "string",
-            "maxLength": 100,
+            "maxLength": 255,
             "minLength": 1,
             "title": "Title"
           },
@@ -3990,24 +4045,27 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 2000
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Description"
+            "title": "Description",
+            "default": ""
           },
           "category": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 100
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Category"
+            "title": "Category",
+            "default": "B2B SaaS"
           },
           "color": {
             "anyOf": [
@@ -4109,7 +4167,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 100,
+                "maxLength": 255,
                 "minLength": 1
               },
               {
@@ -4122,7 +4180,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -4336,7 +4394,7 @@
               }
             ],
             "title": "Model",
-            "default": "openai/gpt-oss-120b"
+            "default": "llama-3.3-70b-versatile"
           }
         },
         "type": "object",
@@ -4546,6 +4604,32 @@
             ],
             "title": "Focus",
             "default": "balanced"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider",
+            "default": "groq"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "default": "llama-3.3-70b-versatile"
           }
         },
         "type": "object",

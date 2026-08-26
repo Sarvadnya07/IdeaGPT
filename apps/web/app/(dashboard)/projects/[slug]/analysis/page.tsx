@@ -67,7 +67,7 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
   const insights = insightsQuery.data;
 
   const [selectedProvider, setSelectedProvider] = useState<string>("groq");
-  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
   const [isEditingIdea, setIsEditingIdea] = useState<boolean>(false);
 
   const [step, setStep] = useState(1);
@@ -652,15 +652,15 @@ export default function AnalysisPage({ params }: { params: Promise<{ slug: strin
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("openai/gpt-oss-120b"); }}
+                    onClick={() => { setSelectedProvider("groq"); setSelectedModel("llama-3.3-70b-versatile"); }}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
-                      selectedProvider === "groq" && selectedModel === "openai/gpt-oss-120b"
+                      selectedProvider === "groq" && selectedModel === "llama-3.3-70b-versatile"
                         ? "border-indigo-500 bg-indigo-950/40 text-white shadow-[0_0_15px_rgba(79,70,229,0.2)]"
                         : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700"
                     }`}
                   >
                     <div className="text-xs font-bold text-white flex items-center justify-between">
-                      <span>GPT-OSS 120B (Groq)</span>
+                      <span>Llama 3.3 70B Versatile (Groq)</span>
                       <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded font-mono font-bold">Top Pick</span>
                     </div>
                     <p className="text-[11px] text-zinc-400 mt-1">120B parameter flagship reasoning & analysis</p>

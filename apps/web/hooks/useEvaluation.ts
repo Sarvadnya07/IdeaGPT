@@ -42,7 +42,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
         {
           evaluation_type: evaluationType || "startup_evaluation",
           provider: provider || "groq",
-          model: model || "openai/gpt-oss-120b",
+          model: model || "llama-3.3-70b-versatile",
         }
       );
       return res.data;

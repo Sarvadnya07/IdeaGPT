@@ -59,7 +59,7 @@ export default function PRDGeneratorPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
   const [prdData, setPrdData] = useState<PRDResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -181,7 +181,7 @@ ${prdData.success_metrics.map((m) => `- **${m.metric}**: ${m.target}`).join("\n"
             }}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
           </select>

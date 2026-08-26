@@ -40,7 +40,7 @@ export default function PitchDeckPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
   const [deckData, setDeckData] = useState<PitchDeckResponse | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -143,7 +143,7 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
             }}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
           </select>

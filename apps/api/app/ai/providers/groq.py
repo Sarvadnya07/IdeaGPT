@@ -240,17 +240,14 @@ class GroqProvider(AIProvider):
             if m.get("available") and m.get("category") == "CHAT" and m.get("supports_structured_output", True)
         ]
 
-        # Prioritize production-ready versatile models (favoring user-available gpt-oss-120b & qwen3.8)
+        # Prioritize production-ready versatile & fast models (favoring Llama 3.3 70B & Llama 3.1 8B)
         for fallback in [
-            "openai/gpt-oss-120b",
-            "qwen/qwen3.8-27b",
-            "openai/gpt-oss-20b",
-            "qwen/qwen3.6-27b",
-            "groq/compound",
             "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
-            "llama3-70b-8192",
+            "llama-3.3-70b-specdec",
+            "qwen/qwen3.8-27b",
             "mixtral-8x7b-32768",
+            "openai/gpt-oss-120b",
         ]:
             if fallback in active_chat_models and fallback not in candidate_models:
                 candidate_models.append(fallback)
@@ -259,12 +256,14 @@ class GroqProvider(AIProvider):
                 candidate_models.append(m)
 
         # Baseline fallback candidate list in case dynamic discovery returned empty or restricted models
-        for baseline in ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+        for baseline in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "qwen/qwen3.8-27b", "mixtral-8x7b-32768"]:
             if baseline not in candidate_models:
                 candidate_models.append(baseline)
 
         kwargs: Dict[str, Any] = {
             "messages": messages,
+            "max_tokens": 3000,
+            "temperature": 0.2,
         }
         if response_format == "json":
             kwargs["response_format"] = {"type": "json_object"}

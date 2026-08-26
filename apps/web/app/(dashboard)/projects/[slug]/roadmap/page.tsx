@@ -27,7 +27,7 @@ export default function ProjectRoadmapPage({
   const projectIdeas = ideasQuery.data || [];
   const primaryIdea = projectIdeas[0];
 
-  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
+  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
   const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
 
   const handleGenerateAIRoadmap = async () => {
@@ -117,7 +117,7 @@ export default function ProjectRoadmapPage({
               onChange={(e) => setSelectedModel(e.target.value)}
               className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
             >
-              <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
               <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
               <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
             </select>
@@ -155,7 +155,7 @@ export default function ProjectRoadmapPage({
               onChange={(e) => setSelectedModel(e.target.value)}
               className="bg-black/80 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
             >
-              <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
               <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
               <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
             </select>

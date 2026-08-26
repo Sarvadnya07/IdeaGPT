@@ -162,7 +162,7 @@ class AIOrchestrator:
         user_prompt: str,
         system_prompt: str,
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b",
+        model: str = "llama-3.3-70b-versatile",
         fallback_fn = None
     ) -> dict:
         """
@@ -170,7 +170,7 @@ class AIOrchestrator:
         """
         import json
         p_name = provider or "groq"
-        m_name = model or "openai/gpt-oss-120b"
+        m_name = model or "llama-3.3-70b-versatile"
 
         # Check Cache
         cached = evaluation_cache.get(
@@ -222,7 +222,7 @@ class AIOrchestrator:
         solution_description: str,
         target_users: str,
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b"
+        model: str = "llama-3.3-70b-versatile"
     ) -> list:
         user_prompt = (
             f"Generate a customized, domain-specific execution roadmap for this startup:\n"
@@ -263,7 +263,7 @@ class AIOrchestrator:
         category: str,
         focus: str = "balanced",
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b"
+        model: str = "llama-3.3-70b-versatile"
     ) -> dict:
         user_prompt = (
             f"Generate a modern, production-grade technology stack blueprint for this startup:\n"
@@ -298,7 +298,7 @@ class AIOrchestrator:
         category: str,
         description: str,
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b"
+        model: str = "llama-3.3-70b-versatile"
     ) -> dict:
         user_prompt = (
             f"Design an enterprise system architecture blueprint for this startup:\n"
@@ -334,7 +334,7 @@ class AIOrchestrator:
         solution_description: str,
         target_users: str,
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b"
+        model: str = "llama-3.3-70b-versatile"
     ) -> dict:
         user_prompt = (
             f"Author a comprehensive Product Requirements Document (PRD) for this startup:\n"
@@ -372,7 +372,7 @@ class AIOrchestrator:
         problem: str,
         solution: str,
         provider: str = "groq",
-        model: str = "openai/gpt-oss-120b"
+        model: str = "llama-3.3-70b-versatile"
     ) -> list:
         user_prompt = (
             f"Create a high-converting 10-slide venture pitch deck outline for this startup:\n"
