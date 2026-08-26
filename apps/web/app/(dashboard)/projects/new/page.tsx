@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useProjects } from "../../../../hooks/useProjects";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -42,11 +43,21 @@ export default function NewProjectPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      toast.error("Please provide a project title.");
+      return;
+    }
     
-    await createProject.mutateAsync({ title, description, category });
-    localStorage.removeItem("project_draft"); // Clear draft on success
-    router.push("/dashboard");
+    try {
+      await createProject.mutateAsync({ title: title.trim(), description: description.trim(), category });
+      localStorage.removeItem("project_draft"); // Clear draft on success
+      toast.success("Project created successfully!");
+      router.push("/dashboard");
+    } catch (err: any) {
+      console.error("Project creation error:", err);
+      const detail = err?.response?.data?.detail || "Failed to create project.";
+      toast.error(typeof detail === "string" ? detail : "Failed to create project.");
+    }
   };
 
   return (

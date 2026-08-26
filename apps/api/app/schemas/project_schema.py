@@ -3,18 +3,20 @@ from typing import Optional
 from datetime import datetime
 
 class ProjectBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
-    category: Optional[str] = None
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = Field(default="", max_length=2000)
+    category: Optional[str] = Field(default="B2B SaaS", max_length=100)
     color: Optional[str] = None
     icon: Optional[str] = None
+
+    model_config = ConfigDict(extra="ignore")
 
 class ProjectCreate(ProjectBase):
     pass
 
 class ProjectUpdate(BaseModel):
-    title: Optional[str] = Field(None, min_length=1, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = Field(None, max_length=2000)
     category: Optional[str] = None
     status: Optional[str] = None
     visibility: Optional[str] = None
@@ -23,6 +25,8 @@ class ProjectUpdate(BaseModel):
     is_pinned: Optional[bool] = None
     is_archived: Optional[bool] = None
     is_favorite: Optional[bool] = None
+
+    model_config = ConfigDict(extra="ignore")
 
 class ProjectResponse(ProjectBase):
     id: str
