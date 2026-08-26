@@ -221,11 +221,15 @@ class TechStackRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     focus: Optional[str] = Field(default="balanced", max_length=50)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
 
 class ArchitectureRequest(BaseModel):
     title: str = Field(default="Startup System", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     description: Optional[str] = Field(default="", max_length=1000)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
 
 class PRDRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -233,6 +237,8 @@ class PRDRequest(BaseModel):
     problem_statement: Optional[str] = Field(default="", max_length=2000)
     solution_description: Optional[str] = Field(default="", max_length=2000)
     target_users: Optional[str] = Field(default="", max_length=500)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="openai/gpt-oss-120b", max_length=100)
 
 class RoadmapRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -257,15 +263,17 @@ async def generate_roadmap(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata.
+    Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata via Groq LLM.
     """
-    from app.services.architecture_service import architecture_service
-    milestones = architecture_service.generate_ai_roadmap(
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    milestones = await AIOrchestrator.generate_roadmap_ai(
         title=payload.title,
         category=payload.category,
         problem_statement=payload.problem_statement or "",
         solution_description=payload.solution_description or "",
         target_users=payload.target_users or "",
+        provider=payload.provider or "groq",
+        model=payload.model or "openai/gpt-oss-120b"
     )
     return {
         "title": payload.title,
@@ -281,13 +289,15 @@ async def generate_tech_stack(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates deterministic tech stack recommendations across Frontend, Backend, Database, AI, and DevOps layers.
+    Generates dynamic technology stack recommendations synthesized directly via Groq LLM.
     """
-    from app.services.architecture_service import architecture_service
-    return architecture_service.generate_tech_stack(
-        category=payload.category,
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_tech_stack_ai(
         title=payload.title,
-        requirements_focus=payload.focus or "balanced"
+        category=payload.category,
+        focus=payload.focus or "balanced",
+        provider=payload.provider or "groq",
+        model=payload.model or "openai/gpt-oss-120b"
     )
 
 @router.post("/architecture", summary="Generate system architecture blueprint and topology")
@@ -296,13 +306,15 @@ async def generate_architecture(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates system topology, database ER schema, API specs, and security blueprints.
+    Generates dynamic system topology, database ER schema, API specs, and security blueprints via Groq LLM.
     """
-    from app.services.architecture_service import architecture_service
-    return architecture_service.generate_architecture_blueprint(
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_architecture_ai(
         title=payload.title,
         category=payload.category,
-        description=payload.description or ""
+        description=payload.description or "",
+        provider=payload.provider or "groq",
+        model=payload.model or "openai/gpt-oss-120b"
     )
 
 @router.post("/prd", summary="Generate Product Requirements Document (PRD)")
@@ -311,15 +323,17 @@ async def generate_prd(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs.
+    Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs via Groq LLM.
     """
-    from app.services.architecture_service import architecture_service
-    return architecture_service.generate_prd(
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_prd_ai(
         title=payload.title,
         category=payload.category,
-        problem_statement=payload.problem_statement or "Founders lack rapid technical feasibility validation.",
-        solution_description=payload.solution_description or "Automated AI co-founder that scopes architectures and analyzes risk.",
-        target_users=payload.target_users or "Startup Founders, Product Managers, Software Engineers"
+        problem_statement=payload.problem_statement or "",
+        solution_description=payload.solution_description or "",
+        target_users=payload.target_users or "",
+        provider=payload.provider or "groq",
+        model=payload.model or "openai/gpt-oss-120b"
     )
 
 @router.post("/pitch-deck", summary="Generate 10-slide startup pitch deck outline")
@@ -328,16 +342,21 @@ async def generate_pitch_deck(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Generates a structured 10-slide venture pitch deck outline.
+    Generates a structured 10-slide venture pitch deck outline via Groq LLM.
     """
-    from app.services.architecture_service import architecture_service
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    slides = await AIOrchestrator.generate_pitch_deck_ai(
+        title=payload.title,
+        category=payload.category,
+        problem=payload.problem or "",
+        solution=payload.solution or "",
+        provider=payload.provider or "groq",
+        model=payload.model or "openai/gpt-oss-120b"
+    )
     return {
         "title": payload.title,
         "category": payload.category,
-        "slides": architecture_service.generate_pitch_deck_outline(
-            title=payload.title,
-            category=payload.category,
-            problem=payload.problem or "",
-            solution=payload.solution or ""
-        )
+        "slides": slides,
+        "provider": payload.provider or "groq",
+        "model": payload.model or "openai/gpt-oss-120b",
     }

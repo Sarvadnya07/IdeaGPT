@@ -17,6 +17,7 @@ import {
   Sparkles,
   Layers,
   BrainCircuit,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -315,6 +316,14 @@ export default function RoadmapPage() {
                       {milestone.objective}
                     </p>
                   </div>
+
+                  <button
+                    onClick={handleGenerateAIRoadmap}
+                    disabled={isGeneratingAI}
+                    className="text-[11px] flex items-center gap-1 text-zinc-400 hover:text-indigo-400 px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Regenerate
+                  </button>
                 </div>
 
                 {/* Tasks List */}

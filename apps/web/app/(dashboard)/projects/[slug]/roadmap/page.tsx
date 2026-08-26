@@ -65,6 +65,33 @@ export default function ProjectRoadmapPage({
     }
   };
 
+  const handleToggleTaskStatus = async (milestoneIdx: number, taskIdx: number) => {
+    if (!currentRoadmap) return;
+
+    const updatedMilestones = JSON.parse(JSON.stringify(currentRoadmap.milestones)) as Milestone[];
+    const currentStatus = updatedMilestones[milestoneIdx].tasks[taskIdx].status;
+
+    const nextStatus =
+      currentStatus === "pending"
+        ? "in_progress"
+        : currentStatus === "in_progress"
+        ? "completed"
+        : "pending";
+
+    updatedMilestones[milestoneIdx].tasks[taskIdx].status = nextStatus;
+
+    try {
+      await updateRoadmap.mutateAsync({
+        roadmapId: currentRoadmap.id,
+        data: { milestones: updatedMilestones },
+      });
+      const statusLabel = nextStatus === "completed" ? "Completed" : nextStatus === "in_progress" ? "In Progress" : "Pending";
+      toast.success(`Task marked as ${statusLabel}`);
+    } catch (err) {
+      toast.error("Failed to update task status.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -73,12 +100,13 @@ export default function ProjectRoadmapPage({
           <div className="flex items-center gap-2 text-indigo-400 font-medium text-xs mb-1">
             <Map className="w-3.5 h-3.5" />
             <span>Project Roadmap</span>
+            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-2 py-0.5 rounded font-mono">⚡ Powered by Groq</span>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             {project?.title ? `${project.title} Roadmap` : "Roadmap"}
           </h1>
           <p className="text-neutral-400 text-xs mt-0.5">
-            Milestone planning and execution timeline synthesized from your startup idea.
+            Interactive milestone planning and task execution tracker. Click any task to toggle status.
           </p>
         </div>
 
@@ -97,7 +125,7 @@ export default function ProjectRoadmapPage({
             <button
               onClick={handleGenerateAIRoadmap}
               disabled={isGeneratingAI}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-950/60 border border-indigo-500/40 hover:bg-indigo-900/60 text-indigo-300 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 shadow-[0_0_15px_rgba(79,70,229,0.3)]"
             >
               {isGeneratingAI ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               Regenerate with Groq
@@ -144,51 +172,93 @@ export default function ProjectRoadmapPage({
         </div>
       ) : (
         <div className="space-y-6">
-          {currentRoadmap.milestones.map((m, idx) => (
-            <div key={idx} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-4">
-              <div className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-3">
-                <div>
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
-                    Phase {idx + 1}
-                  </div>
-                  <h3 className="text-lg font-bold text-white mt-0.5">{m.title}</h3>
-                  <p className="text-xs text-neutral-400 mt-1">{m.objective}</p>
-                </div>
-              </div>
+          {currentRoadmap.milestones.map((m, idx) => {
+            const completedCount = m.tasks.filter(t => t.status === "completed").length;
+            const progressPercent = m.tasks.length > 0 ? Math.round((completedCount / m.tasks.length) * 100) : 0;
 
-              {/* Tasks List */}
-              <div className="space-y-2 pt-1">
-                {m.tasks.map((task, tIdx) => (
-                  <div
-                    key={tIdx}
-                    className="flex items-center justify-between p-3 bg-neutral-950/60 border border-neutral-800/80 rounded-lg text-xs"
+            return (
+              <div key={idx} className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-5 space-y-4">
+                <div className="flex items-start justify-between gap-4 border-b border-neutral-800/80 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
+                        Phase {idx + 1}
+                      </span>
+                      <span className="text-[10px] bg-neutral-800 text-neutral-400 px-2 py-0.5 rounded font-mono">
+                        {completedCount}/{m.tasks.length} Completed ({progressPercent}%)
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mt-1">{m.title}</h3>
+                    <p className="text-xs text-neutral-400 mt-1">{m.objective}</p>
+                  </div>
+
+                  <button
+                    onClick={handleGenerateAIRoadmap}
+                    disabled={isGeneratingAI}
+                    className="text-[11px] flex items-center gap-1 text-zinc-400 hover:text-indigo-400 px-2.5 py-1 rounded bg-neutral-800/60 hover:bg-neutral-800 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      {task.status === "completed" ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      ) : task.status === "in_progress" ? (
-                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-neutral-600 shrink-0" />
-                      )}
-                      <div>
-                        <div className="font-medium text-neutral-200">{task.title}</div>
-                        {task.description && (
-                          <div className="text-[11px] text-neutral-400 mt-0.5">{task.description}</div>
+                    <RefreshCw className="w-3 h-3" /> Regenerate
+                  </button>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-neutral-950 h-1.5 rounded-full overflow-hidden border border-neutral-800">
+                  <div 
+                    className="bg-indigo-500 h-full transition-all duration-300 rounded-full" 
+                    style={{ width: `${progressPercent}%` }} 
+                  />
+                </div>
+
+                {/* Tasks List */}
+                <div className="space-y-2 pt-1">
+                  {m.tasks.map((task, tIdx) => (
+                    <button
+                      key={tIdx}
+                      type="button"
+                      onClick={() => handleToggleTaskStatus(idx, tIdx)}
+                      className="w-full text-left flex items-center justify-between p-3 bg-neutral-950/60 hover:bg-neutral-950 border border-neutral-800/80 hover:border-neutral-700 rounded-lg text-xs transition-all group cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        {task.status === "completed" ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        ) : task.status === "in_progress" ? (
+                          <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-neutral-600 group-hover:text-neutral-400 shrink-0" />
+                        )}
+                        <div>
+                          <div className={`font-medium transition-colors ${task.status === "completed" ? "text-neutral-400 line-through" : "text-neutral-200"}`}>
+                            {task.title}
+                          </div>
+                          {task.description && (
+                            <div className="text-[11px] text-neutral-500 mt-0.5">{task.description}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
+                          task.status === "completed" 
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : task.status === "in_progress"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            : "bg-neutral-800 text-neutral-400"
+                        }`}>
+                          {task.status.replace("_", " ")}
+                        </span>
+
+                        {task.estimated_days && (
+                          <span className="text-[10px] font-mono px-2 py-0.5 bg-neutral-850 text-neutral-400 rounded">
+                            {task.estimated_days}d
+                          </span>
                         )}
                       </div>
-                    </div>
-
-                    {task.estimated_days && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 bg-neutral-800 text-neutral-400 rounded">
-                        {task.estimated_days}d
-                      </span>
-                    )}
-                  </div>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

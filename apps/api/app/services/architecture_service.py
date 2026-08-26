@@ -345,8 +345,8 @@ class ArchitectureService:
                     "title": "Phase 1: Native Desktop Shell & Audio Ingestion",
                     "objective": "Build cross-platform client with low-latency text and voice input capture",
                     "tasks": [
-                        {"title": "Setup Cross-Platform Desktop Runtime (Tauri / Rust Shell)", "estimated_days": 4, "status": "completed", "description": "Configure native windowing, global hotkeys, and IPC bridge"},
-                        {"title": "Implement OS Audio Pipeline (WASAPI & PipeWire)", "estimated_days": 3, "status": "in_progress", "description": "Low-latency microphone capture and streaming buffer"},
+                        {"title": "Setup Cross-Platform Desktop Runtime (Tauri / Rust Shell)", "estimated_days": 4, "status": "pending", "description": "Configure native windowing, global hotkeys, and IPC bridge"},
+                        {"title": "Implement OS Audio Pipeline (WASAPI & PipeWire)", "estimated_days": 3, "status": "pending", "description": "Low-latency microphone capture and streaming buffer"},
                         {"title": "Integrate Speech-to-Text Model (Groq Whisper API)", "estimated_days": 2, "status": "pending", "description": "Sub-150ms real-time audio transcription pipeline"},
                     ],
                 },
@@ -385,8 +385,8 @@ class ArchitectureService:
                     "title": "Phase 1: Chess Engine & Stockfish Integration",
                     "objective": "Establish high-speed Stockfish engine communication and board state parsing",
                     "tasks": [
-                        {"title": "Implement UCI Protocol & Stockfish WASM Engine", "estimated_days": 4, "status": "completed", "description": "Client-side engine evaluation with depth 20+ analysis"},
-                        {"title": "Build Interactive PGN/FEN Board State Visualizer", "estimated_days": 3, "status": "in_progress", "description": "Real-time move evaluation and blunder highlighting"},
+                        {"title": "Implement UCI Protocol & Stockfish WASM Engine", "estimated_days": 4, "status": "pending", "description": "Client-side engine evaluation with depth 20+ analysis"},
+                        {"title": "Build Interactive PGN/FEN Board State Visualizer", "estimated_days": 3, "status": "pending", "description": "Real-time move evaluation and blunder highlighting"},
                     ],
                 },
                 {
@@ -414,9 +414,9 @@ class ArchitectureService:
                 "title": f"Phase 1: {clean_title} Foundation & Core Architecture",
                 "objective": "Establish core infrastructure, schema models, and secure authentication",
                 "tasks": [
-                    {"title": f"Design Database Schemas & Migration Pipeline for {clean_title}", "estimated_days": 3, "status": "completed", "description": "ACID PostgreSQL schemas with strict indexing"},
-                    {"title": "Implement JWT Authentication & Role-Based Access", "estimated_days": 2, "status": "completed", "description": "Clerk RS256 token verification middleware"},
-                    {"title": "Build REST & Async Streaming API Gateway", "estimated_days": 3, "status": "in_progress", "description": "FastAPI endpoints with SlowAPI rate limiting"},
+                    {"title": f"Design Database Schemas & Migration Pipeline for {clean_title}", "estimated_days": 3, "status": "pending", "description": "ACID PostgreSQL schemas with strict indexing"},
+                    {"title": "Implement JWT Authentication & Role-Based Access", "estimated_days": 2, "status": "pending", "description": "Clerk RS256 token verification middleware"},
+                    {"title": "Build REST & Async Streaming API Gateway", "estimated_days": 3, "status": "pending", "description": "FastAPI endpoints with SlowAPI rate limiting"},
                 ],
             },
             {

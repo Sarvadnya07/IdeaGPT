@@ -53,6 +53,7 @@ export default function ComparePage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("openai/gpt-oss-120b");
 
   // Automatically select first project when loaded
   React.useEffect(() => {
@@ -95,7 +96,8 @@ export default function ComparePage() {
 
     try {
       const res = await api.post<IdeaComparisonResponse>("/evaluations/compare", {
-        idea_ids: selectedIdeaIds
+        idea_ids: selectedIdeaIds,
+        model: selectedModel
       });
       setComparisonResult(res.data);
     } catch (err: any) {
@@ -108,8 +110,8 @@ export default function ComparePage() {
   };
 
   const highestScoreIdea = useMemo(() => {
-    if (!comparisonResult?.ideas || !comparisonResult.highest_score_idea_id) return null;
-    return comparisonResult.ideas.find((i) => i.idea_id === comparisonResult.highest_score_idea_id);
+    if (!comparisonResult?.ideas || comparisonResult.ideas.length === 0) return null;
+    return [...comparisonResult.ideas].sort((a, b) => (b.overall_score || 0) - (a.overall_score || 0))[0];
   }, [comparisonResult]);
 
   return (
@@ -119,36 +121,49 @@ export default function ComparePage() {
         <div>
           <div className="flex items-center gap-2 text-indigo-400 font-medium text-sm mb-1">
             <GitCompare className="w-4 h-4" />
-            <span>Idea Benchmarking Engine</span>
+            <span>Multi-Concept Comparative Matrix</span>
+            <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] px-2 py-0.5 rounded font-mono">⚡ Powered by Groq</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Compare Ideas</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Compare Startup Ideas</h1>
           <p className="text-neutral-400 text-sm mt-1">
-            Compare startup concepts side-by-side using real persisted evaluation scores and completeness metrics.
+            Side-by-side multi-dimensional benchmarking and competitive gap analysis.
           </p>
         </div>
 
-        {/* Project Selector */}
-        {projects.length > 0 && (
-          <div className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
-            <Layers className="w-4 h-4 text-neutral-400 ml-2" />
-            <select
-              value={selectedProjectId}
-              onChange={(e) => {
-                setSelectedProjectId(e.target.value);
-                setSelectedIdeaIds([]);
-                setComparisonResult(null);
-                setErrorMsg(null);
-              }}
-              className="bg-transparent text-sm text-neutral-200 focus:outline-none cursor-pointer pr-4"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
-                  {p.title}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* Project Selector & AI Model */}
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+          >
+            <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq)</option>
+            <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
+            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
+          </select>
+
+          {projects.length > 0 && (
+            <div className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-lg p-2">
+              <Layers className="w-4 h-4 text-neutral-400 ml-2" />
+              <select
+                value={selectedProjectId}
+                onChange={(e) => {
+                  setSelectedProjectId(e.target.value);
+                  setSelectedIdeaIds([]);
+                  setComparisonResult(null);
+                  setErrorMsg(null);
+                }}
+                className="bg-transparent text-sm text-neutral-200 focus:outline-none cursor-pointer pr-4"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content Area */}

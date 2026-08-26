@@ -11,7 +11,7 @@ export default function ProcessingPage() {
   const { slug } = useParams();
   
   const jobId = searchParams.get("jobId");
-  const { statusQuery, retryMutation } = useEvaluationPolling(jobId ? parseInt(jobId) : null);
+  const { statusQuery, retryMutation } = useEvaluationPolling(jobId || null);
 
   const status = statusQuery.data?.status;
 
