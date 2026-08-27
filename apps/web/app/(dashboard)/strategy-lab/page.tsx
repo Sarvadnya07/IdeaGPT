@@ -537,7 +537,7 @@ export default function StrategyLabPage() {
                           })
                         }
                         disabled={linkToRoadmapMutation.isPending}
-                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-[0_0_12px_rgba(79,70,229,0.3)]"
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-[0_0_12px_rgba(79,70,229,0.3)]"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         Add to Roadmap

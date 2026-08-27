@@ -97,7 +97,7 @@ export const AssumptionPriorityTable: React.FC<AssumptionPriorityTableProps> = (
               {onAddToRoadmap && (
                 <button
                   onClick={() => onAddToRoadmap(item)}
-                  className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-[0_0_10px_rgba(79,70,229,0.3)]"
+                  className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-[0_0_10px_rgba(79,70,229,0.3)]"
                 >
                   <ArrowUpRight className="w-3.5 h-3.5" />
                   Add to Roadmap
