@@ -24,6 +24,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { IdeaGPTLogo } from "../brand/IdeaGPTLogo";
 
 interface SidebarGroup {
   heading: string;
@@ -85,23 +86,10 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
 
   const SidebarContent = () => (
     <>
-      <div className="p-6 border-b border-zinc-900/60 sticky top-0 bg-[#0c0c0e] z-10">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 shadow-[0_0_15px_rgba(79,70,229,0.3)]">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <span className="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-              IdeaGPT
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
-              <span className="text-[10px] font-semibold text-indigo-400 uppercase tracking-widest">
-                AI Engine
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="p-5 border-b border-zinc-900/80 sticky top-0 bg-[#0c0c0e]/95 backdrop-blur-md z-10">
+        <Link href="/dashboard" className="block focus:outline-none">
+          <IdeaGPTLogo size="md" variant="full" />
+        </Link>
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-6">

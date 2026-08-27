@@ -2,30 +2,33 @@
 
 import React from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, Lightbulb, Map, Layers, Target } from "lucide-react";
+import { ArrowRight, Lightbulb, Map, Layers, Sparkles, Shield, Cpu, Compass } from "lucide-react";
 import { Show } from "@clerk/nextjs";
-import { Search } from "lucide-react";
+import { IdeaGPTLogo } from "../components/brand/IdeaGPTLogo";
+import { EvidenceBadge } from "../components/brand/EvidenceBadge";
+import { AIStateIndicator } from "../components/brand/AIStateIndicator";
+import { StrategyPathwayCard } from "../components/brand/StrategyPathwayCard";
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#070709] text-zinc-100 font-sans selection:bg-indigo-500/30 overflow-x-hidden relative">
-      {/* Background neon blur graphics */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-600/5 blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-purple-600/5 blur-[150px] pointer-events-none"></div>
+    <div className="flex flex-col min-h-screen bg-[#101012] text-zinc-100 font-sans selection:bg-[#00C29A]/30 overflow-x-hidden relative">
+      {/* Background ambient gradient graphics */}
+      <div className="absolute top-[-10%] left-[-10%] w-[550px] h-[550px] rounded-full bg-[#00C29A]/5 blur-[140px] pointer-events-none" />
+      <div className="absolute top-[20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#0284C7]/5 blur-[160px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-[#3B82F6]/5 blur-[150px] pointer-events-none" />
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-40 w-full bg-[#070709]/80 backdrop-blur-md border-b border-zinc-900/60 px-6 sm:px-12 py-4">
+      <header className="sticky top-0 z-40 w-full bg-[#101012]/85 backdrop-blur-md border-b border-zinc-800/60 px-6 sm:px-12 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8.5 h-8.5 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 shadow-[0_0_15px_rgba(79,70,229,0.3)] shrink-0">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-extrabold text-base tracking-tight text-white select-none">
-              IdeaGPT
-            </span>
-          </div>
+          <Link href="/" className="focus:outline-none">
+            <IdeaGPTLogo size="md" variant="full" />
+          </Link>
 
           <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 mr-2">
+              <AIStateIndicator status="analyzing" label="AI Engine Active" />
+            </div>
+
             <Show when="signed-out">
               <Link
                 href="/sign-in"
@@ -35,17 +38,19 @@ export default function LandingPage() {
               </Link>
               <Link
                 href="/sign-up"
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.3)] rounded-full transition-all active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-zinc-950 bg-[#00C29A] hover:bg-[#00C29A]/90 shadow-[0_0_20px_rgba(0,194,154,0.35)] rounded-xl transition-all active:scale-95"
               >
                 Get Started
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </Link>
             </Show>
             <Show when="signed-in">
               <Link
                 href="/dashboard"
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.3)] rounded-full transition-all active:scale-95"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-zinc-950 bg-[#00C29A] hover:bg-[#00C29A]/90 shadow-[0_0_20px_rgba(0,194,154,0.35)] rounded-xl transition-all active:scale-95"
               >
-                Dashboard
+                Open Dashboard
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
               </Link>
             </Show>
           </div>
@@ -55,34 +60,41 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="flex-1 flex flex-col justify-center items-center px-6 sm:px-12 py-20 text-center max-w-5xl mx-auto relative z-10">
         <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest animate-pulse">
-            <Sparkles className="w-3.5 h-3.5" />
-            Empowered by Advanced Reasoning AI
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-bold bg-zinc-900 border border-zinc-800 text-zinc-300 uppercase tracking-widest shadow-inner">
+            <span className="w-2 h-2 rounded-full bg-[#00C29A] animate-pulse" />
+            <span>IDEA → EVIDENCE → REASONING → DECISION</span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight text-white leading-[1.1] max-w-3xl mx-auto">
-            Validate Concepts{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 drop-shadow-[0_2px_15px_rgba(168,85,247,0.25)]">
-              Instantly
+            Transform Ideas Into{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#00C29A] via-[#0284C7] to-[#3B82F6] drop-shadow-[0_2px_20px_rgba(0,194,154,0.3)]">
+              Structured Decisions
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-zinc-500 max-w-2xl mx-auto leading-relaxed font-medium">
-            IdeaGPT completely analyzes your startup ideas across technical feasibility, target timelines, key risk parameters, and dev pipeline scope in seconds.
+          <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium">
+            IdeaGPT autonomously evaluates startup concepts across technical feasibility, evidence verification, risk scorecards, and executable MVP roadmaps in seconds.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 pb-2">
+            <EvidenceBadge type="FACT" label="Fact Verified" size="sm" />
+            <EvidenceBadge type="ESTIMATE" label="Smart Estimate" size="sm" />
+            <EvidenceBadge type="INFERENCE" label="AI Inference" size="sm" />
+            <EvidenceBadge type="RECOMMENDATION" label="Action Strategy" size="sm" />
+          </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Show when="signed-out">
               <Link
                 href="/sign-up"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-400 hover:to-purple-500 active:scale-[0.98] rounded-xl transition-all shadow-[0_4px_20px_rgba(99,102,241,0.3)]"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 text-xs font-bold text-zinc-950 bg-gradient-to-r from-[#00C29A] to-[#0284C7] hover:opacity-95 active:scale-[0.98] rounded-xl transition-all shadow-[0_4px_25px_rgba(0,194,154,0.35)]"
               >
                 Start Free Evaluation
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/sign-in"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 text-xs font-bold text-zinc-300 bg-[#0c0c0e] border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 active:scale-[0.98] rounded-xl transition-all"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-7 py-3.5 text-xs font-bold text-zinc-300 bg-[#18181B] border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 active:scale-[0.98] rounded-xl transition-all"
               >
                 Sign In to Workspace
               </Link>
@@ -90,7 +102,7 @@ export default function LandingPage() {
             <Show when="signed-in">
               <Link
                 href="/dashboard"
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 hover:from-indigo-400 hover:to-purple-500 active:scale-[0.98] rounded-xl transition-all shadow-[0_4px_20px_rgba(99,102,241,0.3)]"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3.5 text-sm font-bold text-zinc-950 bg-gradient-to-r from-[#00C29A] to-[#0284C7] hover:opacity-95 active:scale-[0.98] rounded-xl transition-all shadow-[0_4px_25px_rgba(0,194,154,0.35)]"
               >
                 Open Dashboard Workspace
                 <ArrowRight className="w-4 h-4" />
@@ -99,76 +111,82 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Feature Cards Showcase */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full mt-24">
-          {/* Card 1 */}
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-800 transition-all">
-            <div className="absolute top-0 right-0 w-[80px] h-[80px] bg-indigo-500/5 blur-[30px] pointer-events-none"></div>
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400">
-              <Lightbulb className="w-4.5 h-4.5" />
+        {/* Live Strategy Pathway Preview */}
+        <div className="w-full mt-16 max-w-4xl text-left">
+          <div className="flex items-center justify-between px-2 mb-3">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Compass className="w-4 h-4 text-[#00C29A]" />
+              Structured Evaluation Sample
+            </span>
+            <div className="flex items-center gap-2">
+              <AIStateIndicator status="completed" label="Engine Validated" />
+            </div>
+          </div>
+          <StrategyPathwayCard />
+        </div>
+
+        {/* Feature Highlights Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full mt-16">
+          <div className="bg-[#18181B] border border-zinc-800/80 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-700 transition-all shadow-lg">
+            <div className="absolute top-0 right-0 w-[90px] h-[90px] bg-[#00C29A]/5 blur-[30px] pointer-events-none" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#00C29A]/10 text-[#00C29A] border border-[#00C29A]/20">
+              <Lightbulb className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-4">
               AI Idea Analysis
             </h3>
-            <p className="text-[11px] text-zinc-500 leading-relaxed font-medium mt-2">
-              Evaluates tech complexity, Time to MVP, and dynamic startup potential values automatically.
+            <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
+              Evaluates market viability, complexity scores, and timeline estimations with multi-agent reasoning.
             </p>
           </div>
 
-          {/* Card 2 */}
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-800 transition-all">
-            <div className="absolute top-0 right-0 w-[80px] h-[80px] bg-purple-500/5 blur-[30px] pointer-events-none"></div>
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400">
-              <Map className="w-4.5 h-4.5" />
+          <div className="bg-[#18181B] border border-zinc-800/80 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-700 transition-all shadow-lg">
+            <div className="absolute top-0 right-0 w-[90px] h-[90px] bg-[#0284C7]/5 blur-[30px] pointer-events-none" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#0284C7]/10 text-[#0284C7] border border-[#0284C7]/20">
+              <Map className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-4">
               Visual Roadmaps
             </h3>
-            <p className="text-[11px] text-zinc-500 leading-relaxed font-medium mt-2">
-              Generates chronological milestones, MVP scopes, priority checklists, and key risks data.
+            <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
+              Generates chronological sprint milestones, resource requirements, and risk mitigation paths.
             </p>
           </div>
 
-          {/* Card 3 */}
-          <div className="bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-800 transition-all">
-            <div className="absolute top-0 right-0 w-[80px] h-[80px] bg-emerald-500/5 blur-[30px] pointer-events-none"></div>
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400">
-              <Layers className="w-4.5 h-4.5" />
+          <div className="bg-[#18181B] border border-zinc-800/80 rounded-2xl p-6 text-left relative overflow-hidden group hover:border-zinc-700 transition-all shadow-lg">
+            <div className="absolute top-0 right-0 w-[90px] h-[90px] bg-[#3B82F6]/5 blur-[30px] pointer-events-none" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+              <Layers className="w-5 h-5" />
             </div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mt-4">
               Architecture Stacks
             </h3>
-            <p className="text-[11px] text-zinc-500 leading-relaxed font-medium mt-2">
-              Recommends complete edge backend structures, database vectors, and DevOps pipelines.
+            <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
+              Architects production cloud configurations, database schemas, and API gateway routing blueprints.
             </p>
           </div>
         </div>
       </section>
 
       {/* Landing Footer */}
-      <footer className="w-full bg-[#09090b] border-t border-zinc-900 px-6 sm:px-12 py-8 mt-auto text-center text-xs text-zinc-600 relative z-10">
+      <footer className="w-full bg-[#18181B] border-t border-zinc-800/80 px-6 sm:px-12 py-8 mt-auto text-center text-xs text-zinc-500 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <span className="font-extrabold text-sm text-zinc-500 tracking-tight mr-2">
-              IdeaGPT
-            </span>
-            &copy; {new Date().getFullYear()} IdeaGPT AI. All rights reserved.
+          <div className="flex items-center gap-3">
+            <IdeaGPTLogo size="sm" variant="compact" />
+            <span>&copy; {new Date().getFullYear()} IdeaGPT. Structured Decision-Making & Intelligent Transformation.</span>
           </div>
-          <div className="flex items-center gap-6 font-medium">
-            <Link href="#" className="hover:text-zinc-400 transition-colors">
-              Product
+          <div className="flex items-center gap-6 font-medium text-zinc-400">
+            <Link href="/dashboard" className="hover:text-white transition-colors">
+              Workspace
             </Link>
-            <Link href="#" className="hover:text-zinc-400 transition-colors">
-              API
+            <Link href="/ai-analysis" className="hover:text-white transition-colors">
+              Idea Analysis
             </Link>
-            <Link href="#" className="hover:text-zinc-400 transition-colors">
-              Privacy
+            <Link href="/roadmap" className="hover:text-white transition-colors">
+              Roadmaps
             </Link>
-            <Link href="#" className="hover:text-zinc-400 transition-colors">
-              Terms
-            </Link>
-            <Link href="#" className="hover:text-zinc-400 transition-colors">
-              Contact
+            <Link href="/architecture" className="hover:text-white transition-colors">
+              Architecture
             </Link>
           </div>
         </div>

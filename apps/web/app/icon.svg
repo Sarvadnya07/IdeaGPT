@@ -1,4 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <rect width="32" height="32" rx="8" fill="#4F46E5"/>
-  <path d="M16 6 L24 20 L18 20 L18 26 L14 26 L14 20 L8 20 Z" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#18181B"/>
+      <stop offset="100%" stopColor="#101012"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="120" y1="90" x2="392" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#00C29A"/>
+      <stop offset="50%" stopColor="#0284C7"/>
+      <stop offset="100%" stopColor="#3B82F6"/>
+    </linearGradient>
+    <linearGradient id="strokeGrad" x1="50" y1="50" x2="462" y2="462" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#2DD4BF"/>
+      <stop offset="50%" stopColor="#0284C7"/>
+      <stop offset="100%" stopColor="#1E3A8A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark Rounded Container -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect x="8" y="8" width="496" height="496" rx="120" fill="none" stroke="#27272A" stroke-width="6"/>
+
+  <!-- Outer Geometric Shield Frame -->
+  <path
+    d="M256 64 L416 144 V268 C416 358 344 430 256 456 C168 430 96 358 96 268 V144 L256 64Z"
+    stroke="url(#strokeGrad)"
+    stroke-width="28"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Inner Faceted Intelligence Core -->
+  <path
+    d="M256 128 L360 180 V268 C360 328 316 376 256 398 C196 376 152 328 152 268 V180 L256 128Z"
+    fill="url(#shieldGrad)"
+  />
+
+  <!-- Inner Chevron Structure -->
+  <path
+    d="M256 200 L308 236 L256 332 L204 236 Z"
+    fill="#101012"
+  />
+  <path
+    d="M256 228 L284 248 L256 292 L228 248 Z"
+    fill="#00C29A"
+  />
 </svg>
