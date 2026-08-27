@@ -179,6 +179,32 @@ class CredentialVaultService:
             return False, f"Verification error: {str(exc)}", latency
 
     @classmethod
+    async def revoke_credential(
+        cls,
+        db: AsyncSession,
+        user: User,
+        provider: str
+    ) -> bool:
+        """
+        Transitions a user's credential state to REVOKED. Future requests fail safely.
+        """
+        stmt = select(ProviderCredential).where(
+            and_(
+                ProviderCredential.user_id == user.id,
+                ProviderCredential.provider == provider.lower().strip()
+            )
+        )
+        res = await db.execute(stmt)
+        cred = res.scalars().first()
+        if not cred:
+            return False
+
+        cred.status = "REVOKED"
+        cred.updated_at = datetime.now(timezone.utc)
+        await db.commit()
+        return True
+
+    @classmethod
     async def delete_credential(
         cls,
         db: AsyncSession,

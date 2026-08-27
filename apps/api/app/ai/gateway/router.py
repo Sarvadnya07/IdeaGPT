@@ -96,6 +96,42 @@ def score_model_candidate(
     return score
 
 
+PROVIDER_MODEL_ALLOWLIST: Dict[str, Dict[str, Dict[str, Any]]] = {
+    "groq": {
+        "llama-3.3-70b-versatile": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.REASONING], "status": ModelStatus.ACTIVE},
+        "llama-3.1-8b-instant": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "openai/gpt-oss-120b": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.REASONING], "status": ModelStatus.ACTIVE},
+        "llama-3.3-70b-specdec": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "qwen/qwen3.8-27b": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "mixtral-8x7b-32768": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "whisper-large-v3": {"capabilities": [], "status": ModelStatus.ACTIVE},
+        "llama-guard-3-8b": {"capabilities": [AICapability.MODERATION], "status": ModelStatus.ACTIVE},
+    },
+    "gemini": {
+        "gemini-2.0-flash": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.VISION, AICapability.DOCUMENT_UNDERSTANDING], "status": ModelStatus.ACTIVE},
+        "gemini-1.5-pro": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.REASONING, AICapability.STRUCTURED_OUTPUT, AICapability.VISION, AICapability.DOCUMENT_UNDERSTANDING], "status": ModelStatus.ACTIVE},
+        "gemini-1.5-flash": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.VISION], "status": ModelStatus.ACTIVE},
+    },
+    "openai": {
+        "gpt-4o": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.VISION], "status": ModelStatus.ACTIVE},
+        "gpt-4o-mini": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.VISION], "status": ModelStatus.ACTIVE},
+        "o3-mini": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.REASONING, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "text-embedding-3-small": {"capabilities": [AICapability.EMBEDDING], "status": ModelStatus.ACTIVE},
+    },
+    "ollama": {
+        "llama3.2": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "deepseek-r1": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.REASONING, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+        "mistral": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT], "status": ModelStatus.ACTIVE},
+    },
+    "tavily": {
+        "tavily-search-v1": {"capabilities": [AICapability.WEB_RESEARCH], "status": ModelStatus.ACTIVE},
+    },
+    "mock": {
+        "mock-model": {"capabilities": [AICapability.TEXT_GENERATION, AICapability.STRUCTURED_OUTPUT, AICapability.REASONING, AICapability.VISION, AICapability.DOCUMENT_UNDERSTANDING, AICapability.EMBEDDING, AICapability.MODERATION, AICapability.WEB_RESEARCH], "status": ModelStatus.ACTIVE}
+    }
+}
+
+
 class CapabilityRouter:
     @staticmethod
     def map_task_to_capability(task_type: str) -> AICapability:
@@ -149,21 +185,38 @@ class CapabilityRouter:
                 raise AIInvalidModelException(f"Model '{requested_model}' is a moderation guard and cannot generate text.")
 
         # ------------------------------------------------------------------
-        # Step 1: Explicit Provider & Explicit Model
+        # Step 1: Explicit Provider & Explicit Model Validation (Allowlist & Capabilities)
         # ------------------------------------------------------------------
         if req_prov != "auto" and req_mod != "auto":
+            if req_prov not in PROVIDER_MODEL_ALLOWLIST and req_prov != "mock":
+                raise AIUnavailableException(f"Requested provider '{requested_provider}' is not supported.")
+
             adapter = gateway_registry.get_adapter(req_prov)
             if not adapter or (not adapter.is_enabled and settings.APP_ENV != "test"):
                 if req_prov == "mock" and settings.APP_ENV == "test":
                     pass
                 else:
-                    raise AIUnavailableException(f"Requested provider '{requested_provider}' is not available.")
+                    raise AIUnavailableException(f"Requested provider '{requested_provider}' is not available or configured.")
+
+            allowed_models = PROVIDER_MODEL_ALLOWLIST.get(req_prov, {})
+            # Find matched model (case-insensitive)
+            matched_key = next((k for k in allowed_models.keys() if k.lower() == req_mod), None)
+            if not matched_key and req_prov != "mock":
+                raise AIInvalidModelException(f"Model '{requested_model}' is not in the allowlist for provider '{requested_provider}'.")
+
+            model_meta = allowed_models.get(matched_key, {})
+            if model_meta.get("status") == ModelStatus.UNAVAILABLE:
+                raise AIInvalidModelException(f"Model '{requested_model}' is currently retired or unavailable.")
+
+            caps = model_meta.get("capabilities", [])
+            if required_cap not in caps and required_cap != AICapability.TEXT_GENERATION and req_prov != "mock":
+                raise AIInvalidModelException(f"Model '{requested_model}' does not support required capability '{required_cap.value}' for task '{task_type}'.")
 
             return {
                 "requested_provider": requested_provider,
                 "requested_model": requested_model,
                 "actual_provider": req_prov,
-                "actual_model": requested_model,
+                "actual_model": matched_key or requested_model,
                 "fallback_used": False,
                 "fallback_reason": None,
                 "capability": required_cap,

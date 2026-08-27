@@ -178,11 +178,15 @@ class TavilyResearchProviderAdapter(BaseProviderAdapter):
 
                 citations: List[Citation] = []
                 evidence_items: List[EvidenceItem] = []
+                from app.ai.gateway.security.sanitizer import ContentSanitizer
 
                 for r in raw_results:
-                    title = r.get("title", "Web Source")
+                    title = ContentSanitizer.sanitize_string(r.get("title", "Web Source"))
                     url_str = r.get("url", "")
-                    content = r.get("content", "")
+                    # Reject dangerous scheme URLs
+                    if str(url_str).lower().startswith(("javascript:", "data:", "vbscript:")):
+                        url_str = "about:blank"
+                    content = ContentSanitizer.sanitize_string(r.get("content", ""))
                     pub_date = r.get("published_date")
 
                     citations.append(
