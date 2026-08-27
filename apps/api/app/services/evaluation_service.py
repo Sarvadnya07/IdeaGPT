@@ -43,6 +43,7 @@ class EvaluationService:
             provider=provider,
             model=model
         )
+        await db.commit()
         return await EvaluationCoordinator.run_evaluation(db, evaluation.id, user_id)
 
     async def run_evaluation(self, db: AsyncSession, evaluation_id: str, user_id: int) -> Evaluation:

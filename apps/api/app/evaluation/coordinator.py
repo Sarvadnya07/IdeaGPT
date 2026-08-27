@@ -169,12 +169,8 @@ class EvaluationCoordinator:
                 detail="Evaluation has already completed. Re-running a completed job is not permitted.",
             )
 
-        if evaluation.status in [EvaluationStatus.FAILED.value, EvaluationStatus.CANCELLED.value]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Evaluation is in '{evaluation.status}' state. Use the retry endpoint to run again.",
-            )
-
+        # Ensure caller session is committed before executor starts
+        await db.commit()
         # Execute evaluation cleanly
         return await EvaluationExecutor.execute_evaluation(evaluation_id)
 

@@ -492,3 +492,97 @@ async def generate_strategy_lab(
         model=payload.model or "llama-3.3-70b-versatile"
     )
 
+
+# ---------------------------------------------------------------------------
+# Phase B — Grounded Research & Evidence Endpoints
+# ---------------------------------------------------------------------------
+
+class ResearchPlanRequest(BaseModel):
+    task_type: str = Field(default="market_analysis", max_length=50)
+    title: str = Field(default="Startup Idea", max_length=100)
+    industry: str = Field(default="Technology", max_length=50)
+    target_audience: Optional[str] = Field(default=None, max_length=200)
+
+class GroundedMarketRequest(BaseModel):
+    title: str = Field(default="Startup Idea", max_length=100)
+    industry: str = Field(default="Technology", max_length=50)
+    problem_statement: str = Field(default="", max_length=2000)
+    target_audience: Optional[str] = Field(default=None, max_length=200)
+    provider: Optional[str] = Field(default="auto", max_length=50)
+    model: Optional[str] = Field(default="auto", max_length=100)
+
+class GroundedCompetitorRequest(BaseModel):
+    title: str = Field(default="Startup Idea", max_length=100)
+    industry: str = Field(default="Technology", max_length=50)
+    solution_description: str = Field(default="", max_length=2000)
+    provider: Optional[str] = Field(default="auto", max_length=50)
+    model: Optional[str] = Field(default="auto", max_length=100)
+
+class GroundedRiskRequest(BaseModel):
+    title: str = Field(default="Startup Idea", max_length=100)
+    industry: str = Field(default="Technology", max_length=50)
+    tech_depth: Optional[str] = Field(default="High", max_length=50)
+    provider: Optional[str] = Field(default="auto", max_length=50)
+    model: Optional[str] = Field(default="auto", max_length=100)
+
+
+@router.post("/research/plan", summary="Generate bounded research query plan")
+async def generate_research_plan(
+    payload: ResearchPlanRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_research_plan_ai(
+        task_type=payload.task_type,
+        title=payload.title,
+        industry=payload.industry,
+        target_audience=payload.target_audience
+    )
+
+
+@router.post("/market-grounded", summary="Generate evidence-backed market analysis with citations")
+async def generate_grounded_market(
+    payload: GroundedMarketRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_grounded_market_ai(
+        title=payload.title,
+        industry=payload.industry,
+        problem_statement=payload.problem_statement,
+        target_audience=payload.target_audience,
+        provider=payload.provider or "auto",
+        model=payload.model or "auto"
+    )
+
+
+@router.post("/competitors-grounded", summary="Generate evidence-backed competitor analysis with citations")
+async def generate_grounded_competitors(
+    payload: GroundedCompetitorRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_grounded_competitors_ai(
+        title=payload.title,
+        industry=payload.industry,
+        solution_description=payload.solution_description,
+        provider=payload.provider or "auto",
+        model=payload.model or "auto"
+    )
+
+
+@router.post("/risks-grounded", summary="Generate evidence-backed regulatory and technical risk analysis")
+async def generate_grounded_risks(
+    payload: GroundedRiskRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_grounded_risks_ai(
+        title=payload.title,
+        industry=payload.industry,
+        tech_depth=payload.tech_depth or "High",
+        provider=payload.provider or "auto",
+        model=payload.model or "auto"
+    )
+
+

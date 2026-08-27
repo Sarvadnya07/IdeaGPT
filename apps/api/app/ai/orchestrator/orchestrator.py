@@ -778,4 +778,93 @@ class AIOrchestrator:
         )
         return result if "porter_five_forces" in result else fallback_fn()
 
+    @classmethod
+    async def generate_research_plan_ai(
+        cls,
+        task_type: str = "market_analysis",
+        title: str = "Startup Idea",
+        industry: str = "Technology",
+        target_audience: Optional[str] = None
+    ) -> Dict[str, Any]:
+        from app.ai.gateway.evidence.planner import ResearchPlanner
+        plan = ResearchPlanner.generate_plan(
+            task_type=task_type,
+            idea_title=title,
+            industry=industry,
+            target_audience=target_audience
+        )
+        return plan.model_dump()
+
+    @classmethod
+    async def generate_grounded_market_ai(
+        cls,
+        title: str,
+        industry: str,
+        problem_statement: str,
+        target_audience: Optional[str] = None,
+        provider: str = "auto",
+        model: str = "auto",
+        byok_key: Optional[str] = None,
+        byok_tavily_key: Optional[str] = None
+    ) -> Dict[str, Any]:
+        from app.ai.gateway.evidence.pipeline import EvidenceAwareResearchPipeline
+        result = await EvidenceAwareResearchPipeline.generate_grounded_market_analysis(
+            idea_title=title,
+            industry=industry,
+            problem_statement=problem_statement,
+            target_audience=target_audience,
+            provider=provider,
+            model=model,
+            byok_key=byok_key,
+            byok_tavily_key=byok_tavily_key
+        )
+        return result.model_dump()
+
+    @classmethod
+    async def generate_grounded_competitors_ai(
+        cls,
+        title: str,
+        industry: str,
+        solution_description: str,
+        provider: str = "auto",
+        model: str = "auto",
+        byok_key: Optional[str] = None,
+        byok_tavily_key: Optional[str] = None
+    ) -> Dict[str, Any]:
+        from app.ai.gateway.evidence.pipeline import EvidenceAwareResearchPipeline
+        result = await EvidenceAwareResearchPipeline.generate_grounded_competitor_analysis(
+            idea_title=title,
+            industry=industry,
+            solution_description=solution_description,
+            provider=provider,
+            model=model,
+            byok_key=byok_key,
+            byok_tavily_key=byok_tavily_key
+        )
+        return result.model_dump()
+
+    @classmethod
+    async def generate_grounded_risks_ai(
+        cls,
+        title: str,
+        industry: str,
+        tech_depth: Optional[str] = "High",
+        provider: str = "auto",
+        model: str = "auto",
+        byok_key: Optional[str] = None,
+        byok_tavily_key: Optional[str] = None
+    ) -> Dict[str, Any]:
+        from app.ai.gateway.evidence.pipeline import EvidenceAwareResearchPipeline
+        result = await EvidenceAwareResearchPipeline.generate_grounded_risk_analysis(
+            idea_title=title,
+            industry=industry,
+            tech_depth=tech_depth,
+            provider=provider,
+            model=model,
+            byok_key=byok_key,
+            byok_tavily_key=byok_tavily_key
+        )
+        return result.model_dump()
+
 orchestrator = AIOrchestrator()
+

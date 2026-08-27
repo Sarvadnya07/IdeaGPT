@@ -38,6 +38,7 @@ from app.models.evaluation import Evaluation
 from app.models.evaluation_history import EvaluationHistory
 from app.models.roadmap import Roadmap
 from app.models.ai_task import AiTask
+from app.models.provider_credential import ProviderCredential
 
 from app.core.database import engine
 
@@ -45,14 +46,16 @@ from app.core.database import engine
 @pytest.fixture(autouse=True)
 async def setup_test_db():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     yield
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
+        for table in reversed(Base.metadata.sorted_tables):
+            try:
+                await conn.execute(table.delete())
+            except Exception:
+                pass
 
 
 @pytest.fixture(scope="session")
