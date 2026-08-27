@@ -46,16 +46,13 @@ from app.core.database import engine
 @pytest.fixture(autouse=True)
 async def setup_test_db():
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield
-
-    async with engine.begin() as conn:
+        await conn.run_sync(lambda sync_conn: Base.metadata.create_all(sync_conn, checkfirst=True))
         for table in reversed(Base.metadata.sorted_tables):
             try:
                 await conn.execute(table.delete())
             except Exception:
                 pass
+    yield
 
 
 @pytest.fixture(scope="session")

@@ -1,29 +1,25 @@
 # IdeaGPT Production Feature Truth Matrix
 
-**Last Audit**: Secondary Labs & Design System Release  
+**Last Audit**: Phase C Deep Reasoning & Decision Intelligence Release  
 **Status**: Authoritative & Evidence-Backed  
 
 | Component / Feature | Tier / Type | Implementation State | Verification Method |
 | :--- | :--- | :--- | :--- |
-| **AI Gateway v1** | Gateway Architecture | **VERIFIED & OPERATIONAL** | 20 Gateway Unit & Integration Tests |
+| **Universal AI Gateway v1** | Gateway Architecture | **VERIFIED & OPERATIONAL** | 20 Gateway Unit & Integration Tests |
 | **Capability Router** | Multi-factor Routing | **VERIFIED & OPERATIONAL** | Deterministic Scoring & AUTO/Explicit Routing Tests |
-| **Groq Adapter** | Provider Adapter | **VERIFIED & OPERATIONAL** | Dynamic Model Discovery & Structured Output Tests |
-| **Google Gemini Adapter** | Provider Adapter | **VERIFIED & OPERATIONAL** | Model Discovery, Vision & Document Contract Tests |
-| **Ollama Adapter** | Local Provider | **VERIFIED & OPERATIONAL** | Offline Graceful State & Local Invocation Tests |
-| **OpenAI Adapter** | Premium Provider | **VERIFIED & OPERATIONAL** | BYOK Model Discovery & Schema Generation Tests |
+| **Groq / Gemini / OpenAI / Ollama** | Provider Adapters | **VERIFIED & OPERATIONAL** | Dynamic Model Discovery & Structured Output Tests |
 | **Tavily Research Provider** | Web Research | **VERIFIED & OPERATIONAL** | Citation Extraction & Source Normalization Tests |
-| **BYOK Credential Vault** | Security & Privacy | **VERIFIED & OPERATIONAL** | AES Encryption, Tenant Isolation & Masked Key Tests |
-| **Evidence Taxonomy** | Fact/Estimate System | **VERIFIED & OPERATIONAL** | Source Enforcement & Downgrade Validator Tests |
-| **Embeddings & Similarity** | Vector Knowledge | **VERIFIED & OPERATIONAL** | Cosine Similarity & Vector Normalization Tests |
-| **Moderation Boundary** | Safety | **VERIFIED & OPERATIONAL** | Heuristic Policy & Keyword Guard Tests |
-| **GitHub Lab** (`/github-lab`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Directory Scaffolding Tests |
-| **Investor Lab** (`/investor`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Valuation/Cap Table Tests |
-| **Mentor Lab** (`/mentor`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Founder Coaching Tests |
-| **Recruiter Lab** (`/recruiter`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Job Description/Rubric Tests |
-| **Strategy Lab** (`/strategy-lab`)| Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Porter's 5 Forces / ERRC Tests |
-| **Shared Design System** (`@ideagpt/ui`) | Monorepo Packages | **VERIFIED & OPERATIONAL** | Exported Button, Card, Badge, Input Primitives |
-| **Mock Provider Rule** | Testing Isolation | **VERIFIED & ENFORCED** | Strictly Disabled in Production (`APP_ENV=production`) |
+| **BYOK Credential Vault** | Security & Privacy | **VERIFIED & OPERATIONAL** | AES-GCM-256 Encryption & Tenant Isolation Tests |
+| **Phase B Evidence Layer** | Grounded Research | **VERIFIED & OPERATIONAL** | 12 Grounded Research & Mira Benchmark Tests |
+| **Phase C Deep Reasoning** | Decision Intelligence | **VERIFIED & OPERATIONAL** | 11 Reasoning, Contradiction & Metamorphic Tests |
+| **Assumption Priority Engine** | Decision Science | **VERIFIED & OPERATIONAL** | Discrete Normalized Formula Math Tests |
+| **What-If Scenario Simulator** | Operational Modeling | **VERIFIED & OPERATIONAL** | Deterministic Runway & Perturbation Tests |
+| **Single-Variable Sensitivity** | Elasticity Analysis | **VERIFIED & OPERATIONAL** | Baseline vs Perturbed Elasticity Tests |
+| **Multi-Idea Comparative Strategy** | Comparative Modeling| **VERIFIED & OPERATIONAL** | Weighted Criteria & Risk-Adjusted Scoring Tests |
+| **Strategy -> Roadmap Linkage** | Execution Bridge | **VERIFIED & OPERATIONAL** | PostgreSQL / SQLite Roadmap Persistence Tests |
+| **Strategy Lab Workspace** (`/strategy-lab`) | Core UI | **VERIFIED & OPERATIONAL** | 5 Vitest Component Tests & Playwright E2E |
+| **Multi-Idea Compare** (`/compare`) | Core UI | **VERIFIED & OPERATIONAL** | Playwright Route & Form Testing |
 | **Clerk Authentication** | Identity | **VERIFIED & OPERATIONAL** | RS256 JWKS & Playwright Protected Route Tests |
+| **Shared Design System** (`@ideagpt/ui`) | Monorepo Packages | **VERIFIED & OPERATIONAL** | Exported Button, Card, Badge, Input Primitives |
 | **Deterministic Engine** | Core Evaluation | **VERIFIED & OPERATIONAL** | 100% Deterministic Fallback Coverage |
-| **Roadmap Generation** | AI Analysis Lab | **VERIFIED & OPERATIONAL** | CRUD, Status Toggle, AI Generation Tests |
-| **Analytics Dashboard** | Observability | **VERIFIED & OPERATIONAL** | User-Scoped DB-Driven Aggregation Tests |
+| **Full Backend Regression** | Reliability | **VERIFIED & OPERATIONAL** | 191 Passed, 4 Skipped, 0 Failures |

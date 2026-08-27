@@ -586,3 +586,139 @@ async def generate_grounded_risks(
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase C — Deep Reasoning & Comparative Strategy Lab Endpoints
+# ---------------------------------------------------------------------------
+
+class StrategyAnalyzeRequest(BaseModel):
+    title: str = Field(default="Startup Idea", max_length=100)
+    industry: str = Field(default="Technology", max_length=50)
+    problem_statement: str = Field(default="", max_length=2000)
+    solution_description: str = Field(default="", max_length=2000)
+    market_data: Optional[Dict[str, Any]] = None
+    competitor_data: Optional[Dict[str, Any]] = None
+    risk_data: Optional[Dict[str, Any]] = None
+    evaluation_data: Optional[Dict[str, Any]] = None
+    user_constraints: Optional[Dict[str, Any]] = None
+    provider: Optional[str] = Field(default="auto", max_length=50)
+    model: Optional[str] = Field(default="auto", max_length=100)
+
+
+class StrategyScenarioRequest(BaseModel):
+    budget_usd: float = Field(default=50000.0, ge=100.0)
+    timeline_months: float = Field(default=3.0, ge=0.1)
+    monthly_burn_rate_usd: float = Field(default=6000.0, ge=100.0)
+
+
+class StrategySensitivityRequest(BaseModel):
+    budget_usd: float = Field(default=50000.0, ge=100.0)
+    timeline_months: float = Field(default=3.0, ge=0.1)
+    target_pricing_usd: float = Field(default=29.0, ge=1.0)
+
+
+class StrategyCompareRequest(BaseModel):
+    ideas: List[Dict[str, Any]] = Field(description="List of 2-5 idea objects with scores and dimensions")
+
+
+class StrategyLinkRoadmapRequest(BaseModel):
+    project_id: str
+    action_title: str
+    rationale: str
+    target_metric: str
+    success_threshold: str
+    milestone_title: Optional[str] = None
+
+
+@router.post("/strategy/analyze", summary="Execute deep strategic reasoning with calibrated decision gates and trade-offs")
+async def analyze_strategy(
+    payload: StrategyAnalyzeRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    return await StrategicDecisionPipeline.analyze_strategy(
+        idea_title=payload.title,
+        industry=payload.industry,
+        problem_statement=payload.problem_statement,
+        solution_description=payload.solution_description,
+        market_data=payload.market_data,
+        competitor_data=payload.competitor_data,
+        risk_data=payload.risk_data,
+        evaluation_data=payload.evaluation_data,
+        user_constraints=payload.user_constraints,
+        provider=payload.provider or "auto",
+        model=payload.model or "auto"
+    )
+
+
+@router.post("/strategy/assumptions", summary="Extract and prioritize underlying startup assumptions")
+async def analyze_assumptions(
+    payload: StrategyAnalyzeRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    res = await StrategicDecisionPipeline.analyze_strategy(
+        idea_title=payload.title,
+        industry=payload.industry,
+        problem_statement=payload.problem_statement,
+        solution_description=payload.solution_description,
+        provider=payload.provider or "auto",
+        model=payload.model or "auto"
+    )
+    return res.key_assumptions
+
+
+@router.post("/strategy/scenario", summary="Generate controlled financial and operational what-if scenarios")
+async def generate_scenarios(
+    payload: StrategyScenarioRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    return StrategicDecisionPipeline.generate_scenarios(
+        budget_usd=payload.budget_usd,
+        timeline_months=payload.timeline_months,
+        monthly_burn_rate_usd=payload.monthly_burn_rate_usd
+    )
+
+
+@router.post("/strategy/sensitivity", summary="Perform single-variable sensitivity analysis")
+async def analyze_sensitivity(
+    payload: StrategySensitivityRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    return StrategicDecisionPipeline.analyze_sensitivities(
+        budget_usd=payload.budget_usd,
+        timeline_months=payload.timeline_months,
+        target_pricing_usd=payload.target_pricing_usd
+    )
+
+
+@router.post("/strategy/compare", summary="Perform multi-idea comparative decision modeling")
+async def compare_strategy_ideas(
+    payload: StrategyCompareRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    return StrategicDecisionPipeline.compare_ideas(payload.ideas)
+
+
+@router.post("/strategy/link-to-roadmap", summary="Convert strategic validation experiment to persisted roadmap task")
+async def link_strategy_action_to_roadmap(
+    payload: StrategyLinkRoadmapRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
+    return await StrategicDecisionPipeline.link_action_to_roadmap(
+        db=db,
+        project_id=payload.project_id,
+        user_id=current_user.id,
+        action_title=payload.action_title,
+        rationale=payload.rationale,
+        target_metric=payload.target_metric,
+        success_threshold=payload.success_threshold,
+        milestone_title=payload.milestone_title
+    )
+
+
+
