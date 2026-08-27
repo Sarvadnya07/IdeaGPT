@@ -12,6 +12,10 @@ COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
 
+# Create non-root user for runtime security
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+USER appuser
+
 # Expose API port
 EXPOSE 8000
 

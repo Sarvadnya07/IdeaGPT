@@ -100,6 +100,9 @@ async def test_phase7_groq_incompatible_model_rejection():
 
 @pytest.mark.anyio
 async def test_phase16_observability_endpoints():
+    from tests.test_auth import _make_token
+    auth_header = {"Authorization": f"Bearer {_make_token(sub='test_ops_user')}"}
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res_live = await ac.get("/health/live")
         assert res_live.status_code == 200
@@ -109,10 +112,10 @@ async def test_phase16_observability_endpoints():
         assert res_ready.status_code == 200
         assert res_ready.json()["status"] == "ready"
 
-        res_providers = await ac.get("/health/providers")
+        res_providers = await ac.get("/health/providers", headers=auth_header)
         assert res_providers.status_code == 200
         assert "mock" in res_providers.json()
 
-        res_metrics = await ac.get("/metrics")
+        res_metrics = await ac.get("/metrics", headers=auth_header)
         assert res_metrics.status_code == 200
         assert "service" in res_metrics.json()

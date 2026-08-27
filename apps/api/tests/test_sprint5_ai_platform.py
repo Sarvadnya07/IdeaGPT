@@ -22,8 +22,9 @@ def _make_auth_header(sub: str, email: str = None) -> dict:
 @pytest.mark.asyncio
 async def test_ai_providers_endpoint():
     """GET /api/v1/ai/providers returns registered providers and configuration state."""
+    auth_headers = _make_auth_header("user_ai_test_providers")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        res = await client.get("/api/v1/ai/providers")
+        res = await client.get("/api/v1/ai/providers", headers=auth_headers)
         assert res.status_code == 200
         data = res.json()
         assert isinstance(data, list)
@@ -35,8 +36,9 @@ async def test_ai_providers_endpoint():
 @pytest.mark.asyncio
 async def test_ai_models_endpoint():
     """GET /api/v1/ai/models returns available model metadata."""
+    auth_headers = _make_auth_header("user_ai_test_models")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        res = await client.get("/api/v1/ai/models")
+        res = await client.get("/api/v1/ai/models", headers=auth_headers)
         assert res.status_code == 200
         data = res.json()
         assert isinstance(data, list)

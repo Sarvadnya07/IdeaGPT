@@ -1,0 +1,25 @@
+# CODEOWNERS — Require review for security-sensitive paths
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @Sarvadnya07
+
+# Security-sensitive: authentication, authorization, secrets
+apps/api/app/core/security.py @Sarvadnya07
+apps/api/app/core/config.py @Sarvadnya07
+apps/api/app/api/dependencies/auth.py @Sarvadnya07
+apps/api/app/api/dependencies/roles.py @Sarvadnya07
+apps/api/app/schemas/user_schema.py @Sarvadnya07
+
+# CI/CD and GitHub configuration
+.github/ @Sarvadnya07
+
+# Docker and infrastructure
+docker-compose.yml @Sarvadnya07
+infrastructure/ @Sarvadnya07
+apps/api/Dockerfile @Sarvadnya07
+
+# Dependency manifests
+apps/api/requirements.txt @Sarvadnya07
+apps/web/package.json @Sarvadnya07
+pnpm-lock.yaml @Sarvadnya07

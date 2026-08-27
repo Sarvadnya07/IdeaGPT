@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select, func
+from typing import Annotated
 
 from app.core.config import settings
 from app.core.logging import RequestLoggingMiddleware
@@ -14,6 +15,8 @@ from app.core.exceptions import (
 )
 from app.db.session import get_db
 from app.models.ai_task import AiTask
+from app.models.user import User
+from app.api.dependencies.auth import get_current_user
 from app.api.routes import project_routes, user_routes, idea_routes, evaluation_routes, roadmap_routes, ai_routes, analytics_routes
 
 from contextlib import asynccontextmanager
@@ -96,16 +99,27 @@ async def health_ready(response: Response, db: AsyncSession = Depends(get_db)):
         _ = res.scalar()
         return {"status": "ready", "database": "connected"}
     except Exception as exc:
+        import logging
+        logging.getLogger("ideagpt.health").error(f"Readiness check failed: {exc}", exc_info=True)
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {"status": "unready", "error": f"Database error: {str(exc)}"}
+        return {"status": "unready", "error": "Database connectivity check failed"}
+
+# ---------------------------------------------------------------------------
+# Authenticated operational endpoints
+# These endpoints expose configuration/operational details and require auth.
+# ---------------------------------------------------------------------------
 
 @app.get("/health/config")
-async def health_config():
-    """Security configuration state."""
+async def health_config(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    """Security configuration state (authenticated)."""
     return settings.get_config_status()
 
 @app.get("/health/ai")
-async def health_ai():
+async def health_ai(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     return {
         "status": "healthy",
         "default_provider": settings.DEFAULT_PROVIDER,
@@ -118,7 +132,9 @@ async def health_ai():
     }
 
 @app.get("/health/providers")
-async def health_providers():
+async def health_providers(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     import httpx
     status_dict = {}
     
@@ -151,8 +167,11 @@ async def health_providers():
     return status_dict
 
 @app.get("/metrics", summary="Operational Metrics")
-async def get_metrics(db: AsyncSession = Depends(get_db)):
-    """Exposes operational task metrics and system status."""
+async def get_metrics(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    """Exposes operational task metrics and system status (authenticated)."""
     task_count = 0
     status_breakdown = {}
     try:
@@ -170,7 +189,6 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     return {
         "service": "IdeaGPT API",
         "version": settings.VERSION,
-        "app_env": settings.APP_ENV,
         "ai_task_metrics": {
             "total_tasks": task_count,
             "by_status": status_breakdown

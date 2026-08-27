@@ -1,40 +1,67 @@
-# Security Considerations
+# IdeaGPT Security Architecture & Security Policy
 
-Security is paramount for IdeaGPT, especially since the platform processes proprietary startup ideas and integrates with third-party Large Language Models (LLMs).
+Security is paramount for IdeaGPT. The platform processes proprietary startup ideas, financial projections, and integrates with third-party Large Language Models (LLMs).
 
-## Security Architecture
+---
 
-1. **Decoupled Key Management:** 
-   The Next.js frontend NEVER communicates directly with OpenAI, Anthropic, or any LLM provider. This prevents API keys from being leaked to the client bundle. All LLM requests are proxied securely through the FastAPI backend (`apps/api`).
+## 1. Authentication & Authorization Security
 
-2. **CORS Configuration:**
-   The FastAPI backend explicitly defines allowed origins (`CORS_ORIGINS`). In production, this must strictly be limited to the exact domain of the Next.js frontend (e.g., `https://ideagpt.com`), preventing Cross-Origin Resource Sharing attacks.
+1. **Fail-Closed Clerk JWT (RS256/JWKS):**
+   - Authentication is verified on every protected route via RS256 cryptographic signatures using Clerk's official public JWKS.
+   - Algorithms are strictly enforced (no algorithm confusion attacks).
+   - In test mode, deterministic HS256 tokens require both `APP_ENV=test` and `CLERK_JWT_TEST_SECRET`.
+   - Production configuration validator (`validate_production_config`) rejects insecure configurations at startup.
 
-3. **Input Sanitization & Schema Validation:**
-   Before any data touches the LLM prompt or database, it is rigorously validated using Pydantic in FastAPI. This mitigates prompt injection attacks and standard injection vectors (SQLi, XSS). Pydantic ensures only expected types and lengths are processed.
+2. **Multi-Tenant Ownership Isolation (IDOR Defense):**
+   - Every database query for projects, ideas, evaluations, and roadmaps strictly scopes by `user_id == current_user.id`.
+   - Cross-user data access attempts return `404 Not Found` (to avoid resource enumeration) or `403 Forbidden`.
 
-## Sensitive Configuration Handling
+3. **Privilege Escalation Protection (Mass Assignment Defense):**
+   - The user profile update schema (`UserUpdate`) explicitly excludes sensitive fields like `role` and `clerk_id`.
+   - Attempting to pass `role: "admin"` during user self-update is ignored and prevented from modifying the database.
 
-- **Never Commit `.env`:** Ensure `.env` and `.env.local` remain in `.gitignore`.
-- **Secret Management in CI/CD:** Use GitHub Actions Secrets or Vercel/Render Environment Variables to inject secrets during build/deployment, never hardcoding them.
-- **API Key Rotation:** Regularly rotate LLM API keys.
+---
 
-## Threat Considerations & Mitigations
+## 2. API & Infrastructure Security
 
-### 1. Prompt Injection
-*Risk:* Users attempting to trick the LLM into revealing internal system prompts or performing unintended actions.
-*Mitigation:* The backend utilizes strict prompt templates where user input is treated as string variables, not executable instructions. Pydantic limits input lengths to prevent exhaustive payload attacks.
+1. **Decoupled Key Management:**
+   - The Next.js frontend NEVER communicates directly with OpenAI, Anthropic, Groq, or any LLM provider.
+   - All AI requests are proxied securely through the FastAPI backend (`apps/api`).
 
-### 2. Rate Limiting (DDoS / Cost Exhaustion)
-*Risk:* Malicious users spamming the `submit` endpoint, running up massive LLM API bills.
-*Mitigation:* (Future Implementation) FastAPI should utilize a rate-limiting middleware (e.g., `slowapi`) keyed by IP address or authenticated User ID.
+2. **CORS & Security Headers:**
+   - The FastAPI backend strictly enforces allowed origins (`CORS_ORIGINS`). In production, wildcard `*` is explicitly blocked.
+   - Next.js responses include `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Strict-Transport-Security`, `Permissions-Policy`, and strict `Content-Security-Policy` (CSP).
 
-### 3. Data Privacy
-*Risk:* Storing sensitive, unreleased startup intellectual property (IP).
-*Mitigation:* Ensure any databases (when implemented) encrypt data at rest. LLM providers should be configured for zero-data-retention (e.g., using OpenAI's API which does not train on API data by default).
+3. **Rate Limiting & Abuse Prevention:**
+   - SlowAPI rate limiter with user-aware key function (`request.state.user_id` -> `clerk_id` -> IP fallback).
+   - Tiered limits: AI evaluation (`5/min`), AI generation (`10/min`), write API (`30/min`), default (`60/min`).
+   - Daily user quota enforcement (20 tasks/day/user).
 
-## Best Practices for Contributors
+4. **Container Security:**
+   - Docker containers run under non-privileged system users (`appuser` in API, `nextjs` in Web).
+   - No hardcoded secrets in `docker-compose.yml` or container layers.
 
-- Run `npm audit` or `pnpm audit` regularly to check for vulnerable JS dependencies.
-- Use `safety check` in Python to scan `requirements.txt` for known vulnerabilities.
-- Review all new packages before adding them to the workspace.
+---
+
+## 3. Supply-Chain & CI/CD Security
+
+1. **Least-Privilege GitHub Actions:**
+   - Workflow runs with `permissions: contents: read` by default.
+   - All third-party Actions are pinned to full 40-character commit SHAs.
+
+2. **Automated Security Scanning:**
+   - Dependabot configured for `pip`, `npm`, `github-actions`, and `docker` ecosystems with weekly scans.
+   - CI pipeline executes `pip-audit` and `pnpm audit`.
+   - `CODEOWNERS` enforces review for sensitive auth, security, CI, and dependency files.
+
+3. **Dependency Pinning:**
+   - Frontend and backend dependencies use strict version constraints rather than `latest`.
+
+---
+
+## 4. Operational & Log Security
+
+1. **Log Sanitization:**
+   - Database query logging (`echo=True`) is restricted to `APP_ENV=development` only.
+   - Internal exception traces are logged server-side and never leaked in SSE streams or public health endpoints.
+   - Operational endpoints (`/health/config`, `/health/ai`, `/health/providers`, `/metrics`) require authentication.

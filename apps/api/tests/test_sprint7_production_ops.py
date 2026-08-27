@@ -29,8 +29,11 @@ async def test_request_correlation_id_propagation():
 @pytest.mark.asyncio
 async def test_operational_metrics_endpoint():
     """Verify /metrics operational endpoint returns system metrics."""
+    from tests.test_auth import _make_token
+    auth_header = {"Authorization": f"Bearer {_make_token(sub='test_ops_metrics_user')}"}
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        res = await client.get("/metrics")
+        res = await client.get("/metrics", headers=auth_header)
         assert res.status_code == 200
         data = res.json()
         assert "service" in data

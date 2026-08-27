@@ -6,15 +6,20 @@ on:
   pull_request:
     branches: [ main, master ]
 
+# Principle of least privilege: restrict GITHUB_TOKEN to read-only by default.
+# Individual jobs can escalate only if explicitly needed.
+permissions:
+  contents: read
+
 jobs:
   backend-test-and-lint:
     name: Backend Tests & Migration Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v5
         with:
           python-version: "3.12"
           cache: "pip"
@@ -34,19 +39,24 @@ jobs:
           cd apps/api
           python -m pytest -v
 
+      - name: Python Dependency Audit
+        run: |
+          pip install pip-audit
+          pip-audit -r apps/api/requirements.txt --desc || true
+
   frontend-test-and-build:
     name: Frontend Tests, Typecheck & Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4
         with:
           version: 9
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v4
         with:
           node-version: 20
           cache: "pnpm"
@@ -62,3 +72,6 @@ jobs:
 
       - name: Production Monorepo Build
         run: pnpm run build
+
+      - name: JavaScript Dependency Audit
+        run: pnpm audit --audit-level=high || true

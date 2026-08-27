@@ -45,8 +45,12 @@ class TaskResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+from typing import Annotated
+
 @router.get("/providers", summary="List available AI providers")
-async def get_providers():
+async def get_providers(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     """
     Returns list of registered AI providers and their configuration status.
     Uses cached health status to prevent external API spamming.
@@ -54,7 +58,9 @@ async def get_providers():
     return AIRegistryService.get_providers()
 
 @router.get("/models", summary="List available AI models")
-async def get_models():
+async def get_models(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     """
     Returns list of supported AI models across configured providers.
     Uses dynamic model discovery and 60s TTL cache.
@@ -62,7 +68,9 @@ async def get_models():
     return await AIRegistryService.get_available_models_async()
 
 @router.post("/registry/refresh", summary="Refresh AI provider and model registry cache")
-async def refresh_registry():
+async def refresh_registry(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
     """
     Invalidates cached provider health and dynamic model metadata.
     """
@@ -199,7 +207,9 @@ async def stream_ai_task(
 
                 await asyncio.sleep(0.5)
             except Exception as e:
-                yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+                import logging
+                logging.getLogger("ideagpt.sse").error(f"SSE stream error for task {task_id}: {e}", exc_info=True)
+                yield f"event: error\ndata: {json.dumps({'error': 'An internal error occurred while streaming task updates.'})}\n\n"
                 break
 
     return StreamingResponse(

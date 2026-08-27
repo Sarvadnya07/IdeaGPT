@@ -544,3 +544,62 @@ async def test_24_issuer_validation_unconfigured_in_production_fails_500():
                     await auth._verify_production_token(token)
                 assert exc_info.value.status_code == 500, f"Expected 500 in prod without issuer, got {exc_info.value.status_code}"
 
+
+@pytest.mark.asyncio
+async def test_25_mass_assignment_role_escalation_blocked():
+    """
+    SEC-01 Regression Test: Attempting to escalate role via PATCH /api/v1/users/me
+    must NOT update the role attribute in the database.
+    """
+    token = _make_token(sub="user_priv_esc_001")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # First call to create user
+        res = await ac.get(PROTECTED_URL, headers={"Authorization": f"Bearer {token}"})
+        assert res.status_code == 200
+        assert res.json()["role"] == "user"
+
+        # Attempt privilege escalation via PATCH
+        patch_res = await ac.patch(
+            PROTECTED_URL,
+            headers={"Authorization": f"Bearer {token}"},
+            json={"name": "Alice Tester", "role": "admin"}
+        )
+        assert patch_res.status_code == 200
+        data = patch_res.json()
+        assert data["name"] == "Alice Tester"
+        # Role must still be 'user', not 'admin'
+        assert data["role"] == "user"
+
+        # Re-fetch user to ensure database state was not corrupted
+        get_res = await ac.get(PROTECTED_URL, headers={"Authorization": f"Bearer {token}"})
+        assert get_res.json()["role"] == "user"
+
+
+@pytest.mark.asyncio
+async def test_26_sensitive_health_and_metrics_require_auth():
+    """
+    SEC-05 Regression Test: Operational endpoints exposing sensitive config/metrics
+    must require authentication.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        for path in ["/health/config", "/health/ai", "/health/providers", "/metrics"]:
+            res = await ac.get(path)
+            assert res.status_code in (401, 403), f"Expected auth failure for {path}, got {res.status_code}"
+
+
+@pytest.mark.asyncio
+async def test_27_ai_registry_endpoints_require_auth():
+    """
+    SEC-05 Regression Test: AI provider/model registry endpoints must require authentication.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        res1 = await ac.get("/api/v1/ai/providers")
+        assert res1.status_code in (401, 403), f"Expected auth failure for /ai/providers, got {res1.status_code}"
+
+        res2 = await ac.get("/api/v1/ai/models")
+        assert res2.status_code in (401, 403), f"Expected auth failure for /ai/models, got {res2.status_code}"
+
+        res3 = await ac.post("/api/v1/ai/registry/refresh")
+        assert res3.status_code in (401, 403), f"Expected auth failure for /ai/registry/refresh, got {res3.status_code}"
+
+

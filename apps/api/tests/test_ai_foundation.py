@@ -65,19 +65,25 @@ async def test_orchestrator_integration():
     res = await orchestrator.analyze_startup_idea("test pitch", strategy="user_selected", preferred_provider="mock")
     assert res["score"] == 85
 
+from tests.test_auth import _make_token
+
+def _make_auth_header(sub: str = "test_user_ai") -> dict:
+    return {"Authorization": f"Bearer {_make_token(sub=sub)}"}
+
 @pytest.mark.anyio
 async def test_health_endpoints():
+    auth_header = _make_auth_header()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         res = await ac.get("/health")
         assert res.status_code == 200
         assert res.json()["status"] == "healthy"
 
-        res_ai = await ac.get("/health/ai")
+        res_ai = await ac.get("/health/ai", headers=auth_header)
         assert res_ai.status_code == 200
         assert "default_provider" in res_ai.json()
         assert "enabled_providers" in res_ai.json()
 
-        res_prov = await ac.get("/health/providers")
+        res_prov = await ac.get("/health/providers", headers=auth_header)
         assert res_prov.status_code == 200
         assert "mock" in res_prov.json()
         assert res_prov.json()["mock"] == "healthy"

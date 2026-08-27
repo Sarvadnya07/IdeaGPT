@@ -16,8 +16,18 @@ class UserCreate(UserBase):
     clerk_id: str
     email: Optional[str] = None
 
-class UserUpdate(UserBase):
-    pass
+class UserUpdate(BaseModel):
+    """
+    Schema for user self-update. Explicitly excludes 'role' and 'clerk_id'
+    to prevent mass assignment privilege escalation.
+    """
+    name: Optional[str] = None
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    avatar: Optional[str] = None
+    timezone: Optional[str] = None
+    locale: Optional[str] = None
+    onboarding_completed: Optional[bool] = None
 
 class UserResponse(UserBase):
     id: int

@@ -1,6 +1,10 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
+from tests.test_auth import _make_token
+
+def _make_auth_header(sub: str = "test_user_health") -> dict:
+    return {"Authorization": f"Bearer {_make_token(sub=sub)}"}
 
 @pytest.mark.asyncio
 async def test_health_check():
@@ -11,8 +15,9 @@ async def test_health_check():
 
 @pytest.mark.asyncio
 async def test_health_config():
+    auth_header = _make_auth_header()
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/health/config")
+        response = await ac.get("/health/config", headers=auth_header)
     assert response.status_code == 200
     data = response.json()
     assert "APP_ENV" in data
