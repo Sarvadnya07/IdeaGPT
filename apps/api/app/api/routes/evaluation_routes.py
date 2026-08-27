@@ -279,7 +279,7 @@ async def global_search(
     if not q or len(q) < 2:
         return {"results": []}
 
-    query = q.lower()
+    escaped_query = q.lower().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
     ideas_result = await db.execute(
         select(Idea, Project.title.label("project_title"))
@@ -287,10 +287,10 @@ async def global_search(
         .where(Project.user_id == current_user.id, Project.deleted_at.is_(None))
         .where(
             or_(
-                func.lower(Idea.title).contains(query),
-                func.lower(Idea.problem_statement).contains(query),
-                func.lower(Idea.solution_description).contains(query),
-                func.lower(Idea.tags).contains(query),
+                func.lower(Idea.title).ilike(f"%{escaped_query}%", escape="\\"),
+                func.lower(Idea.problem_statement).ilike(f"%{escaped_query}%", escape="\\"),
+                func.lower(Idea.solution_description).ilike(f"%{escaped_query}%", escape="\\"),
+                func.lower(Idea.tags).ilike(f"%{escaped_query}%", escape="\\"),
             )
         )
         .limit(10)

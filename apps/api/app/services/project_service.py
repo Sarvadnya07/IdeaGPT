@@ -24,7 +24,8 @@ class ProjectService:
         query = select(Project).where(Project.user_id == user_id, Project.deleted_at.is_(None))
         
         if search:
-            query = query.where(Project.title.ilike(f"%{search}%"))
+            escaped_search = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            query = query.where(Project.title.ilike(f"%{escaped_search}%", escape="\\"))
         if category:
             query = query.where(Project.category == category)
         if is_archived is not None:

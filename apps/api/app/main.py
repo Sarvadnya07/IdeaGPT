@@ -17,7 +17,16 @@ from app.db.session import get_db
 from app.models.ai_task import AiTask
 from app.models.user import User
 from app.api.dependencies.auth import get_current_user
-from app.api.routes import project_routes, user_routes, idea_routes, evaluation_routes, roadmap_routes, ai_routes, analytics_routes
+from app.api.routes import (
+    project_routes,
+    user_routes,
+    idea_routes,
+    evaluation_routes,
+    roadmap_routes,
+    ai_routes,
+    analytics_routes,
+    credential_routes,
+)
 
 from contextlib import asynccontextmanager
 
@@ -76,6 +85,7 @@ app.include_router(idea_routes.router, prefix="/api/v1", tags=["ideas"])
 app.include_router(evaluation_routes.router, prefix="/api/v1", tags=["evaluations"])
 app.include_router(roadmap_routes.router, prefix="/api/v1", tags=["roadmaps"])
 app.include_router(ai_routes.router, prefix="/api/v1", tags=["ai"])
+app.include_router(credential_routes.router, prefix="/api/v1", tags=["credentials"])
 app.include_router(analytics_routes.router, prefix="/api/v1/analytics", tags=["analytics"])
 
 @app.get("/")

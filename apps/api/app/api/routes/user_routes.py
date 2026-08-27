@@ -18,6 +18,16 @@ async def get_me(
     """
     return current_user
 
+ALLOWED_USER_UPDATE_FIELDS = {
+    "name",
+    "username",
+    "full_name",
+    "avatar",
+    "timezone",
+    "locale",
+    "onboarding_completed",
+}
+
 @router.patch("/me", response_model=UserResponse)
 async def update_me(
     update_data: UserUpdate,
@@ -26,11 +36,13 @@ async def update_me(
 ):
     """
     Update the current user's profile metadata.
+    Enforces strict field whitelist to prevent mass-assignment privilege escalation.
     """
     update_dict = update_data.model_dump(exclude_unset=True)
     
     for key, value in update_dict.items():
-        setattr(current_user, key, value)
+        if key in ALLOWED_USER_UPDATE_FIELDS:
+            setattr(current_user, key, value)
         
     db.add(current_user)
     await db.commit()

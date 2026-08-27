@@ -198,12 +198,35 @@ class AiTaskService:
             return task
 
         except AIUnavailableException as exc:
+            logger.warning(f"Task {task_id} AI unavailable: {exc}")
             duration_ms = int((time.time() - start_time) * 1000)
             return await cls.update_task_status(
                 db=db,
                 task=task,
                 new_status="FAILED",
-                error_message=f"AI_UNAVAILABLE: {exc.message}",
+                error_message="AI service is currently unavailable. Please check provider configuration or retry later.",
+                duration_ms=duration_ms
+            )
+
+        except AIQuotaExceededException as exc:
+            logger.warning(f"Task {task_id} quota exceeded: {exc}")
+            duration_ms = int((time.time() - start_time) * 1000)
+            return await cls.update_task_status(
+                db=db,
+                task=task,
+                new_status="FAILED",
+                error_message="Daily AI task quota reached for your account.",
+                duration_ms=duration_ms
+            )
+
+        except AIException as exc:
+            logger.warning(f"Task {task_id} AI exception: {exc}")
+            duration_ms = int((time.time() - start_time) * 1000)
+            return await cls.update_task_status(
+                db=db,
+                task=task,
+                new_status="FAILED",
+                error_message="An error occurred during AI model processing. Please try again.",
                 duration_ms=duration_ms
             )
 
@@ -214,7 +237,7 @@ class AiTaskService:
                 db=db,
                 task=task,
                 new_status="FAILED",
-                error_message=f"Execution error: {str(exc)}",
+                error_message="An unexpected error occurred during task execution. Please try again later.",
                 duration_ms=duration_ms
             )
 

@@ -29,12 +29,32 @@ def setup_logging():
 
 logger = setup_logging()
 
+import re
+
+_SAFE_REQUEST_ID_REGEX = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
+
+def sanitize_request_id(raw_id: str | None) -> str:
+    """
+    Validate and sanitize client-provided correlation ID.
+    - If valid safe alphanumeric/UUID string (1-64 chars, only a-z, A-Z, 0-9, _, -): accept.
+    - Otherwise (garbage with spaces, newlines, control characters, script injection, oversized): generate server-side UUIDv4.
+    """
+    if not raw_id:
+        return str(uuid.uuid4())
+
+    cleaned = raw_id.strip()
+    if _SAFE_REQUEST_ID_REGEX.match(cleaned):
+        return cleaned
+
+    return str(uuid.uuid4())
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
         
-        # Correlation ID
-        request_id = request.headers.get("x-request-id", str(uuid.uuid4()))
+        # Validated and sanitized correlation ID
+        raw_header = request.headers.get("x-request-id")
+        request_id = sanitize_request_id(raw_header)
         request.state.request_id = request_id
 
         response = await call_next(request)

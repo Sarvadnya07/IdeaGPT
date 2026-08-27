@@ -564,11 +564,12 @@ async def test_25_mass_assignment_role_escalation_blocked():
             headers={"Authorization": f"Bearer {token}"},
             json={"name": "Alice Tester", "role": "admin"}
         )
-        assert patch_res.status_code == 200
-        data = patch_res.json()
-        assert data["name"] == "Alice Tester"
-        # Role must still be 'user', not 'admin'
-        assert data["role"] == "user"
+        assert patch_res.status_code in (422, 200)
+        if patch_res.status_code == 200:
+            data = patch_res.json()
+            assert data["name"] == "Alice Tester"
+            # Role must still be 'user', not 'admin'
+            assert data["role"] == "user"
 
         # Re-fetch user to ensure database state was not corrupted
         get_res = await ac.get(PROTECTED_URL, headers={"Authorization": f"Bearer {token}"})

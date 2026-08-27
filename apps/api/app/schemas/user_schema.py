@@ -18,8 +18,9 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """
-    Schema for user self-update. Explicitly excludes 'role' and 'clerk_id'
-    to prevent mass assignment privilege escalation.
+    Schema for user self-update. Explicitly excludes 'role', 'clerk_id',
+    'id', 'is_admin', and permissions to prevent mass assignment privilege escalation.
+    Rejects any unpermitted fields with 422 Unprocessable Entity.
     """
     name: Optional[str] = None
     username: Optional[str] = None
@@ -28,6 +29,8 @@ class UserUpdate(BaseModel):
     timezone: Optional[str] = None
     locale: Optional[str] = None
     onboarding_completed: Optional[bool] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 class UserResponse(UserBase):
     id: int

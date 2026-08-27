@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useApiClient } from "@/lib/api/client";
+import { useAICredentials } from "../../../hooks/useAICredentials";
+import { useAIProviders } from "../../../hooks/useAIProviders";
 import {
   Settings,
   Save,
@@ -16,6 +18,10 @@ import {
   Check,
   Loader2,
   Lock,
+  KeyRound,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 interface UserData {
@@ -30,12 +36,13 @@ interface UserData {
   locale: string | null;
 }
 
-const PROVIDERS = ["openai", "gemini", "ollama", "mock"];
+const PROVIDERS = ["groq", "gemini", "openai", "ollama", "tavily"];
 const MODELS: Record<string, string[]> = {
-  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"],
+  groq: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"],
   gemini: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
-  ollama: ["llama3.2", "mistral", "phi3"],
-  mock: ["mock-model"],
+  openai: ["gpt-4o", "gpt-4o-mini", "o3-mini"],
+  ollama: ["llama3", "mistral", "phi3"],
+  tavily: ["tavily-search-v1"],
 };
 const LANGUAGES = ["English", "Spanish", "French", "German", "Japanese"];
 const THEMES = ["Dark", "System"];
@@ -51,6 +58,14 @@ const SHORTCUT_MAP = [
 
 export default function SettingsPage() {
   const api = useApiClient();
+  const {
+    credentials,
+    saveCredential,
+    verifyCredential,
+    deleteCredential,
+    isSaving: isSavingCred,
+  } = useAICredentials();
+  const { providers, refetchProviders } = useAIProviders();
 
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -66,10 +81,15 @@ export default function SettingsPage() {
   const [evaluationComplete, setEvaluationComplete] = useState(true);
 
   // AI defaults
-  const [defaultProvider, setDefaultProvider] = useState("openai");
-  const [defaultModel, setDefaultModel] = useState("gpt-4o");
+  const [defaultProvider, setDefaultProvider] = useState("groq");
+  const [defaultModel, setDefaultModel] = useState("llama-3.3-70b-versatile");
   const [maxTokens, setMaxTokens] = useState("4096");
-  const [temperature, setTemperature] = useState("0.7");
+  const [temperature, setTemperature] = useState("0.2");
+
+  // BYOK Key Input States
+  const [byokProvider, setByokProvider] = useState("groq");
+  const [byokApiKey, setByokApiKey] = useState("");
+  const [verifyingProvider, setVerifyingProvider] = useState<string | null>(null);
 
   // Theme & Language
   const [theme, setTheme] = useState("Dark");
@@ -78,7 +98,6 @@ export default function SettingsPage() {
   const [highContrast, setHighContrast] = useState(false);
   const [largeText, setLargeText] = useState(false);
 
-  // Fetch real user profile on mount
   useEffect(() => {
     async function loadUser() {
       try {
@@ -99,48 +118,81 @@ export default function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-
     try {
-      // Save profile updates to FastAPI backend (email is identity-protected)
-      const res = await api.patch<UserData>("/users/me", {
+      await api.patch("/users/me", {
         name: profileName,
         full_name: fullName,
-        timezone: timezone,
+        timezone,
       });
-
-      setUser(res.data);
-      toast.success("Settings updated successfully!");
+      toast.success("Settings saved successfully");
     } catch (err) {
-      toast.error("Failed to update user profile.");
+      toast.error("Failed to save settings");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const inputCls =
-    "block w-full px-4 py-2.5 text-xs text-zinc-300 bg-[#070709] border border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 rounded-xl outline-none transition-all font-medium";
-  const selectCls =
-    "block w-full px-4 py-2.5 text-xs text-zinc-300 bg-[#070709] border border-zinc-800 focus:border-indigo-500 rounded-xl outline-none transition-all font-medium";
-  const sectionCls = "bg-[#0b0b0d] border border-zinc-900/60 rounded-2xl p-6 shadow-[0_4px_24px_rgba(0,0,0,0.4)]";
-  const sectionHeaderCls =
-    "text-xs font-bold text-white uppercase tracking-wider border-b border-zinc-900/60 pb-3 mb-5 flex items-center gap-2";
-  const labelCls = "text-[10px] font-bold text-zinc-500 uppercase tracking-widest";
+  const handleSaveBYOK = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!byokApiKey.trim()) {
+      toast.error("Please enter a valid API key.");
+      return;
+    }
+    try {
+      await saveCredential({ provider: byokProvider, apiKey: byokApiKey.trim() });
+      toast.success(`Saved API key for ${byokProvider.toUpperCase()}`);
+      setByokApiKey("");
+      refetchProviders();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.detail || "Failed to save API key");
+    }
+  };
 
-  const Toggle = ({
-    value,
-    onChange,
-    label,
-    desc,
-  }: {
-    value: boolean;
-    onChange: (v: boolean) => void;
-    label: string;
-    desc?: string;
-  }) => (
-    <div className="flex items-center justify-between py-3 border-b border-zinc-900/40 last:border-0">
+  const handleVerifyBYOK = async (providerName: string) => {
+    setVerifyingProvider(providerName);
+    try {
+      const res = await verifyCredential(providerName);
+      if (res.valid) {
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch (err: any) {
+      toast.error("Verification failed");
+    } finally {
+      setVerifyingProvider(null);
+    }
+  };
+
+  const handleDeleteBYOK = async (providerName: string) => {
+    try {
+      await deleteCredential(providerName);
+      toast.success(`Revoked ${providerName.toUpperCase()} API key`);
+      refetchProviders();
+    } catch (err: any) {
+      toast.error("Failed to revoke API key");
+    }
+  };
+
+  const sectionCls =
+    "p-6 rounded-2xl bg-zinc-950/40 border border-zinc-900 backdrop-blur-xl relative overflow-hidden";
+  const sectionHeaderCls = "text-base font-semibold text-white mb-4 flex items-center gap-2";
+  const labelCls = "text-xs font-medium text-zinc-400 block mb-1.5";
+  const inputCls =
+    "block w-full px-4 py-2.5 text-xs text-white bg-zinc-900/80 border border-zinc-800 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
+  const selectCls =
+    "block w-full px-4 py-2.5 text-xs text-white bg-zinc-900/80 border border-zinc-800 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
+
+  const renderToggle = (
+    label: string,
+    desc: string,
+    value: boolean,
+    onChange: (val: boolean) => void
+  ) => (
+    <div className="flex items-center justify-between py-2">
       <div>
-        <p className="text-xs font-bold text-white">{label}</p>
-        {desc && <p className="text-[10px] text-zinc-500 mt-0.5 font-medium">{desc}</p>}
+        <span className="text-xs font-medium text-white block">{label}</span>
+        <span className="text-[11px] text-zinc-500">{desc}</span>
       </div>
       <button
         type="button"
@@ -177,7 +229,7 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
         </div>
         <p className="text-sm text-zinc-500 leading-relaxed">
-          Manage your authenticated profile, AI defaults, and notification preferences.
+          Manage your authenticated profile, AI gateway configurations, and BYOK credentials.
         </p>
       </div>
 
@@ -210,7 +262,7 @@ export default function SettingsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className={labelCls}>Email Address (Clerk Verified Identity)</label>
+              <label className={labelCls}>Email Address (Clerk Verified)</label>
               <div className="relative">
                 <input
                   type="email"
@@ -240,7 +292,7 @@ export default function SettingsPage() {
             AI Provider Defaults
           </h3>
           <p className="text-xs text-zinc-500 mb-5 -mt-2 leading-relaxed">
-            Select which AI provider and model to use for new evaluations.
+            Select default AI routing preferences and generation hyperparameters.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
@@ -249,7 +301,7 @@ export default function SettingsPage() {
                 value={defaultProvider}
                 onChange={(e) => {
                   setDefaultProvider(e.target.value);
-                  setDefaultModel(MODELS[e.target.value][0]);
+                  setDefaultModel(MODELS[e.target.value] ? MODELS[e.target.value][0] : "auto");
                 }}
                 className={selectCls}
               >
@@ -267,71 +319,150 @@ export default function SettingsPage() {
                 onChange={(e) => setDefaultModel(e.target.value)}
                 className={selectCls}
               >
-                {MODELS[defaultProvider].map((m) => (
+                {(MODELS[defaultProvider] || ["auto"]).map((m) => (
                   <option key={m} value={m}>
                     {m}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="space-y-1.5">
-              <label className={labelCls}>Max Tokens</label>
-              <input
-                type="number"
-                value={maxTokens}
-                min={512}
-                max={32768}
-                onChange={(e) => setMaxTokens(e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className={labelCls}>Temperature (0.0 – 1.0)</label>
-              <input
-                type="number"
-                value={temperature}
-                min={0}
-                max={1}
-                step={0.1}
-                onChange={(e) => setTemperature(e.target.value)}
-                className={inputCls}
-              />
-            </div>
           </div>
         </div>
 
-        {/* ── Theme & Notifications ── */}
-        <div className={sectionCls}>
-          <h3 className={sectionHeaderCls}>
-            <BellRing className="w-4 h-4 text-sky-400" />
-            Notifications & Preferences
-          </h3>
-          <Toggle
-            value={receiveAlerts}
-            onChange={setReceiveAlerts}
-            label="Evaluation Alerts"
-            desc="Receive alerts when an evaluation completes or fails."
-          />
-          <Toggle
-            value={evaluationComplete}
-            onChange={setEvaluationComplete}
-            label="Email Notifications"
-            desc="Send email on evaluation completion."
-          />
-        </div>
-
-        {/* Save Button */}
-        <div className="flex justify-end pt-2">
+        {/* Save Profile Button */}
+        <div className="flex justify-end">
           <button
             type="submit"
             disabled={isSaving}
-            className="flex items-center gap-2 px-6 py-3 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_20px_rgba(79,70,229,0.3)] rounded-xl transition-all active:scale-[0.98]"
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Changes
+            Save Profile Settings
           </button>
         </div>
       </form>
+
+      {/* ── BYOK (Bring Your Own Key) Vault Section ── */}
+      <div className={sectionCls}>
+        <h3 className={sectionHeaderCls}>
+          <KeyRound className="w-4 h-4 text-amber-400" />
+          AI Provider BYOK Key Vault (Encrypted)
+        </h3>
+        <p className="text-xs text-zinc-500 mb-5 -mt-2 leading-relaxed">
+          Provide your own API keys for personal quota and unthrottled capability routing. Keys are
+          encrypted server-side and never exposed.
+        </p>
+
+        {/* Active BYOK Credentials Table */}
+        {credentials.length > 0 ? (
+          <div className="space-y-3 mb-6">
+            <span className="text-xs font-medium text-zinc-300">Configured BYOK Keys</span>
+            <div className="space-y-2">
+              {credentials.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <div>
+                      <span className="font-semibold text-white uppercase">{c.provider}</span>
+                      <span className="text-zinc-500 ml-2 font-mono">{c.key_hint}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleVerifyBYOK(c.provider)}
+                      disabled={verifyingProvider === c.provider}
+                      className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg font-medium text-[11px] flex items-center gap-1.5 transition-all"
+                    >
+                      {verifyingProvider === c.provider ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      )}
+                      Test Connectivity
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteBYOK(c.provider)}
+                      className="p-1.5 text-zinc-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-all"
+                      title="Revoke Key"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 mb-6 rounded-xl bg-zinc-900/30 border border-zinc-800/50 text-xs text-zinc-500 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-zinc-400" />
+            No personal BYOK keys configured yet. IdeaGPT will route through system-managed tier.
+          </div>
+        )}
+
+        {/* Add Key Form */}
+        <form onSubmit={handleSaveBYOK} className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-900">
+          <div className="space-y-1.5">
+            <label className={labelCls}>Provider</label>
+            <select
+              value={byokProvider}
+              onChange={(e) => setByokProvider(e.target.value)}
+              className={selectCls}
+            >
+              {PROVIDERS.map((p) => (
+                <option key={p} value={p}>
+                  {p.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5 md:col-span-2">
+            <label className={labelCls}>API Key</label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                placeholder={`Enter your ${byokProvider.toUpperCase()} API key`}
+                value={byokApiKey}
+                onChange={(e) => setByokApiKey(e.target.value)}
+                className={inputCls}
+              />
+              <button
+                type="submit"
+                disabled={isSavingCred || !byokApiKey.trim()}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-600/20"
+              >
+                {isSavingCred ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                Add Key
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {/* ── System Preferences & Shortcuts ── */}
+      <div className={sectionCls}>
+        <h3 className={sectionHeaderCls}>
+          <Keyboard className="w-4 h-4 text-emerald-400" />
+          Global Keyboard Shortcuts
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+          {SHORTCUT_MAP.map((sc) => (
+            <div
+              key={sc.action}
+              className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/40 border border-zinc-900"
+            >
+              <span className="text-zinc-400">{sc.action}</span>
+              <kbd className="px-2 py-1 bg-zinc-800/80 border border-zinc-700/50 rounded-lg text-zinc-300 font-mono text-[10px]">
+                {sc.keys}
+              </kbd>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
