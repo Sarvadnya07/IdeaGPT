@@ -135,7 +135,7 @@ export default function MentorLabPage() {
       {result ? (
         <div className="space-y-6">
           {/* Mentor Persona & Executive Advice */}
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950/30 to-purple-950/30 border border-indigo-900/40 space-y-4">
+          <div className="p-6 rounded-2xl bg-linear-to-r from-indigo-950/30 to-purple-950/30 border border-indigo-900/40 space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
                 <UserCheck className="w-5 h-5" />
