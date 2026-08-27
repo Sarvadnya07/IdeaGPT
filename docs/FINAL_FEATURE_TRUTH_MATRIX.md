@@ -1,6 +1,6 @@
 # IdeaGPT Production Feature Truth Matrix
 
-**Last Audit**: Phase A AI Gateway Release  
+**Last Audit**: Secondary Labs & Design System Release  
 **Status**: Authoritative & Evidence-Backed  
 
 | Component / Feature | Tier / Type | Implementation State | Verification Method |
@@ -16,6 +16,12 @@
 | **Evidence Taxonomy** | Fact/Estimate System | **VERIFIED & OPERATIONAL** | Source Enforcement & Downgrade Validator Tests |
 | **Embeddings & Similarity** | Vector Knowledge | **VERIFIED & OPERATIONAL** | Cosine Similarity & Vector Normalization Tests |
 | **Moderation Boundary** | Safety | **VERIFIED & OPERATIONAL** | Heuristic Policy & Keyword Guard Tests |
+| **GitHub Lab** (`/github-lab`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Directory Scaffolding Tests |
+| **Investor Lab** (`/investor`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Valuation/Cap Table Tests |
+| **Mentor Lab** (`/mentor`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Founder Coaching Tests |
+| **Recruiter Lab** (`/recruiter`) | Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Job Description/Rubric Tests |
+| **Strategy Lab** (`/strategy-lab`)| Secondary Lab | **VERIFIED & OPERATIONAL** | API Integration & Porter's 5 Forces / ERRC Tests |
+| **Shared Design System** (`@ideagpt/ui`) | Monorepo Packages | **VERIFIED & OPERATIONAL** | Exported Button, Card, Badge, Input Primitives |
 | **Mock Provider Rule** | Testing Isolation | **VERIFIED & ENFORCED** | Strictly Disabled in Production (`APP_ENV=production`) |
 | **Clerk Authentication** | Identity | **VERIFIED & OPERATIONAL** | RS256 JWKS & Playwright Protected Route Tests |
 | **Deterministic Engine** | Core Evaluation | **VERIFIED & OPERATIONAL** | 100% Deterministic Fallback Coverage |

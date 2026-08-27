@@ -370,3 +370,125 @@ async def generate_pitch_deck(
         "provider": payload.provider or "groq",
         "model": payload.model or "llama-3.3-70b-versatile",
     }
+
+
+# ---------------------------------------------------------------------------
+# Secondary Labs Endpoints (GitHub, Investor, Mentor, Recruiter, Strategy)
+# ---------------------------------------------------------------------------
+
+class GitHubLabRequest(BaseModel):
+    title: str = Field(default="Startup Project", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    tech_stack: Optional[str] = Field(default=None, max_length=200)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+
+class InvestorLabRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    market_size: Optional[str] = Field(default=None, max_length=200)
+    target_raise: Optional[str] = Field(default=None, max_length=100)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+
+class MentorLabRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    stage: Optional[str] = Field(default=None, max_length=100)
+    challenges: Optional[str] = Field(default=None, max_length=1000)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+
+class RecruiterLabRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    current_team_size: Optional[str] = Field(default=None, max_length=100)
+    target_roles: Optional[str] = Field(default=None, max_length=500)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+
+class StrategyLabRequest(BaseModel):
+    title: str = Field(default="Startup Concept", max_length=100)
+    category: str = Field(default="B2B SaaS", max_length=50)
+    competitors: Optional[str] = Field(default=None, max_length=500)
+    value_proposition: Optional[str] = Field(default=None, max_length=500)
+    provider: Optional[str] = Field(default="groq", max_length=50)
+    model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+
+
+@router.post("/labs/github", summary="Generate GitHub codebase scaffolding, directory tree, and CI/CD workflow")
+async def generate_github_lab(
+    payload: GitHubLabRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_github_lab_ai(
+        title=payload.title,
+        category=payload.category,
+        tech_stack=payload.tech_stack,
+        description=payload.description,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile"
+    )
+
+@router.post("/labs/investor", summary="Generate institutional venture capital analysis, valuation, and cap table")
+async def generate_investor_lab(
+    payload: InvestorLabRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_investor_lab_ai(
+        title=payload.title,
+        category=payload.category,
+        market_size=payload.market_size,
+        target_raise=payload.target_raise,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile"
+    )
+
+@router.post("/labs/mentor", summary="Generate founder advisory plan, blindspot diagnostics, and mental models")
+async def generate_mentor_lab(
+    payload: MentorLabRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_mentor_lab_ai(
+        title=payload.title,
+        category=payload.category,
+        stage=payload.stage,
+        challenges=payload.challenges,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile"
+    )
+
+@router.post("/labs/recruiter", summary="Generate hiring roadmap, job descriptions, and compensation benchmarks")
+async def generate_recruiter_lab(
+    payload: RecruiterLabRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_recruiter_lab_ai(
+        title=payload.title,
+        category=payload.category,
+        current_team_size=payload.current_team_size,
+        target_roles=payload.target_roles,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile"
+    )
+
+@router.post("/labs/strategy", summary="Generate Porter's Five Forces, Blue Ocean strategy, and defensibility moats")
+async def generate_strategy_lab(
+    payload: StrategyLabRequest,
+    current_user: User = Depends(get_current_user)
+):
+    from app.ai.orchestrator.orchestrator import AIOrchestrator
+    return await AIOrchestrator.generate_strategy_lab_ai(
+        title=payload.title,
+        category=payload.category,
+        competitors=payload.competitors,
+        value_proposition=payload.value_proposition,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile"
+    )
+

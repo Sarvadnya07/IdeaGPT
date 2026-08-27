@@ -6,6 +6,7 @@
   "types": "./index.ts",
   "dependencies": {
     "clsx": "^2.1.1",
+    "class-variance-authority": "^0.7.1",
     "react": "latest",
     "tailwind-merge": "^3.6.0"
   }

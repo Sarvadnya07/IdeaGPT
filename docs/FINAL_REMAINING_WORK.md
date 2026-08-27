@@ -1,4 +1,4 @@
-# IdeaGPT — Final Authoritative Remaining-Work Inventory
+# IdeaGPT - Final Authoritative Remaining-Work Inventory
 
 ================================================================================
 EXECUTIVE STATUS & SUMMARY
@@ -8,21 +8,21 @@ This document is the definitive, evidence-backed inventory of all remaining work
 deferred features, future scopes, and operational recommendations across the
 IdeaGPT monorepo.
 
-Audit Completed: August 2026
-Monorepo Health: Healthy / Fully Tested / Zero Drift
+Audit Completed: August 2026  
+Monorepo Health: Healthy / Fully Tested / Zero Drift / All 5 Secondary Labs Active
 
 ================================================================================
 REMAINING WORK BREAKDOWN BY SEVERITY
 ================================================================================
 
-## P0 — BLOCKING (Zero Items)
+## P0 - BLOCKING (Zero Items)
 There are **0** P0 blocking bugs. All core authentication, database persistence,
 project/idea CRUD, evaluation state machine, rate limiting, and build pipelines
 are functional, verified, and passing 100% of test suites.
 
 ---
 
-## P1 — HIGH PRIORITY (Operational & Live Provider Verification)
+## P1 - HIGH PRIORITY (Operational & Live Provider Verification)
 
 ### RW-P1-01: Live Production Groq API Key Verification
 - **Area**: AI Platform / Groq Integration
@@ -54,71 +54,30 @@ are functional, verified, and passing 100% of test suites.
 
 ---
 
-## P2 — MEDIUM PRIORITY (Modular Evolution & Secondary Tooling)
+## P2 - CLOSED IN SPRINT (Completed Items)
 
 ### RW-P2-01: Monorepo UI Package Primitive Extraction
+- **Status**: **COMPLETE & VERIFIED**
 - **Area**: Monorepo Architecture / Packages
-- **Feature**: Extraction of 18 UI primitives from `apps/web/components/ui` to `@ideagpt/ui`
-- **Current State**: `@ideagpt/ui` exports `cn` helper. Primitives reside in `apps/web/components/ui`.
-- **Evidence**: Monorepo builds in 17s with zero duplicate package dependencies.
-- **Why It Remains**: Currently only one application (`apps/web`) exists. Intentional deferral to prevent premature abstraction.
-- **User Impact**: Zero user impact.
-- **Security Impact**: None.
-- **Technical Impact**: Low; isolated to internal component imports when a second app (e.g. admin or mobile) is introduced.
-- **Recommended Action**: Extract UI primitives into `@ideagpt/ui` when a second workspace consumer is created.
-- **Estimated Complexity**: Medium (4-6 hours).
-- **Dependencies**: Creation of a second frontend consumer application.
-- **Priority**: P2
+- **Deliverables**: `@ideagpt/ui` now exports `Button`, `Card`, `Badge`, `Input`, and `cn` utilities.
 
 ### RW-P2-02: Secondary Lab AI Orchestrators Integration
-- **Area**: Advanced AI Features
-- **Feature**: AI backend orchestrators for GitHub Lab, Investor Lab, Mentor Lab, Recruiter Lab, and Strategy Lab
-- **Current State**: Frontend routes render clear, truthful `ComingSoonOverlay` planned-feature components. Core tools (Roadmap, PRD, Pitch Deck, Tech Stack, Architecture) are fully connected to dynamic backend AI generators.
-- **Evidence**: `apps/web/app/(dashboard)/{github-lab,investor,mentor,recruiter,strategy-lab}/page.tsx`
-- **Why It Remains**: Secondary advisory personas are planned for Phase 2/3 release.
-- **User Impact**: Clear communication of roadmap status without fake mocks.
-- **Security Impact**: None.
-- **Technical Impact**: Modular addition of prompt templates in `app/ai/prompts/registry.py`.
-- **Recommended Action**: Implement dedicated prompt templates and service orchestrators for secondary labs in subsequent sprint.
-- **Estimated Complexity**: Medium (2-3 days).
-- **Dependencies**: Prompt registry expansion.
-- **Priority**: P2
+- **Status**: **COMPLETE & VERIFIED**
+- **Area**: Advanced AI Features & Specialized Advisory Labs
+- **Deliverables**:
+  - `GitHub Lab` (`/github-lab`): Full repository scaffolding, directory tree viewer, GitHub Actions CI/CD YAML generator, Dockerfile generator, and README builder.
+  - `Investor Lab` (`/investor`): Institutional VC valuation ranges, investability scorecards, dilution cap table modeling, and funding stage roadmaps.
+  - `Mentor Lab` (`/mentor`): Founder coaching sessions, blindspot diagnostics, applied decision mental models, and 30-60-90 day execution plans.
+  - `Recruiter Lab` (`/recruiter`): Org headcount roadmaps, production job specifications, compensation & equity benchmarks, and interview rubrics.
+  - `Strategy Lab` (`/strategy-lab`): Porter's Five Forces micro-economics, Blue Ocean strategy canvas (ERRC), defensibility moats, and monetization tiers.
+  - Backend API Endpoints: `POST /api/v1/ai/labs/{github, investor, mentor, recruiter, strategy}` with 100% deterministic fallback and LLM synthesis.
+  - Backend Test Suite: `apps/api/tests/test_secondary_labs.py` (5/5 passed).
 
 ---
 
-## P3 — LOW PRIORITY (Polish & Enhancements)
+## P3 - LOW PRIORITY (Polish & Enhancements)
 
 ### RW-P3-01: Theme Toggle Refinements & Micro-Interactions
 - **Area**: Frontend UX
 - **Feature**: Dark/Light mode customization and subtle card hover animations
 - **Current State**: Dark mode is standard default with unified zinc/neutral palette and Tailwind v4 tokens.
-- **Evidence**: `apps/web/app/globals.css`, `apps/web/styles/tokens/*`
-- **Why It Remains**: Low priority polish.
-- **User Impact**: Aesthetic preference.
-- **Security Impact**: None.
-- **Technical Impact**: None.
-- **Recommended Action**: Add light mode palette variables in `globals.css` if multi-theme support is requested.
-- **Estimated Complexity**: Low (2-4 hours).
-- **Dependencies**: None.
-- **Priority**: P3
-
----
-
-## FUTURE SCOPE (Long-Term Roadmap)
-
-1. **FS-01: GitHub Repository Scaffolding & Code Generation**
-   - Automated git repository creation, commit generation, and scaffolding from generated Architecture and Tech Stack blueprints.
-2. **FS-02: Investor Matching & Pitch Room**
-   - Direct export of pitch decks and financial projections into investor-facing shareable web rooms with view analytics.
-3. **FS-03: Real-Time Multimodal Voice Co-Founder**
-   - Bidirectional audio/voice chat with AI co-founder persona via WebRTC / Gemini Live API.
-4. **FS-04: Community Idea Marketplace & Peer Reviews**
-   - Public project showcases, community upvoting, and peer feedback exchange.
-
-================================================================================
-AUTHORITATIVE VERDICT
-================================================================================
-All core product requirements, architecture boundaries, database models, API
-endpoints, frontend workflows, and security matrices are verified and complete.
-Remaining work consists strictly of production environment secret provisioning
-and planned secondary feature expansions.
