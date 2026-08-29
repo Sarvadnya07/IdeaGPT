@@ -1,7 +1,8 @@
 ﻿{
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "turbo build",
   "framework": "nextjs",
+  "buildCommand": "turbo build",
+  "outputDirectory": "apps/web/.next",
   "rewrites": [
     {
       "source": "/api/v1/:path*",
