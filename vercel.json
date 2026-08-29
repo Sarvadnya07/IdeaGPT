@@ -1,20 +1,38 @@
 ﻿{
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "nextjs",
-  "buildCommand": "turbo build",
-  "outputDirectory": "apps/web/.next",
+  "services": {
+    "web": {
+      "root": "apps/web"
+    },
+    "api": {
+      "root": "apps/api",
+      "entrypoint": "index.py"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "/api/index.py"
+      "source": "/api/v1/(.*)",
+      "destination": {
+        "service": "api"
+      }
     },
     {
       "source": "/health",
-      "destination": "/api/index.py"
+      "destination": {
+        "service": "api"
+      }
     },
     {
-      "source": "/health/:path*",
-      "destination": "/api/index.py"
+      "source": "/health/(.*)",
+      "destination": {
+        "service": "api"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "web"
+      }
     }
   ]
 }
