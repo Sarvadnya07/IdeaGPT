@@ -5,8 +5,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["testing-library__jest-dom"],
-    "ignoreDeprecations": "6.0"
+    "types": ["testing-library__jest-dom"]
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "vitest.config.ts"]
