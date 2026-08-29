@@ -1,5 +1,46 @@
-{
+﻿{
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV"],
+  "globalPassThroughEnv": [
+    "APP_ENV",
+    "PROJECT_NAME",
+    "VERSION",
+    "DATABASE_URL",
+    "REDIS_URL",
+    "DB_POOL_SIZE",
+    "DB_MAX_OVERFLOW",
+    "RATE_LIMIT_ENABLED",
+    "RATE_LIMIT_STORAGE_URL",
+    "AI_EVALUATION_RATE_LIMIT",
+    "AI_GENERATION_RATE_LIMIT",
+    "WRITE_API_RATE_LIMIT",
+    "DEFAULT_API_RATE_LIMIT",
+    "CLERK_PUBLISHABLE_KEY",
+    "CLERK_SECRET_KEY",
+    "CLERK_JWT_ISSUER",
+    "CLERK_AUTHORIZED_PARTY",
+    "CLERK_JWT_TEST_SECRET",
+    "CORS_ORIGINS",
+    "DEFAULT_PROVIDER",
+    "ENABLE_GROQ",
+    "GROQ_API_KEY",
+    "GROQ_BASE_URL",
+    "GROQ_DEFAULT_MODEL",
+    "ENABLE_OPENAI",
+    "OPENAI_API_KEY",
+    "ENABLE_GEMINI",
+    "GEMINI_API_KEY",
+    "ENABLE_OLLAMA",
+    "OLLAMA_URL",
+    "CUSTOM_PROVIDER_URL",
+    "CUSTOM_PROVIDER_KEY",
+    "ANTHROPIC_API_KEY",
+    "TAVILY_API_KEY",
+    "VERCEL",
+    "VERCEL_ENV",
+    "VERCEL_URL",
+    "CI"
+  ],
   "tasks": {
     "dev": {
       "cache": false,
@@ -7,9 +48,22 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "env": [
+        "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_API_URL",
+        "INTERNAL_API_URL",
+        "FASTAPI_URL",
+        "ANALYZE",
+        "BUILD_STANDALONE",
+        "DOCKER_BUILD"
+      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
-    "lint": {},
-    "test": {}
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
+    }
   }
 }

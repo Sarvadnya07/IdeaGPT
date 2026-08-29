@@ -82,6 +82,18 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    const backendUrl = process.env.INTERNAL_API_URL || process.env.FASTAPI_URL;
+    if (backendUrl) {
+      return [
+        {
+          source: "/api/v1/:path*",
+          destination: `${backendUrl.replace(/\/$/, "")}/api/v1/:path*`,
+        },
+      ];
+    }
+    return [];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);
