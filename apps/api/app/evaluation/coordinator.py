@@ -172,7 +172,13 @@ class EvaluationCoordinator:
         # Ensure caller session is committed before executor starts
         await db.commit()
         # Execute evaluation cleanly
-        return await EvaluationExecutor.execute_evaluation(evaluation_id)
+        try:
+            return await EvaluationExecutor.execute_evaluation(evaluation_id)
+        except EvaluationConcurrencyConflictError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(exc),
+            )
 
     @classmethod
     async def retry_evaluation(cls, db: AsyncSession, evaluation_id: str, user_id: int) -> Evaluation:

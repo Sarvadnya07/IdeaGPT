@@ -32,7 +32,10 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Pre-warm database connection pool & recover stale jobs
+    # Startup: Fail fast if production configuration is insecure or missing
+    settings.validate_production_config()
+
+    # Pre-warm database connection pool & recover stale jobs
     try:
         from app.core.database import engine
         from app.db.session import AsyncSessionLocal

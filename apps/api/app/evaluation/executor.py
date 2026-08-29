@@ -180,6 +180,11 @@ class EvaluationExecutor:
                     logger.warning(f"Evaluation '{evaluation_id}' was cancelled while executing. Skipping completion.")
                     return evaluation
 
+                # If evaluation was already completed concurrently by another task, return safely
+                if evaluation.status == EvaluationStatus.COMPLETED.value:
+                    logger.info(f"Evaluation '{evaluation_id}' was already completed concurrently.")
+                    return evaluation
+
                 old_status = evaluation.status
                 validate_transition(old_status, EvaluationStatus.COMPLETED.value)
 

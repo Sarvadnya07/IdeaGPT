@@ -18,12 +18,18 @@ const scriptSrc = [
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+const devOrigins = isDev
+  ? [
+      "http://localhost:8000",
+      "http://127.0.0.1:8000",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+    ]
+  : [];
+
 const connectSrc = [
   "'self'",
-  "http://localhost:8000",
-  "http://127.0.0.1:8000",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
+  ...devOrigins,
   "https://*.clerk.accounts.dev",
   "https://api.clerk.com",
   "https://clerk.ideagpt.com",
@@ -66,7 +72,7 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
               `connect-src ${connectSrc}`,
-              "frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com",
+              "frame-src 'self' https://*.clerk.accounts.dev https://clerk.ideagpt.com https://*.clerk.com https://challenges.cloudflare.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

@@ -231,6 +231,8 @@ async def test_concurrent_execution_locking():
             project_id=proj_id,
             idea_id=idea_id,
             evaluation_type="startup_evaluation",
+            provider="deterministic",
+            model="rule-based-v2.6",
             status=EvaluationStatus.PENDING.value,
             progress=EvaluationProgress.PENDING.value,
             result_payload={},

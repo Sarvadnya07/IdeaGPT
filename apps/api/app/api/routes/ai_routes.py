@@ -80,8 +80,8 @@ async def get_providers_health(
 
 @router.get("/artifacts", summary="List durable AI artifacts for current user")
 async def list_user_artifacts(
+    current_user: Annotated[User, Depends(get_current_user)],
     artifact_type: Optional[str] = None,
-    current_user: Annotated[User, Depends(get_current_user)] = None,
     db: AsyncSession = Depends(get_db)
 ):
     """

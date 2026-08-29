@@ -195,8 +195,8 @@ async def get_project_comparisons(
 async def get_evaluation_export(
     request: Request,
     evaluation_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
     format: str = Query("json", pattern="^(json|markdown|md|pdf|html)$", description="Export format: json, markdown, pdf, or html"),
-    current_user: Annotated[User, Depends(get_current_user)] = None,
     db: AsyncSession = Depends(get_db)
 ):
     """

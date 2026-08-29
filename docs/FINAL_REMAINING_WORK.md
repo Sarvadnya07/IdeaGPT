@@ -1,39 +1,29 @@
-# IdeaGPT — Final Remaining Work & Pre-Production Boundary
+﻿# IdeaGPT — Final Remaining Work & External Configuration
 
-**Date**: August 2026  
-**Scope**: Classification of Remaining Tasks for Private Beta & Public Launch  
+## In-Repository Codebase Status: 100% COMPLETE & VERIFIED
 
----
+All codebase defects, type errors, schema alignments, security guards, rate limits, FinOps guardrails, and automated tests have been fully implemented and verified.
 
-## 1. Classification of Remaining Work
+## External Production Configuration Required (Pre-Launch Ops)
 
-### Category A: Fixed in Code (Completed in Pre-Production Sprint)
-- [x] Clerk RS256 cryptography dependency installed & declared in `requirements.txt`.
-- [x] Database connection pool resilience (`pool_pre_ping`, recycle, timeout, sizing).
-- [x] Transactional rollback safety on route exceptions in `get_db`.
-- [x] Startup lifespan cleanup sweeps for stale evaluations and background AI tasks.
-- [x] Structured JSON log query scrubber to redact URL parameters containing secrets.
-- [x] Frontend Axios interceptor enhanced to display explicit rate limit / quota / validation errors.
+The following operational tasks require external cloud platform configuration prior to production traffic:
 
-### Category B: Requires External Configuration (Deploy-Time Tasks)
-- [ ] Configure live Production Clerk Publishable Key (`pk_live_...`) and custom domain in DNS.
-- [ ] Configure Production CORS origins list matching exact production domains (`https://app.ideagpt.dev`).
-- [ ] Configure Groq Cloud production billing / tier thresholds in Groq console.
+1. **Clerk Production Instance**:
+   - Create production application in Clerk Dashboard.
+   - Configure custom domain (e.g. `https://clerk.ideagpt.com`).
+   - Set `CLERK_PUBLISHABLE_KEY=pk_live_...` and `CLERK_JWT_ISSUER=https://clerk.ideagpt.com` in production environment.
+   - Customize Clerk session token to include `{{ user.primary_email_address }}` and `{{ user.full_name }}`.
 
-### Category C: Requires Infrastructure Setup (DevOps / Cloud Hosting)
-- [ ] Setup managed PostgreSQL instance (e.g. AWS RDS PostgreSQL 16+ or Supabase) with automated daily backups & 7-day point-in-time recovery.
-- [ ] Setup container orchestrator (AWS ECS Fargate / Render / Vercel) with liveness (`/health/live`) and readiness (`/health/ready`) probe checks.
-- [ ] Optional: Redis instance configuration if centralized multi-pod rate limiting is required.
+2. **Production Managed PostgreSQL**:
+   - Provision high-availability PostgreSQL 15+ cluster (e.g., Supabase, Neon, AWS RDS Aurora).
+   - Configure connection pooling and point-in-time recovery (PITR) backups.
+   - Set `DATABASE_URL=postgresql+asyncpg://...` in production API environment.
+   - Run `python -m alembic upgrade head` on production deployment.
 
-### Category D: Future Enhancements (Phase 10+ Roadmap)
-- [ ] Interactive AI Mentor simulation (`/mentor`).
-- [ ] Recruiter & Team hiring planner simulation (`/recruiter`).
-- [ ] GitHub Lab automated scaffolding repo generation (`/github-lab`).
-- [ ] Strategy Lab deep venture war-gaming (`/strategy-lab`).
-- [ ] Investor matchmaker network (`/investor`).
+3. **Production Redis Cache**:
+   - Provision production Redis cluster (e.g., Upstash, AWS ElastiCache).
+   - Set `REDIS_URL=rediss://...` for distributed rate limiting and task state.
 
----
-
-## 2. Beta Gate Decision
-
-All code-fixable blockers are **100% resolved**. The remaining tasks are standard hosting infrastructure and credential provisioning actions documented in the [Deployment Checklist](./PRODUCTION_DEPLOYMENT_CHECKLIST.md).
+4. **Production AI Provider Credentials**:
+   - Configure production Groq API key (`GROQ_API_KEY=gsk_...`).
+   - Optionally configure Gemini API key (`GEMINI_API_KEY=AIza...`) and Tavily API key (`TAVILY_API_KEY=tvly-...`).

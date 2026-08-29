@@ -119,3 +119,65 @@ async def test_phase16_observability_endpoints():
         res_metrics = await ac.get("/metrics", headers=auth_header)
         assert res_metrics.status_code == 200
         assert "service" in res_metrics.json()
+
+
+@pytest.mark.anyio
+async def test_phase51_production_configuration_safety():
+    """Verify that insecure production settings fail fast with RuntimeError."""
+    from app.core.config import Settings
+
+    # 1. Missing Clerk issuer in production fails
+    prod_bad_clerk = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/db",
+        CORS_ORIGINS="https://ideagpt.dev",
+        CLERK_PUBLISHABLE_KEY=None,
+        CLERK_JWT_ISSUER=None,
+        CLERK_JWT_TEST_SECRET=None,
+    )
+    with pytest.raises(RuntimeError, match="CLERK_PUBLISHABLE_KEY or CLERK_JWT_ISSUER must be configured"):
+        prod_bad_clerk.validate_production_config()
+
+    # 2. SQLite in production fails
+    prod_bad_db = Settings(
+        APP_ENV="production",
+        DATABASE_URL="sqlite+aiosqlite:///./ideagpt.db",
+        CORS_ORIGINS="https://ideagpt.dev",
+        CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
+        CLERK_JWT_TEST_SECRET=None,
+    )
+    with pytest.raises(RuntimeError, match="SQLite DATABASE_URL cannot be used in production"):
+        prod_bad_db.validate_production_config()
+
+    # 3. Wildcard CORS in production fails
+    prod_bad_cors = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/db",
+        CORS_ORIGINS="*",
+        CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
+        CLERK_JWT_TEST_SECRET=None,
+    )
+    with pytest.raises(RuntimeError, match="CORS_ORIGINS cannot contain wildcard"):
+        prod_bad_cors.validate_production_config()
+
+    # 4. Test JWT Secret in production fails
+    prod_bad_secret = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/db",
+        CORS_ORIGINS="https://ideagpt.dev",
+        CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
+        CLERK_JWT_TEST_SECRET="some-test-secret",
+    )
+    with pytest.raises(RuntimeError, match="CLERK_JWT_TEST_SECRET must NOT be set in production"):
+        prod_bad_secret.validate_production_config()
+
+    # 5. Valid production configuration succeeds
+    prod_valid = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/db",
+        CORS_ORIGINS="https://ideagpt.dev,https://app.ideagpt.dev",
+        CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
+        CLERK_JWT_TEST_SECRET=None,
+    )
+    # Should not raise
+    prod_valid.validate_production_config()
