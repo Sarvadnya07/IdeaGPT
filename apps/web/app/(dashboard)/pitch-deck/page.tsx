@@ -312,7 +312,7 @@ ${(s.bullet_points || []).map((b) => `- ${b}`).join("\n")}
               </span>
             </div>
 
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-150 overflow-y-auto pr-1">
               {slides.map((s, idx) => (
                 <button
                   key={idx}

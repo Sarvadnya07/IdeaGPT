@@ -147,7 +147,7 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({
               >
                 <ZoomOut className="h-3.5 w-3.5" />
               </Button>
-              <span className="text-[11px] font-mono text-slate-400 px-1 min-w-[36px] text-center">
+              <span className="text-[11px] font-mono text-slate-400 px-1 min-w-9 text-center">
                 {Math.round(zoom * 100)}%
               </span>
               <Button
@@ -192,7 +192,7 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 bg-slate-950 min-h-[320px] flex items-center justify-center overflow-auto relative">
+      <CardContent className="p-6 bg-slate-950 min-h-80 flex items-center justify-center overflow-auto relative">
         {viewMode === "code" || (renderError && !svgContent) ? (
           <div className="w-full space-y-3">
             {renderError && (

@@ -62,7 +62,7 @@ describe("IdeaGPT — 30 Feature Workspace Components", () => {
   it("renders Live Mermaid Viewer correctly", () => {
     render(<MermaidViewer chart="graph TD; A-->B;" title="Test Diagram" />);
     expect(screen.getByText(/Test Diagram/i)).toBeDefined();
-    expect(screen.getByText(/Live Mermaid/i)).toBeDefined();
+    expect(screen.getByText(/Interactive Visual Diagram/i)).toBeDefined();
   });
 
   it("renders Cloud Cost Estimator correctly", () => {
