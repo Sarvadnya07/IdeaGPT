@@ -289,3 +289,53 @@ async def test_recent_activity_and_pdf_export_and_pitch_variants():
         vm_res = await client.get("/api/v1/analytics/venture-matrix", headers=headers)
         assert vm_res.status_code == 200
         assert "points" in vm_res.json()
+
+
+def test_export_service_all_formats():
+    """Explicitly verify Markdown, JSON, and PDF HTML exports preserving data and sanitization."""
+    from app.services.export_service import ExportService
+
+    payload = {
+        "summary": "Innovative <script>alert(1)</script> SaaS platform",
+        "score": 88,
+        "decision_gate": "GO",
+        "strengths": ["Strong retention loops", "High LTV/CAC ratio"],
+        "weaknesses": ["Long sales cycle", "Regulatory overhead"],
+        "recommendations": ["Focus on self-serve onboarding", "Acquire SOC2 certification"],
+        "citations": [
+            {
+                "source_title": "Gartner Report 2026",
+                "source_url": "https://gartner.com/saas",
+                "domain_trust_level": "AUTHORITATIVE"
+            }
+        ],
+        "architecture_breakdown": "Modular Monolith with PostgreSQL"
+    }
+
+    # 1. JSON Export
+    json_out = ExportService.to_json(payload)
+    data = json.loads(json_out)
+    assert data["score"] == 88
+    assert len(data["strengths"]) == 2
+
+    # 2. Markdown Export
+    md_out = ExportService.to_markdown(payload)
+    assert "## Executive Summary" in md_out
+    assert "**Overall Score**: 88/100" in md_out
+    assert "- Strong retention loops" in md_out
+    assert "- Long sales cycle" in md_out
+    assert "- Focus on self-serve onboarding" in md_out
+    assert "Gartner Report 2026" in md_out
+
+    # 3. PDF HTML Export
+    html_out = ExportService.to_pdf_html(payload, project_title="Fintech Engine")
+    assert "<title>IdeaGPT Executive Report — Fintech Engine</title>" in html_out
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html_out
+    assert "<script>" not in html_out  # Sanitized!
+    assert "<li>Strong retention loops</li>" in html_out
+    assert "<li>Long sales cycle</li>" in html_out
+    assert "<li>Focus on self-serve onboarding</li>" in html_out
+    assert "Gartner Report 2026" in html_out
+    assert "88" in html_out
+    assert "GATE: GO" in html_out
+

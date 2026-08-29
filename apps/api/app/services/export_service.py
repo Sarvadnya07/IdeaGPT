@@ -66,8 +66,8 @@ class ExportService:
         summary = html.escape(str(result_payload.get("summary", "Executive evaluation summary.")))
         
         strengths_html = "".join(f"<li>{html.escape(str(s))}</li>" for s in result_payload.get("strengths", []))
-        weaknesses_html = "".join(f"<li>{html.escape(str(w))}</li>" for s in result_payload.get("weaknesses", []))
-        recs_html = "".join(f"<li>{html.escape(str(r))}</li>" for s in result_payload.get("recommendations", []))
+        weaknesses_html = "".join(f"<li>{html.escape(str(w))}</li>" for w in result_payload.get("weaknesses", []))
+        recs_html = "".join(f"<li>{html.escape(str(r))}</li>" for r in result_payload.get("recommendations", []))
 
         citations = result_payload.get("citations", [])
         cite_html = "".join(
