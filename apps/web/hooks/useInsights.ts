@@ -70,7 +70,11 @@ export interface InsightData {
     technical_risk: { level: string; description: string; mitigation: string };
     financial_risk: { level: string; description: string; mitigation: string };
     legal_risk: { level: string; description: string; mitigation: string };
-    operational_risk: { level: string; description: string; mitigation: string };
+    operational_risk: {
+      level: string;
+      description: string;
+      mitigation: string;
+    };
   };
   recommendations: {
     quick_wins: string[];

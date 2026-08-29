@@ -16,7 +16,12 @@ export const useEvaluationPolling = (jobId: string | null) => {
     // Poll every 3 seconds if status is active (PENDING, RUNNING, or QUEUED)
     refetchInterval: (query) => {
       const data = query.state.data as any;
-      if (data && (["PENDING", "RUNNING", "QUEUED", "queued", "processing"].includes(data.status))) {
+      if (
+        data &&
+        ["PENDING", "RUNNING", "QUEUED", "queued", "processing"].includes(
+          data.status,
+        )
+      ) {
         return 3000;
       }
       return false;

@@ -8,8 +8,23 @@ export interface Evaluation {
   provider?: string;
   model?: string;
   evaluation_type: string;
-  status: "PENDING" | "QUEUED" | "RUNNING" | "COMPLETED" | "FAILED" | "CANCELLED" | "EXPIRED";
-  progress: "QUEUED" | "INITIALIZING" | "GENERATING" | "PARSING" | "SAVING" | "COMPLETED" | "FAILED" | "CANCELLED";
+  status:
+    | "PENDING"
+    | "QUEUED"
+    | "RUNNING"
+    | "COMPLETED"
+    | "FAILED"
+    | "CANCELLED"
+    | "EXPIRED";
+  progress:
+    | "QUEUED"
+    | "INITIALIZING"
+    | "GENERATING"
+    | "PARSING"
+    | "SAVING"
+    | "COMPLETED"
+    | "FAILED"
+    | "CANCELLED";
   started_at?: string;
   completed_at?: string;
   duration_ms?: number;
@@ -37,19 +52,18 @@ export const useEvaluation = (evaluationId?: string | null) => {
       provider?: string;
       model?: string;
     }) => {
-      const res = await api.post<Evaluation>(
-        `/ideas/${ideaId}/evaluations`,
-        {
-          evaluation_type: evaluationType || "startup_evaluation",
-          provider: provider || "groq",
-          model: model || "llama-3.3-70b-versatile",
-        }
-      );
+      const res = await api.post<Evaluation>(`/ideas/${ideaId}/evaluations`, {
+        evaluation_type: evaluationType || "startup_evaluation",
+        provider: provider || "groq",
+        model: model || "llama-3.3-70b-versatile",
+      });
       return res.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["evaluations", data.idea_id] });
-    }
+      queryClient.invalidateQueries({
+        queryKey: ["evaluations", data.idea_id],
+      });
+    },
   });
 
   const evaluationQuery = useQuery({
@@ -82,8 +96,10 @@ export const useEvaluation = (evaluationId?: string | null) => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["evaluation", data.id] });
-      queryClient.invalidateQueries({ queryKey: ["evaluations", data.idea_id] });
-    }
+      queryClient.invalidateQueries({
+        queryKey: ["evaluations", data.idea_id],
+      });
+    },
   });
 
   const cancelEvaluation = useMutation({
@@ -93,8 +109,10 @@ export const useEvaluation = (evaluationId?: string | null) => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["evaluation", data.id] });
-      queryClient.invalidateQueries({ queryKey: ["evaluations", data.idea_id] });
-    }
+      queryClient.invalidateQueries({
+        queryKey: ["evaluations", data.idea_id],
+      });
+    },
   });
 
   const deleteEvaluation = useMutation({
@@ -103,7 +121,7 @@ export const useEvaluation = (evaluationId?: string | null) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["evaluations"] });
-    }
+    },
   });
 
   return {

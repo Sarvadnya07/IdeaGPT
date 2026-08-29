@@ -2,7 +2,16 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, Lightbulb, Map, Layers, Sparkles, Shield, Cpu, Compass } from "lucide-react";
+import {
+  ArrowRight,
+  Lightbulb,
+  Map,
+  Layers,
+  Sparkles,
+  Shield,
+  Cpu,
+  Compass,
+} from "lucide-react";
 import { Show } from "@clerk/nextjs";
 import { IdeaGPTLogo } from "../components/brand/IdeaGPTLogo";
 import { EvidenceBadge } from "../components/brand/EvidenceBadge";
@@ -73,14 +82,20 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-zinc-400 max-w-2xl mx-auto leading-relaxed font-medium">
-            IdeaGPT autonomously evaluates startup concepts across technical feasibility, evidence verification, risk scorecards, and executable MVP roadmaps in seconds.
+            IdeaGPT autonomously evaluates startup concepts across technical
+            feasibility, evidence verification, risk scorecards, and executable
+            MVP roadmaps in seconds.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2 pb-2">
             <EvidenceBadge type="FACT" label="Fact Verified" size="sm" />
             <EvidenceBadge type="ESTIMATE" label="Smart Estimate" size="sm" />
             <EvidenceBadge type="INFERENCE" label="AI Inference" size="sm" />
-            <EvidenceBadge type="RECOMMENDATION" label="Action Strategy" size="sm" />
+            <EvidenceBadge
+              type="RECOMMENDATION"
+              label="Action Strategy"
+              size="sm"
+            />
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
@@ -136,7 +151,8 @@ export default function LandingPage() {
               AI Idea Analysis
             </h3>
             <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
-              Evaluates market viability, complexity scores, and timeline estimations with multi-agent reasoning.
+              Evaluates market viability, complexity scores, and timeline
+              estimations with multi-agent reasoning.
             </p>
           </div>
 
@@ -149,7 +165,8 @@ export default function LandingPage() {
               Visual Roadmaps
             </h3>
             <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
-              Generates chronological sprint milestones, resource requirements, and risk mitigation paths.
+              Generates chronological sprint milestones, resource requirements,
+              and risk mitigation paths.
             </p>
           </div>
 
@@ -162,7 +179,8 @@ export default function LandingPage() {
               Architecture Stacks
             </h3>
             <p className="text-[11px] text-zinc-400 leading-relaxed font-medium mt-2">
-              Architects production cloud configurations, database schemas, and API gateway routing blueprints.
+              Architects production cloud configurations, database schemas, and
+              API gateway routing blueprints.
             </p>
           </div>
         </div>
@@ -173,19 +191,34 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <IdeaGPTLogo size="sm" variant="compact" />
-            <span>&copy; {new Date().getFullYear()} IdeaGPT. Structured Decision-Making & Intelligent Transformation.</span>
+            <span>
+              &copy; {new Date().getFullYear()} IdeaGPT. Structured
+              Decision-Making & Intelligent Transformation.
+            </span>
           </div>
           <div className="flex items-center gap-6 font-medium text-zinc-400">
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+            <Link
+              href="/dashboard"
+              className="hover:text-white transition-colors"
+            >
               Workspace
             </Link>
-            <Link href="/ai-analysis" className="hover:text-white transition-colors">
+            <Link
+              href="/ai-analysis"
+              className="hover:text-white transition-colors"
+            >
               Idea Analysis
             </Link>
-            <Link href="/roadmap" className="hover:text-white transition-colors">
+            <Link
+              href="/roadmap"
+              className="hover:text-white transition-colors"
+            >
               Roadmaps
             </Link>
-            <Link href="/architecture" className="hover:text-white transition-colors">
+            <Link
+              href="/architecture"
+              className="hover:text-white transition-colors"
+            >
               Architecture
             </Link>
           </div>

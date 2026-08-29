@@ -50,6 +50,7 @@
 ## 2. Provenance Guarantees
 
 Every data point rendered across Strategy Lab carries an immutable provenance stamp:
+
 - `USER_INPUT`: Ground truth supplied by the founder (e.g. Budget, Target Segment).
 - `DETERMINISTIC_CALCULATION`: Arithmetic calculated outside the LLM (e.g. Runway = Budget / Burn, Weighted Decision Score).
 - `RESEARCH_EVIDENCE`: Fact citation retrieved from verified Phase B search indices.

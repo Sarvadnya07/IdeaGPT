@@ -15,7 +15,7 @@ import {
   Code2,
   Lock,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,24 +44,37 @@ export default function ArchitecturePage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
-  const [activeTab, setActiveTab] = useState<"topology" | "apis" | "database" | "security">("topology");
-  const [blueprint, setBlueprint] = useState<ArchitectureBlueprintResponse | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>(
+    "llama-3.3-70b-versatile",
+  );
+  const [activeTab, setActiveTab] = useState<
+    "topology" | "apis" | "database" | "security"
+  >("topology");
+  const [blueprint, setBlueprint] =
+    useState<ArchitectureBlueprintResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const fetchBlueprint = async (title: string, category: string, desc: string) => {
+  const fetchBlueprint = async (
+    title: string,
+    category: string,
+    desc: string,
+  ) => {
     setIsLoading(true);
     try {
-      const res = await api.post<ArchitectureBlueprintResponse>("/ai/architecture", {
-        title: title || "Startup Concept",
-        category: category || "B2B SaaS",
-        description: desc || "",
-        provider: "groq",
-        model: selectedModel,
-      });
+      const res = await api.post<ArchitectureBlueprintResponse>(
+        "/ai/architecture",
+        {
+          title: title || "Startup Concept",
+          category: category || "B2B SaaS",
+          description: desc || "",
+          provider: "groq",
+          model: selectedModel,
+        },
+      );
       setBlueprint(res.data);
     } catch (err) {
       console.error("Failed to load blueprint:", err);
@@ -73,9 +86,17 @@ export default function ArchitecturePage() {
 
   useEffect(() => {
     if (activeProject) {
-      fetchBlueprint(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+      fetchBlueprint(
+        activeProject.title,
+        activeProject.category || "B2B SaaS",
+        activeProject.description || "",
+      );
     } else if (projects.length === 0 && !projectsQuery.isLoading) {
-      fetchBlueprint("IdeaGPT System", "B2B SaaS", "AI Co-Founder Architecture");
+      fetchBlueprint(
+        "IdeaGPT System",
+        "B2B SaaS",
+        "AI Co-Founder Architecture",
+      );
     }
   }, [activeProjectId]);
 
@@ -88,9 +109,12 @@ export default function ArchitecturePage() {
             <Network className="w-4 h-4" />
             <span>Cloud & System Blueprint Engine</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Architecture Blueprints</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Architecture Blueprints
+          </h1>
           <p className="text-neutral-400 text-sm mt-1">
-            System topology, API specifications, relational entity models, and security boundary designs.
+            System topology, API specifications, relational entity models, and
+            security boundary designs.
           </p>
         </div>
 
@@ -100,11 +124,18 @@ export default function ArchitecturePage() {
             value={selectedModel}
             onChange={(e) => {
               setSelectedModel(e.target.value);
-              if (activeProject) fetchBlueprint(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+              if (activeProject)
+                fetchBlueprint(
+                  activeProject.title,
+                  activeProject.category || "B2B SaaS",
+                  activeProject.description || "",
+                );
             }}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
+            <option value="llama-3.3-70b-versatile">
+              Llama 3.3 70B Versatile (Groq)
+            </option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
           </select>
@@ -118,7 +149,11 @@ export default function ArchitecturePage() {
                 className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer pr-2"
               >
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                  <option
+                    key={p.id}
+                    value={p.id}
+                    className="bg-neutral-900 text-neutral-200"
+                  >
                     {p.title}
                   </option>
                 ))}
@@ -137,8 +172,12 @@ export default function ArchitecturePage() {
       ) : !blueprint ? (
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-12 text-center max-w-lg mx-auto my-12 space-y-4">
           <Network className="w-12 h-12 text-neutral-600 mx-auto" />
-          <h3 className="text-lg font-bold text-white">No Architecture Blueprint Available</h3>
-          <p className="text-xs text-neutral-400">Select a project to generate system architecture models.</p>
+          <h3 className="text-lg font-bold text-white">
+            No Architecture Blueprint Available
+          </h3>
+          <p className="text-xs text-neutral-400">
+            Select a project to generate system architecture models.
+          </p>
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-300">
@@ -174,11 +213,16 @@ export default function ArchitecturePage() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Object.entries(blueprint.topology).map(([layerKey, val]) => (
-                  <div key={layerKey} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2">
+                  <div
+                    key={layerKey}
+                    className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2"
+                  >
                     <span className="text-[10px] font-mono uppercase text-indigo-400 font-bold tracking-wider">
                       {layerKey.replace("_", " ")}
                     </span>
-                    <div className="font-semibold text-sm text-white">{val}</div>
+                    <div className="font-semibold text-sm text-white">
+                      {val}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -219,17 +263,21 @@ export default function ArchitecturePage() {
                             ep.method === "GET"
                               ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : ep.method === "POST"
-                              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                              : ep.method === "PATCH"
-                              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                              : "bg-red-500/10 text-red-400 border border-red-500/20"
+                                ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                                : ep.method === "PATCH"
+                                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                  : "bg-red-500/10 text-red-400 border border-red-500/20"
                           }`}
                         >
                           {ep.method}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-white font-semibold">{ep.path}</td>
-                      <td className="py-3 px-4 text-neutral-400 font-sans">{ep.description}</td>
+                      <td className="py-3 px-4 text-white font-semibold">
+                        {ep.path}
+                      </td>
+                      <td className="py-3 px-4 text-neutral-400 font-sans">
+                        {ep.description}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -241,14 +289,23 @@ export default function ArchitecturePage() {
           {activeTab === "database" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blueprint.database_entities.map((tbl, i) => (
-                <div key={i} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3">
+                <div
+                  key={i}
+                  className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3"
+                >
                   <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
                     <Database className="w-4 h-4 text-amber-400" />
-                    <h4 className="font-mono font-bold text-sm text-white">{tbl.table}</h4>
+                    <h4 className="font-mono font-bold text-sm text-white">
+                      {tbl.table}
+                    </h4>
                   </div>
-                  <p className="text-xs text-neutral-400 leading-relaxed">{tbl.description}</p>
+                  <p className="text-xs text-neutral-400 leading-relaxed">
+                    {tbl.description}
+                  </p>
                   <div className="space-y-1 pt-1">
-                    <span className="text-[10px] uppercase font-mono text-neutral-500">Columns:</span>
+                    <span className="text-[10px] uppercase font-mono text-neutral-500">
+                      Columns:
+                    </span>
                     <ul className="space-y-0.5 text-xs font-mono text-neutral-300">
                       {tbl.columns.map((col, cIdx) => (
                         <li key={cIdx} className="text-neutral-400 text-[11px]">
@@ -272,9 +329,14 @@ export default function ArchitecturePage() {
 
               <div className="space-y-3 pt-2">
                 {blueprint.security_specifications.map((sec, i) => (
-                  <div key={i} className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/80 p-3.5 rounded-xl">
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/80 p-3.5 rounded-xl"
+                  >
                     <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                    <span className="text-xs text-neutral-300 leading-relaxed">{sec}</span>
+                    <span className="text-xs text-neutral-300 leading-relaxed">
+                      {sec}
+                    </span>
                   </div>
                 ))}
               </div>

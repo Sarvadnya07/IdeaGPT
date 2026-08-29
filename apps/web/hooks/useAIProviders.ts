@@ -6,7 +6,12 @@ export interface AIProviderInfo {
   name: string;
   configured: boolean;
   enabled: boolean;
-  state?: "NOT_CONFIGURED" | "DISABLED" | "UNAVAILABLE" | "AVAILABLE" | "DEGRADED";
+  state?:
+    | "NOT_CONFIGURED"
+    | "DISABLED"
+    | "UNAVAILABLE"
+    | "AVAILABLE"
+    | "DEGRADED";
 }
 
 export interface AIModelInfo {

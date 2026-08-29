@@ -26,12 +26,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ModalContext.Provider value={{ isOpen, modalContent, openModal, closeModal }}>
+    <ModalContext.Provider
+      value={{ isOpen, modalContent, openModal, closeModal }}
+    >
       {children}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="relative bg-[#0b0b0d] border border-zinc-800 rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-in zoom-in-95 duration-200">
-            <button 
+            <button
               onClick={closeModal}
               className="absolute top-4 right-4 text-zinc-400 hover:text-white"
             >

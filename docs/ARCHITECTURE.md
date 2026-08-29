@@ -16,14 +16,14 @@ graph TD
     BackendAPI -->|Rate Limit Storage| RedisStore[(Redis 7)]
     BackendAPI -->|Dynamic LLM Routing| GroqLPU[Groq LPU / Llama 3.3 70B]
     BackendAPI -->|Fallback LLM Routing| OpenAIAPI[OpenAI / Gemini / Ollama]
-    
+
     subgraph Turborepo Monorepo Boundary
         WebApp
         BackendAPI
         SharedUI[packages/ui]
         SharedConfig[packages/typescript-config]
     end
-    
+
     SharedUI -.-> WebApp
     SharedConfig -.-> WebApp
 ```
@@ -91,6 +91,7 @@ In addition to fast synchronous deterministic evaluations ($<50$ms), long-runnin
 ## 🧪 6. Architectural Fitness Functions
 
 Automated architectural constraints are enforced in CI via `apps/api/tests/test_architecture_fitness.py`:
+
 - **Layer Direction**: Lower layers (`core`, `models`, `schemas`, `db`) never import from `api.routes`.
 - **Engine Purity**: `DeterministicEvaluationEngine` has 0 database, network, or external LLM dependencies.
 - **Schema Standards**: All schemas use Pydantic v2 `ConfigDict` with 0 legacy `class Config:`.

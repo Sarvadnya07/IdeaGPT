@@ -15,11 +15,12 @@ export const useSettingsStore = create<SettingsState>()(
       theme: "system",
       sidebarCollapsed: false,
       setTheme: (theme) => set({ theme }),
-      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      toggleSidebar: () =>
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
     }),
     {
       name: "ideagpt-settings",
-    }
-  )
+    },
+  ),
 );

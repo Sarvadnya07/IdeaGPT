@@ -23,13 +23,21 @@ export function useSearch() {
     timerRef.current = setTimeout(() => setDebouncedQuery(q), 300);
   }, []);
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
 
   const search = useQuery<{ results: SearchResult[]; count: number }>({
     queryKey: ["search", debouncedQuery],
     queryFn: async () => {
-      if (!debouncedQuery || debouncedQuery.length < 2) return { results: [], count: 0 };
-      const res = await api.get(`/search?q=${encodeURIComponent(debouncedQuery)}`);
+      if (!debouncedQuery || debouncedQuery.length < 2)
+        return { results: [], count: 0 };
+      const res = await api.get(
+        `/search?q=${encodeURIComponent(debouncedQuery)}`,
+      );
       return res.data;
     },
     enabled: debouncedQuery.length >= 2,

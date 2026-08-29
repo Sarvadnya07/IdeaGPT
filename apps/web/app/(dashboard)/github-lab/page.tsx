@@ -48,12 +48,15 @@ export default function GithubLabPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<GitHubLabResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"tree" | "cicd" | "docker" | "readme">("tree");
+  const [activeTab, setActiveTab] = useState<
+    "tree" | "cicd" | "docker" | "readme"
+  >("tree");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleGenerate = async () => {
@@ -98,8 +101,9 @@ export default function GithubLabPage() {
             {activeProject?.title || "Codebase Scaffolder"}
           </h1>
           <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
-            Generate production repository directory structures, CI/CD automated test workflows,
-            Docker container definitions, and comprehensive README documentation.
+            Generate production repository directory structures, CI/CD automated
+            test workflows, Docker container definitions, and comprehensive
+            README documentation.
           </p>
         </div>
 
@@ -123,7 +127,8 @@ export default function GithubLabPage() {
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Synthesizing Repo...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Synthesizing
+                Repo...
               </>
             ) : (
               <>
@@ -141,7 +146,9 @@ export default function GithubLabPage() {
             <div>
               <div className="flex items-center gap-2">
                 <Box className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-bold text-white font-mono">{result.repository_name}</h3>
+                <h3 className="text-lg font-bold text-white font-mono">
+                  {result.repository_name}
+                </h3>
                 <span className="px-2 py-0.5 text-[10px] font-mono bg-zinc-800 text-zinc-400 rounded-md">
                   {result.license} License
                 </span>
@@ -150,10 +157,16 @@ export default function GithubLabPage() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => copyToClipboard(result.readme_content, "readme_full")}
+                onClick={() =>
+                  copyToClipboard(result.readme_content, "readme_full")
+                }
                 className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-medium border border-zinc-800 flex items-center gap-1.5"
               >
-                {copiedKey === "readme_full" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedKey === "readme_full" ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
                 Copy README
               </button>
             </div>
@@ -218,12 +231,18 @@ export default function GithubLabPage() {
                     >
                       <div className="flex items-center gap-3 font-mono">
                         {item.type === "dir" ? (
-                          <span className="text-amber-400">📁 {item.path}/</span>
+                          <span className="text-amber-400">
+                            📁 {item.path}/
+                          </span>
                         ) : (
-                          <span className="text-indigo-400">📄 {item.path}</span>
+                          <span className="text-indigo-400">
+                            📄 {item.path}
+                          </span>
                         )}
                       </div>
-                      <span className="text-zinc-500 text-[11px]">{item.description}</span>
+                      <span className="text-zinc-500 text-[11px]">
+                        {item.description}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -233,12 +252,20 @@ export default function GithubLabPage() {
             {activeTab === "cicd" && (
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-mono text-zinc-400">.github/workflows/ci.yml</span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    .github/workflows/ci.yml
+                  </span>
                   <button
-                    onClick={() => copyToClipboard(result.ci_cd_workflow, "cicd")}
+                    onClick={() =>
+                      copyToClipboard(result.ci_cd_workflow, "cicd")
+                    }
                     className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs flex items-center gap-1"
                   >
-                    {copiedKey === "cicd" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedKey === "cicd" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                   </button>
                 </div>
                 <pre className="p-4 rounded-xl bg-black/70 border border-zinc-900 text-emerald-400 font-mono text-xs overflow-x-auto">
@@ -250,12 +277,18 @@ export default function GithubLabPage() {
             {activeTab === "docker" && (
               <div className="space-y-3">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-mono text-zinc-400">Dockerfile</span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    Dockerfile
+                  </span>
                   <button
                     onClick={() => copyToClipboard(result.dockerfile, "docker")}
                     className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs flex items-center gap-1"
                   >
-                    {copiedKey === "docker" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedKey === "docker" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                   </button>
                 </div>
                 <pre className="p-4 rounded-xl bg-black/70 border border-zinc-900 text-cyan-400 font-mono text-xs overflow-x-auto">
@@ -267,12 +300,20 @@ export default function GithubLabPage() {
             {activeTab === "readme" && (
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-mono text-zinc-400">README.md</span>
+                  <span className="text-xs font-mono text-zinc-400">
+                    README.md
+                  </span>
                   <button
-                    onClick={() => copyToClipboard(result.readme_content, "readme_tab")}
+                    onClick={() =>
+                      copyToClipboard(result.readme_content, "readme_tab")
+                    }
                     className="p-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs flex items-center gap-1"
                   >
-                    {copiedKey === "readme_tab" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedKey === "readme_tab" ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                   </button>
                 </div>
                 <div className="p-6 rounded-xl bg-black/50 border border-zinc-900 text-zinc-300 text-xs whitespace-pre-wrap font-sans leading-relaxed">
@@ -286,7 +327,8 @@ export default function GithubLabPage() {
           {result.recommended_open_source_libs?.length > 0 && (
             <div className="p-6 rounded-2xl bg-zinc-950/40 border border-zinc-900">
               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-indigo-400" /> Recommended High-Leverage Open Source Stack
+                <Layers className="w-4 h-4 text-indigo-400" /> Recommended
+                High-Leverage Open Source Stack
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {result.recommended_open_source_libs.map((lib, idx) => (
@@ -301,7 +343,9 @@ export default function GithubLabPage() {
                       <span className="font-semibold text-white font-mono group-hover:text-indigo-300">
                         {lib.name}
                       </span>
-                      <span className="text-zinc-500 block text-[11px] mt-0.5">{lib.purpose}</span>
+                      <span className="text-zinc-500 block text-[11px] mt-0.5">
+                        {lib.purpose}
+                      </span>
                     </div>
                     <ExternalLink className="w-3.5 h-3.5 text-zinc-500 group-hover:text-indigo-400" />
                   </a>
@@ -314,10 +358,13 @@ export default function GithubLabPage() {
         /* Empty State */
         <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
           <GitBranch className="w-12 h-12 text-zinc-700 mb-2" />
-          <h3 className="text-lg font-bold text-white">No GitHub Codebase Generated Yet</h3>
+          <h3 className="text-lg font-bold text-white">
+            No GitHub Codebase Generated Yet
+          </h3>
           <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-            Click &quot;Scaffold Codebase&quot; above to synthesize complete directory layouts, GitHub Actions workflows,
-            and deployment Dockerfiles.
+            Click &quot;Scaffold Codebase&quot; above to synthesize complete
+            directory layouts, GitHub Actions workflows, and deployment
+            Dockerfiles.
           </p>
         </div>
       )}

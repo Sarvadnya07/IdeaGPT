@@ -60,11 +60,31 @@ const navigationGroups: SidebarGroup[] = [
     heading: "Simulations & Operations",
     items: [
       { name: "Platform Ops", href: "/analytics", icon: Activity },
-      { name: "Investor Analysis", href: "/investor", icon: TrendingUp, isComingSoon: true },
+      {
+        name: "Investor Analysis",
+        href: "/investor",
+        icon: TrendingUp,
+        isComingSoon: true,
+      },
       { name: "AI Mentor", href: "/mentor", icon: Cpu, isComingSoon: true },
-      { name: "Recruiter Sim", href: "/recruiter", icon: UserCheck, isComingSoon: true },
-      { name: "GitHub Lab", href: "/github-lab", icon: Cpu, isComingSoon: true },
-      { name: "Strategy Lab", href: "/strategy-lab", icon: Target, isComingSoon: true },
+      {
+        name: "Recruiter Sim",
+        href: "/recruiter",
+        icon: UserCheck,
+        isComingSoon: true,
+      },
+      {
+        name: "GitHub Lab",
+        href: "/github-lab",
+        icon: Cpu,
+        isComingSoon: true,
+      },
+      {
+        name: "Strategy Lab",
+        href: "/strategy-lab",
+        icon: Target,
+        isComingSoon: true,
+      },
     ],
   },
 ];
@@ -77,7 +97,9 @@ interface SidebarProps {
 export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const activeHref = pathname.includes("ai-analysis") ? "/ai-analysis" : pathname;
+  const activeHref = pathname.includes("ai-analysis")
+    ? "/ai-analysis"
+    : pathname;
 
   const handleNewAnalysis = () => {
     router.push("/ai-analysis");
@@ -106,26 +128,30 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                     key={item.name}
                     href={item.href}
                     onClick={(e) => {
-                       // if (item.isComingSoon) e.preventDefault();
-                       setMobileMenuOpen(false);
+                      // if (item.isComingSoon) e.preventDefault();
+                      setMobileMenuOpen(false);
                     }}
                     className={cn(
                       "flex items-center gap-3 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 group relative",
                       isActive
                         ? "bg-[#141417] text-white border-l-2 border-indigo-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
                         : "text-zinc-500 hover:text-zinc-300 hover:bg-[#0f0f12]",
-                      item.isComingSoon && "opacity-60"
+                      item.isComingSoon && "opacity-60",
                     )}
                   >
                     <item.icon
                       className={cn(
                         "w-4 h-4 transition-transform duration-200 group-hover:scale-105",
-                        isActive ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-400"
+                        isActive
+                          ? "text-indigo-400"
+                          : "text-zinc-500 group-hover:text-zinc-400",
                       )}
                     />
                     {item.name}
                     {item.isComingSoon && (
-                      <span className="ml-auto text-[8px] uppercase tracking-widest bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-bold">Soon</span>
+                      <span className="ml-auto text-[8px] uppercase tracking-widest bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-bold">
+                        Soon
+                      </span>
                     )}
                     {isActive && !item.isComingSoon && (
                       <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]"></span>
@@ -144,7 +170,8 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
           onClick={() => setMobileMenuOpen(false)}
           className={cn(
             "flex items-center gap-3 px-4 py-2.5 text-xs font-semibold rounded-xl transition-all duration-200 text-zinc-500 hover:text-zinc-300 hover:bg-[#0f0f12]",
-            pathname === "/settings" && "bg-[#141417] text-white border-l-2 border-indigo-500"
+            pathname === "/settings" &&
+              "bg-[#141417] text-white border-l-2 border-indigo-500",
           )}
         >
           <Settings className="w-4 h-4 text-zinc-500" />

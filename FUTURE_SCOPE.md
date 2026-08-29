@@ -24,7 +24,7 @@ This document outlines the strategic roadmap for **IdeaGPT**. It serves as a liv
 
 ## 🔭 Long-Term Vision (6-12+ Months)
 
-- **Agentic Code Generation:** Evolve from simply *suggesting* architectures to actively *scaffolding* boilerplate codebases tailored to the user's tech stack.
+- **Agentic Code Generation:** Evolve from simply _suggesting_ architectures to actively _scaffolding_ boilerplate codebases tailored to the user's tech stack.
 - **Investor Matchmaking:** Analyze the validated idea against venture capital firm portfolios and recommend a curated list of potential seed investors.
 - **Market Fit Simulator:** Utilize historical startup data to simulate go-to-market strategies and predict potential bottlenecks in user acquisition.
 

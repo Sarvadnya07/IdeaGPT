@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   TrendingUp,
   DollarSign,
-  Users
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,23 +40,31 @@ export default function PitchDeckPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
+  const [selectedModel, setSelectedModel] = useState<string>(
+    "llama-3.3-70b-versatile",
+  );
   const [deckData, setDeckData] = useState<PitchDeckResponse | null>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const fetchPitchDeck = async (title: string, category: string, description: string) => {
+  const fetchPitchDeck = async (
+    title: string,
+    category: string,
+    description: string,
+  ) => {
     setIsLoading(true);
     try {
       const res = await api.post<PitchDeckResponse>("/ai/pitch-deck", {
         title: title || "Startup Concept",
         category: category || "B2B SaaS",
         problem: description || "",
-        solution: "Automated AI co-founder validating startup concepts and scoping architectures.",
+        solution:
+          "Automated AI co-founder validating startup concepts and scoping architectures.",
         provider: "groq",
         model: selectedModel,
       });
@@ -72,7 +80,11 @@ export default function PitchDeckPage() {
 
   useEffect(() => {
     if (activeProject) {
-      fetchPitchDeck(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+      fetchPitchDeck(
+        activeProject.title,
+        activeProject.category || "B2B SaaS",
+        activeProject.description || "",
+      );
     } else if (projects.length === 0 && !projectsQuery.isLoading) {
       fetchPitchDeck("Nexus AI", "B2B SaaS", "AI platform validation");
     }
@@ -94,7 +106,7 @@ ${slides
 ### ${s.headline}
 
 ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
-`
+`,
   )
   .join("\n---\n\n")}
 `;
@@ -127,9 +139,12 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
             <Presentation className="w-4 h-4" />
             <span>Venture Pitch Deck Generator</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Pitch Deck Architect</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Pitch Deck Architect
+          </h1>
           <p className="text-neutral-400 text-sm mt-1">
-            Structured 10-slide startup narrative covering problem, solution, TAM/SAM/SOM, and financial ask.
+            Structured 10-slide startup narrative covering problem, solution,
+            TAM/SAM/SOM, and financial ask.
           </p>
         </div>
 
@@ -139,11 +154,18 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
             value={selectedModel}
             onChange={(e) => {
               setSelectedModel(e.target.value);
-              if (activeProject) fetchPitchDeck(activeProject.title, activeProject.category || "B2B SaaS", activeProject.description || "");
+              if (activeProject)
+                fetchPitchDeck(
+                  activeProject.title,
+                  activeProject.category || "B2B SaaS",
+                  activeProject.description || "",
+                );
             }}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
+            <option value="llama-3.3-70b-versatile">
+              Llama 3.3 70B Versatile (Groq)
+            </option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
           </select>
@@ -156,7 +178,11 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
                 className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer pr-2"
               >
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                  <option
+                    key={p.id}
+                    value={p.id}
+                    className="bg-neutral-900 text-neutral-200"
+                  >
                     {p.title}
                   </option>
                 ))}
@@ -185,8 +211,12 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
       ) : !deckData || slides.length === 0 ? (
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-12 text-center max-w-lg mx-auto my-12 space-y-4">
           <Presentation className="w-12 h-12 text-neutral-600 mx-auto" />
-          <h3 className="text-lg font-bold text-white">No Pitch Deck Available</h3>
-          <p className="text-xs text-neutral-400">Select a project to generate a tailored pitch deck.</p>
+          <h3 className="text-lg font-bold text-white">
+            No Pitch Deck Available
+          </h3>
+          <p className="text-xs text-neutral-400">
+            Select a project to generate a tailored pitch deck.
+          </p>
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-300 max-w-5xl mx-auto">
@@ -196,7 +226,8 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs font-mono text-indigo-400 border-b border-neutral-800 pb-3">
                   <span className="font-bold uppercase tracking-widest">
-                    Slide {currentSlide.slide_number} of {slides.length} • {currentSlide.title}
+                    Slide {currentSlide.slide_number} of {slides.length} •{" "}
+                    {currentSlide.title}
                   </span>
                   <span className="text-neutral-500">{deckData.title}</span>
                 </div>
@@ -207,7 +238,10 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
 
                 <div className="space-y-3 pt-4">
                   {currentSlide.bullet_points.map((pt, i) => (
-                    <div key={i} className="flex items-start gap-3 text-sm text-neutral-200 leading-relaxed">
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 text-sm text-neutral-200 leading-relaxed"
+                    >
                       <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 shrink-0" />
                       <span>{pt}</span>
                     </div>
@@ -218,7 +252,9 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
               {/* Navigation Controls inside Slide */}
               <div className="flex items-center justify-between pt-6 border-t border-neutral-800/80">
                 <button
-                  onClick={() => setCurrentSlideIndex(Math.max(0, currentSlideIndex - 1))}
+                  onClick={() =>
+                    setCurrentSlideIndex(Math.max(0, currentSlideIndex - 1))
+                  }
                   disabled={currentSlideIndex === 0}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold transition-colors"
                 >
@@ -232,14 +268,20 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
                       key={idx}
                       onClick={() => setCurrentSlideIndex(idx)}
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        currentSlideIndex === idx ? "bg-indigo-500 w-6" : "bg-neutral-700 hover:bg-neutral-500"
+                        currentSlideIndex === idx
+                          ? "bg-indigo-500 w-6"
+                          : "bg-neutral-700 hover:bg-neutral-500"
                       }`}
                     />
                   ))}
                 </div>
 
                 <button
-                  onClick={() => setCurrentSlideIndex(Math.min(slides.length - 1, currentSlideIndex + 1))}
+                  onClick={() =>
+                    setCurrentSlideIndex(
+                      Math.min(slides.length - 1, currentSlideIndex + 1),
+                    )
+                  }
                   disabled={currentSlideIndex === slides.length - 1}
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold transition-colors"
                 >
@@ -267,9 +309,15 @@ ${s.bullet_points.map((b) => `- ${b}`).join("\n")}
                       : "bg-neutral-900/80 border-neutral-800 hover:border-neutral-700 text-neutral-400"
                   }`}
                 >
-                  <div className="text-[10px] font-mono font-bold text-indigo-400">#{s.slide_number}</div>
-                  <div className="text-xs font-semibold text-white line-clamp-1">{s.title}</div>
-                  <p className="text-[11px] text-neutral-400 line-clamp-2">{s.headline}</p>
+                  <div className="text-[10px] font-mono font-bold text-indigo-400">
+                    #{s.slide_number}
+                  </div>
+                  <div className="text-xs font-semibold text-white line-clamp-1">
+                    {s.title}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 line-clamp-2">
+                    {s.headline}
+                  </p>
                 </div>
               ))}
             </div>

@@ -32,7 +32,7 @@ export const useProjects = (
     is_archived?: boolean | null;
     is_pinned?: boolean | null;
     sort_by?: string;
-  } = {}
+  } = {},
 ) => {
   const api = useApiClient();
   const queryClient = useQueryClient();
@@ -45,13 +45,15 @@ export const useProjects = (
       if (options.offset) params.append("offset", options.offset.toString());
       if (options.search) params.append("search", options.search);
       if (options.category) params.append("category", options.category);
-      if (options.is_archived !== undefined && options.is_archived !== null) 
+      if (options.is_archived !== undefined && options.is_archived !== null)
         params.append("is_archived", options.is_archived.toString());
-      if (options.is_pinned !== undefined && options.is_pinned !== null) 
+      if (options.is_pinned !== undefined && options.is_pinned !== null)
         params.append("is_pinned", options.is_pinned.toString());
       if (options.sort_by) params.append("sort_by", options.sort_by);
 
-      const res = await api.get<PaginatedProjects>(`/projects/?${params.toString()}`);
+      const res = await api.get<PaginatedProjects>(
+        `/projects/?${params.toString()}`,
+      );
       return res.data;
     },
   });
@@ -67,7 +69,13 @@ export const useProjects = (
   });
 
   const updateProject = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Project> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<Project>;
+    }) => {
       const res = await api.patch<Project>(`/projects/${id}`, data);
       return res.data;
     },
@@ -75,7 +83,7 @@ export const useProjects = (
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
-  
+
   const togglePin = useMutation({
     mutationFn: async (id: string) => {
       const res = await api.patch<Project>(`/projects/${id}/pin`);
@@ -85,7 +93,7 @@ export const useProjects = (
       queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
-  
+
   const toggleArchive = useMutation({
     mutationFn: async (id: string) => {
       const res = await api.patch<Project>(`/projects/${id}/archive`);

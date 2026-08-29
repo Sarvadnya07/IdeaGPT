@@ -2,9 +2,9 @@ name: IdeaGPT CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 # Principle of least privilege: restrict GITHUB_TOKEN to read-only by default.
 # Individual jobs can escalate only if explicitly needed.
@@ -15,6 +15,21 @@ jobs:
   backend-test-and-lint:
     name: Backend Tests & Migration Check
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: ideagpt
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ideagpt
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
 
@@ -30,8 +45,11 @@ jobs:
           pip install -r apps/api/requirements.txt
 
       - name: Alembic Migration Drift Check
+        env:
+          DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
         run: |
           cd apps/api
+          python -m alembic upgrade head
           python -m alembic check
 
       - name: Run Backend Pytest Suite

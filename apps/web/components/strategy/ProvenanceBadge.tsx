@@ -15,7 +15,10 @@ interface ProvenanceBadgeProps {
   className?: string;
 }
 
-export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({ type, className = "" }) => {
+export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({
+  type,
+  className = "",
+}) => {
   const normType = (type || "MODEL_INFERENCE").toUpperCase();
 
   switch (normType) {

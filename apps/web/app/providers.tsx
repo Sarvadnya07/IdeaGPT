@@ -41,19 +41,22 @@ export function useIdea() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        gcTime: 1000 * 60 * 15, // 15 minutes
-        retry: 2,
-        refetchOnWindowFocus: false,
-      },
-      mutations: {
-        retry: 1,
-      },
-    },
-  }));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 1000 * 60 * 5, // 5 minutes
+            gcTime: 1000 * 60 * 15, // 15 minutes
+            retry: 2,
+            refetchOnWindowFocus: false,
+          },
+          mutations: {
+            retry: 1,
+          },
+        },
+      }),
+  );
   const [idea, setIdeaState] = useState<IdeaData>(defaultIdea);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -62,12 +65,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+    >
       <QueryClientProvider client={queryClient}>
-        <IdeaContext.Provider value={{ idea, setIdea, isAnalyzing, setIsAnalyzing }}>
+        <IdeaContext.Provider
+          value={{ idea, setIdea, isAnalyzing, setIsAnalyzing }}
+        >
           <ModalProvider>
             {children}
-            <Toaster theme="system" position="top-right" closeButton richColors />
+            <Toaster
+              theme="system"
+              position="top-right"
+              closeButton
+              richColors
+            />
           </ModalProvider>
         </IdeaContext.Provider>
       </QueryClientProvider>

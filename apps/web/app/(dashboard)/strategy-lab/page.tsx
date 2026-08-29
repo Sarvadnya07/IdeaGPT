@@ -31,9 +31,15 @@ import {
 
 import { DecisionGateBadge } from "@/components/strategy/DecisionGateBadge";
 import { ProvenanceBadge } from "@/components/strategy/ProvenanceBadge";
-import { AssumptionPriorityTable, AssumptionItemUI } from "@/components/strategy/AssumptionPriorityTable";
+import {
+  AssumptionPriorityTable,
+  AssumptionItemUI,
+} from "@/components/strategy/AssumptionPriorityTable";
 import { ScenarioSimulator } from "@/components/strategy/ScenarioSimulator";
-import { TradeoffMatrix, TradeoffItemUI } from "@/components/strategy/TradeoffMatrix";
+import {
+  TradeoffMatrix,
+  TradeoffItemUI,
+} from "@/components/strategy/TradeoffMatrix";
 import { ConfidenceIndicator } from "@/components/research/ConfidenceIndicator";
 
 interface DeepStrategyResponse {
@@ -100,14 +106,17 @@ export default function StrategyLabPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const { ideasListQuery } = useIdeaSubmission(activeProjectId);
   const ideas = ideasListQuery.data || [];
   const latestIdea = ideas.length > 0 ? ideas[0] : null;
 
-  const [activeTab, setActiveTab] = useState<"decision" | "assumptions" | "scenarios" | "tradeoffs" | "actions">("decision");
+  const [activeTab, setActiveTab] = useState<
+    "decision" | "assumptions" | "scenarios" | "tradeoffs" | "actions"
+  >("decision");
 
   // Strategy Analysis Mutation
   const strategyMutation = useMutation({
@@ -117,7 +126,8 @@ export default function StrategyLabPage() {
         title: latestIdea.title,
         industry: latestIdea.industry || "Technology",
         problem_statement: latestIdea.problem_statement || latestIdea.title,
-        solution_description: latestIdea.solution_description || latestIdea.title,
+        solution_description:
+          latestIdea.solution_description || latestIdea.title,
       });
       return res.data;
     },
@@ -145,7 +155,8 @@ export default function StrategyLabPage() {
         rationale: action.rationale,
         target_metric: action.target_metric,
         success_threshold: action.success_threshold,
-        milestone_title: action.milestone_title || "Phase 1: Strategic Validation Experiments",
+        milestone_title:
+          action.milestone_title || "Phase 1: Strategic Validation Experiments",
       });
       return res.data;
     },
@@ -162,7 +173,8 @@ export default function StrategyLabPage() {
       action_title: `Validate: ${assumption.claim.slice(0, 60)}...`,
       rationale: `High-priority assumption validation (${assumption.priority_tier}).`,
       target_metric: "Validation Experiment Completion",
-      success_threshold: "Experiment proves or disproves premise with customer evidence",
+      success_threshold:
+        "Experiment proves or disproves premise with customer evidence",
       milestone_title: "Phase 1: Founder Discovery & Assumption Testing",
     });
   };
@@ -205,7 +217,8 @@ export default function StrategyLabPage() {
             Strategy Lab & Decision Intelligence
           </h1>
           <p className="text-xs text-zinc-400 mt-1">
-            Deep reasoning, assumption testing, controlled what-if scenarios, and risk-adjusted decision modeling.
+            Deep reasoning, assumption testing, controlled what-if scenarios,
+            and risk-adjusted decision modeling.
           </p>
         </div>
 
@@ -229,7 +242,8 @@ export default function StrategyLabPage() {
           >
             {strategyMutation.isPending ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Synthesizing Strategy...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Synthesizing
+                Strategy...
               </>
             ) : (
               <>
@@ -307,14 +321,24 @@ export default function StrategyLabPage() {
       {strategyMutation.isPending ? (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
-          <p className="text-xs text-zinc-400">Synthesizing deep reasoning, assumption prioritization, and scenario curves...</p>
+          <p className="text-xs text-zinc-400">
+            Synthesizing deep reasoning, assumption prioritization, and scenario
+            curves...
+          </p>
         </div>
       ) : !data ? (
         <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
           <Compass className="w-12 h-12 text-zinc-700 mb-2" />
-          <h3 className="text-lg font-bold text-white">No Strategy Analysis Generated Yet</h3>
+          <h3 className="text-lg font-bold text-white">
+            No Strategy Analysis Generated Yet
+          </h3>
           <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-            Click &apos;Execute Decision Engine&apos; to run deep strategic reasoning and scenario simulations for <span className="text-white font-medium">{activeProject?.title}</span>.
+            Click &apos;Execute Decision Engine&apos; to run deep strategic
+            reasoning and scenario simulations for{" "}
+            <span className="text-white font-medium">
+              {activeProject?.title}
+            </span>
+            .
           </p>
         </div>
       ) : (
@@ -341,40 +365,60 @@ export default function StrategyLabPage() {
                 </div>
 
                 <p className="text-sm text-zinc-200 leading-relaxed bg-slate-900/60 border border-white/5 p-4 rounded-xl">
-                  <strong>Decision Gate Rationale:</strong> {data.gate_rationale}
+                  <strong>Decision Gate Rationale:</strong>{" "}
+                  {data.gate_rationale}
                 </p>
 
                 {/* Score Breakdown Triple */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase text-zinc-500">Raw Attractiveness</span>
+                      <span className="text-[10px] font-bold uppercase text-zinc-500">
+                        Raw Attractiveness
+                      </span>
                       <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />
                     </div>
                     <div className="text-2xl font-black text-white font-mono">
-                      {data.raw_attractiveness_score} <span className="text-xs text-zinc-500 font-normal">/ 100</span>
+                      {data.raw_attractiveness_score}{" "}
+                      <span className="text-xs text-zinc-500 font-normal">
+                        / 100
+                      </span>
                     </div>
-                    <p className="text-[11px] text-zinc-400">Sum of weighted decision criteria.</p>
+                    <p className="text-[11px] text-zinc-400">
+                      Sum of weighted decision criteria.
+                    </p>
                   </div>
 
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase text-zinc-500">Risk Exposure (R)</span>
+                      <span className="text-[10px] font-bold uppercase text-zinc-500">
+                        Risk Exposure (R)
+                      </span>
                       <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />
                     </div>
                     <div className="text-2xl font-black text-rose-400 font-mono">
-                      {data.normalized_risk_exposure} <span className="text-xs text-zinc-500 font-normal">/ 100</span>
+                      {data.normalized_risk_exposure}{" "}
+                      <span className="text-xs text-zinc-500 font-normal">
+                        / 100
+                      </span>
                     </div>
-                    <p className="text-[11px] text-zinc-400">Composite execution and regulatory risk factor.</p>
+                    <p className="text-[11px] text-zinc-400">
+                      Composite execution and regulatory risk factor.
+                    </p>
                   </div>
 
                   <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase text-emerald-400">Risk-Adjusted Decision Score</span>
+                      <span className="text-[10px] font-bold uppercase text-emerald-400">
+                        Risk-Adjusted Decision Score
+                      </span>
                       <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />
                     </div>
                     <div className="text-2xl font-black text-emerald-400 font-mono">
-                      {data.risk_adjusted_decision_score} <span className="text-xs text-zinc-500 font-normal">/ 100</span>
+                      {data.risk_adjusted_decision_score}{" "}
+                      <span className="text-xs text-zinc-500 font-normal">
+                        / 100
+                      </span>
                     </div>
                     <p className="text-[11px] text-emerald-300/80">
                       Score = Attractiveness × (1 - 0.5 × (R / 100)).
@@ -395,17 +439,25 @@ export default function StrategyLabPage() {
                       >
                         <div className="space-y-0.5 flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-white">{crit.name}</span>
+                            <span className="font-bold text-white">
+                              {crit.name}
+                            </span>
                             <span className="font-mono text-[10px] text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">
                               Weight: {(crit.weight * 100).toFixed(0)}%
                             </span>
                           </div>
-                          <p className="text-zinc-400 text-[11px]">{crit.rationale}</p>
+                          <p className="text-zinc-400 text-[11px]">
+                            {crit.rationale}
+                          </p>
                         </div>
 
                         <div className="flex items-center gap-4 font-mono font-bold">
-                          <span className="text-zinc-400">Raw: {crit.raw_score}</span>
-                          <span className="text-emerald-400">Weighted: +{crit.weighted_score.toFixed(1)}</span>
+                          <span className="text-zinc-400">
+                            Raw: {crit.raw_score}
+                          </span>
+                          <span className="text-emerald-400">
+                            Weighted: +{crit.weighted_score.toFixed(1)}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -416,12 +468,20 @@ export default function StrategyLabPage() {
                 {data.contradictions && data.contradictions.length > 0 && (
                   <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 space-y-2">
                     <div className="flex items-center gap-2 text-rose-400 font-bold text-xs uppercase">
-                      <AlertTriangle className="w-4 h-4" /> Cross-Section Contradictions Detected
+                      <AlertTriangle className="w-4 h-4" /> Cross-Section
+                      Contradictions Detected
                     </div>
                     {data.contradictions.map((c) => (
-                      <div key={c.id} className="text-xs text-zinc-300 space-y-1">
-                        <p><strong>Issue:</strong> {c.claim_a} vs {c.claim_b}</p>
-                        <p className="text-rose-300"><strong>Guidance:</strong> {c.resolution_guidance}</p>
+                      <div
+                        key={c.id}
+                        className="text-xs text-zinc-300 space-y-1"
+                      >
+                        <p>
+                          <strong>Issue:</strong> {c.claim_a} vs {c.claim_b}
+                        </p>
+                        <p className="text-rose-300">
+                          <strong>Guidance:</strong> {c.resolution_guidance}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -452,7 +512,8 @@ export default function StrategyLabPage() {
                       Single-Variable Sensitivity Curves
                     </h4>
                     <p className="text-xs text-zinc-400 mt-0.5">
-                      Measures which parameters materially alter venture viability when held in isolation.
+                      Measures which parameters materially alter venture
+                      viability when held in isolation.
                     </p>
                   </div>
                   <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />
@@ -465,7 +526,9 @@ export default function StrategyLabPage() {
                       className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 text-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">{s.variable_name}</span>
+                        <span className="font-bold text-white text-sm">
+                          {s.variable_name}
+                        </span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
                             s.elasticity_rating === "HIGH"
@@ -478,12 +541,24 @@ export default function StrategyLabPage() {
                       </div>
 
                       <div className="flex items-center gap-3 text-[11px] text-zinc-400 font-mono">
-                        <span>Baseline: <strong className="text-white">{s.baseline_value}</strong></span>
+                        <span>
+                          Baseline:{" "}
+                          <strong className="text-white">
+                            {s.baseline_value}
+                          </strong>
+                        </span>
                         <span>→</span>
-                        <span>Perturbed: <strong className="text-amber-400">{s.perturbed_value}</strong></span>
+                        <span>
+                          Perturbed:{" "}
+                          <strong className="text-amber-400">
+                            {s.perturbed_value}
+                          </strong>
+                        </span>
                       </div>
 
-                      <p className="text-zinc-300 text-[11px] leading-relaxed">{s.explanation}</p>
+                      <p className="text-zinc-300 text-[11px] leading-relaxed">
+                        {s.explanation}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -506,7 +581,8 @@ export default function StrategyLabPage() {
                     Strategic Next Actions & Roadmap Integration
                   </h4>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Convert critical strategic validation experiments directly into active product roadmap tasks.
+                    Convert critical strategic validation experiments directly
+                    into active product roadmap tasks.
                   </p>
                 </div>
                 <ProvenanceBadge type="RECOMMENDATION" />
@@ -523,7 +599,9 @@ export default function StrategyLabPage() {
                         <span className="text-[10px] font-mono font-bold uppercase text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded">
                           {act.action_type}
                         </span>
-                        <h5 className="text-sm font-bold text-white mt-1.5">{act.action_title}</h5>
+                        <h5 className="text-sm font-bold text-white mt-1.5">
+                          {act.action_title}
+                        </h5>
                       </div>
 
                       <button
@@ -544,16 +622,26 @@ export default function StrategyLabPage() {
                       </button>
                     </div>
 
-                    <p className="text-xs text-zinc-300 leading-relaxed">{act.rationale}</p>
+                    <p className="text-xs text-zinc-300 leading-relaxed">
+                      {act.rationale}
+                    </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] pt-1">
                       <div className="p-2.5 rounded-lg bg-slate-900/60 border border-white/5">
-                        <span className="text-zinc-500 font-bold uppercase text-[10px] block">Target Metric</span>
-                        <span className="text-zinc-200">{act.target_metric}</span>
+                        <span className="text-zinc-500 font-bold uppercase text-[10px] block">
+                          Target Metric
+                        </span>
+                        <span className="text-zinc-200">
+                          {act.target_metric}
+                        </span>
                       </div>
                       <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20">
-                        <span className="text-emerald-400 font-bold uppercase text-[10px] block">Success Threshold</span>
-                        <span className="text-emerald-200">{act.success_threshold}</span>
+                        <span className="text-emerald-400 font-bold uppercase text-[10px] block">
+                          Success Threshold
+                        </span>
+                        <span className="text-emerald-200">
+                          {act.success_threshold}
+                        </span>
                       </div>
                     </div>
                   </div>

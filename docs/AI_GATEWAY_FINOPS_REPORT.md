@@ -2,7 +2,7 @@
 
 **System**: IdeaGPT Universal AI Gateway  
 **Scope**: Token-Aware Admission, Cost Ceilings, Multi-Tier Rate Limiting & Spend Tracking  
-**Status**: VERIFIED & PRODUCTION READY  
+**Status**: VERIFIED & PRODUCTION READY
 
 ---
 
@@ -43,28 +43,28 @@
 
 ## 2. Hard Cost Ceilings
 
-| Guardrail Parameter | Limit | Enforcement Mechanism |
-| :--- | :--- | :--- |
-| **Max Single-Request Spend** | **$0.25 USD** | Pre-flight token calculation check |
-| **Max Per-User Daily Spend** | **$2.00 USD** | Cumulative 24-hour spend aggregation |
-| **Max Per-Tenant Monthly Spend** | **$50.00 USD** | Cumulative billing cycle aggregation |
-| **Max Input Prompt Length** | **8,000 characters** | String length validation before tokenization |
-| **Max Concurrent Tasks / User** | **3 tasks** | Database active task count check |
-| **Max Daily Tasks / User** | **20 tasks** | Daily task creation counter |
+| Guardrail Parameter              | Limit                | Enforcement Mechanism                        |
+| :------------------------------- | :------------------- | :------------------------------------------- |
+| **Max Single-Request Spend**     | **$0.25 USD**        | Pre-flight token calculation check           |
+| **Max Per-User Daily Spend**     | **$2.00 USD**        | Cumulative 24-hour spend aggregation         |
+| **Max Per-Tenant Monthly Spend** | **$50.00 USD**       | Cumulative billing cycle aggregation         |
+| **Max Input Prompt Length**      | **8,000 characters** | String length validation before tokenization |
+| **Max Concurrent Tasks / User**  | **3 tasks**          | Database active task count check             |
+| **Max Daily Tasks / User**       | **20 tasks**         | Daily task creation counter                  |
 
 ---
 
 ## 3. Provider Cost Modeling (Per 1k Tokens)
 
-| Provider / Family | Model ID | Input Cost ($/1k) | Output Cost ($/1k) | Default Tier |
-| :--- | :--- | :--- | :--- | :--- |
-| **Groq** | `llama-3.3-70b-versatile` | $0.00059 | $0.00079 | Primary Workhorse |
-| **Groq** | `llama-3.1-8b-instant` | $0.00005 | $0.00008 | Fast / Summary / Downgrade |
-| **Gemini** | `gemini-2.0-flash` | $0.00010 | $0.00040 | Vision / Perception |
-| **Gemini** | `gemini-1.5-pro` | $0.00125 | $0.00500 | Deep Reasoning (BYOK / Premium) |
-| **OpenAI** | `gpt-4o` | $0.00250 | $0.01000 | BYOK Fallback |
-| **OpenAI** | `gpt-4o-mini` | $0.00015 | $0.00060 | BYOK Lightweight |
-| **Ollama** | Local Models | $0.00000 | $0.00000 | Self-Hosted / On-Prem |
+| Provider / Family | Model ID                  | Input Cost ($/1k) | Output Cost ($/1k) | Default Tier                    |
+| :---------------- | :------------------------ | :---------------- | :----------------- | :------------------------------ |
+| **Groq**          | `llama-3.3-70b-versatile` | $0.00059          | $0.00079           | Primary Workhorse               |
+| **Groq**          | `llama-3.1-8b-instant`    | $0.00005          | $0.00008           | Fast / Summary / Downgrade      |
+| **Gemini**        | `gemini-2.0-flash`        | $0.00010          | $0.00040           | Vision / Perception             |
+| **Gemini**        | `gemini-1.5-pro`          | $0.00125          | $0.00500           | Deep Reasoning (BYOK / Premium) |
+| **OpenAI**        | `gpt-4o`                  | $0.00250          | $0.01000           | BYOK Fallback                   |
+| **OpenAI**        | `gpt-4o-mini`             | $0.00015          | $0.00060           | BYOK Lightweight                |
+| **Ollama**        | Local Models              | $0.00000          | $0.00000           | Self-Hosted / On-Prem           |
 
 ---
 

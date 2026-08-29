@@ -18,7 +18,7 @@ import {
   Check,
   Filter,
   FileCode,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,26 +46,34 @@ export default function ReportsPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [activePreviewEval, setActivePreviewEval] = useState<EvaluationItem | null>(null);
-  const [previewMode, setPreviewMode] = useState<"markdown" | "json">("markdown");
+  const [activePreviewEval, setActivePreviewEval] =
+    useState<EvaluationItem | null>(null);
+  const [previewMode, setPreviewMode] = useState<"markdown" | "json">(
+    "markdown",
+  );
   const [isCopied, setIsCopied] = useState(false);
 
   // Active project ID
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
 
   // Query evaluations for the active project
   const evaluationsQuery = useQuery({
     queryKey: ["projectEvaluationsReport", activeProjectId],
     queryFn: async () => {
       if (!activeProjectId) return [];
-      const res = await api.get<EvaluationItem[]>(`/projects/${activeProjectId}/evaluations`);
+      const res = await api.get<EvaluationItem[]>(
+        `/projects/${activeProjectId}/evaluations`,
+      );
       return res.data;
     },
     enabled: !!activeProjectId,
   });
 
   const evaluations = evaluationsQuery.data || [];
-  const completedEvaluations = evaluations.filter((e) => e.status === "COMPLETED");
+  const completedEvaluations = evaluations.filter(
+    (e) => e.status === "COMPLETED",
+  );
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
@@ -76,9 +84,14 @@ export default function ReportsPage() {
     const score = payload.score || 70;
     const summary = payload.summary || "No summary available.";
     const strengths = (payload.strengths || []).map((s) => `- ${s}`).join("\n");
-    const weaknesses = (payload.weaknesses || []).map((w) => `- ${w}`).join("\n");
-    const recommendations = (payload.recommendations || []).map((r) => `- ${r}`).join("\n");
-    const arch = payload.architecture_breakdown || "Standard modular architecture.";
+    const weaknesses = (payload.weaknesses || [])
+      .map((w) => `- ${w}`)
+      .join("\n");
+    const recommendations = (payload.recommendations || [])
+      .map((r) => `- ${r}`)
+      .join("\n");
+    const arch =
+      payload.architecture_breakdown || "Standard modular architecture.";
 
     const mdContent = `# AI Idea Evaluation Report: ${title}
 **Evaluation ID**: \`${item.id}\`  
@@ -150,9 +163,12 @@ ${arch}
             <FileText className="w-4 h-4" />
             <span>Reports & Exports Center</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Project Reports</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Project Reports
+          </h1>
           <p className="text-neutral-400 text-sm mt-1">
-            Review, preview, and download full evaluation reports and architecture summaries.
+            Review, preview, and download full evaluation reports and
+            architecture summaries.
           </p>
         </div>
 
@@ -169,7 +185,11 @@ ${arch}
               className="bg-transparent text-sm text-neutral-200 focus:outline-none cursor-pointer pr-4"
             >
               {projects.map((p) => (
-                <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                <option
+                  key={p.id}
+                  value={p.id}
+                  className="bg-neutral-900 text-neutral-200"
+                >
                   {p.title}
                 </option>
               ))}
@@ -190,9 +210,12 @@ ${arch}
           <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center mx-auto text-neutral-400">
             <Layers className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-semibold text-white">No Projects Found</h3>
+          <h3 className="text-xl font-semibold text-white">
+            No Projects Found
+          </h3>
           <p className="text-neutral-400 text-sm">
-            Create your first project to begin generating evaluation reports and summaries.
+            Create your first project to begin generating evaluation reports and
+            summaries.
           </p>
           <Link
             href="/projects/new"
@@ -213,9 +236,12 @@ ${arch}
           <div className="w-12 h-12 rounded-full bg-neutral-800 flex items-center justify-center mx-auto text-neutral-400">
             <FileText className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-semibold text-white">No Completed Reports for {activeProject?.title}</h3>
+          <h3 className="text-xl font-semibold text-white">
+            No Completed Reports for {activeProject?.title}
+          </h3>
           <p className="text-neutral-400 text-sm">
-            Run an AI evaluation on ideas within this project to generate downloadable reports.
+            Run an AI evaluation on ideas within this project to generate
+            downloadable reports.
           </p>
           {activeProject && (
             <Link
@@ -255,11 +281,13 @@ ${arch}
                       {activeProject?.title} Evaluation
                     </h3>
                     <p className="text-xs text-neutral-400 line-clamp-3 leading-relaxed">
-                      {res.summary || "Comprehensive multidimensional evaluation summary."}
+                      {res.summary ||
+                        "Comprehensive multidimensional evaluation summary."}
                     </p>
 
                     <div className="text-[11px] font-mono text-neutral-500 pt-1">
-                      Evaluated: {new Date(item.created_at).toLocaleDateString()}
+                      Evaluated:{" "}
+                      {new Date(item.created_at).toLocaleDateString()}
                     </div>
                   </div>
 
@@ -317,7 +345,9 @@ ${arch}
                   <button
                     onClick={() => setPreviewMode("markdown")}
                     className={`px-3 py-1 rounded-md transition-colors ${
-                      previewMode === "markdown" ? "bg-indigo-600 text-white" : "text-neutral-400 hover:text-white"
+                      previewMode === "markdown"
+                        ? "bg-indigo-600 text-white"
+                        : "text-neutral-400 hover:text-white"
                     }`}
                   >
                     Formatted
@@ -325,7 +355,9 @@ ${arch}
                   <button
                     onClick={() => setPreviewMode("json")}
                     className={`px-3 py-1 rounded-md transition-colors ${
-                      previewMode === "json" ? "bg-indigo-600 text-white" : "text-neutral-400 hover:text-white"
+                      previewMode === "json"
+                        ? "bg-indigo-600 text-white"
+                        : "text-neutral-400 hover:text-white"
                     }`}
                   >
                     JSON
@@ -348,10 +380,12 @@ ${arch}
                   {/* Score & Summary */}
                   <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-5 space-y-2">
                     <div className="text-xs font-mono text-indigo-400 uppercase tracking-widest">
-                      Overall Feasibility Score: {activePreviewEval.result_payload?.score || 75} / 100
+                      Overall Feasibility Score:{" "}
+                      {activePreviewEval.result_payload?.score || 75} / 100
                     </div>
                     <p className="text-neutral-300 leading-relaxed text-sm">
-                      {activePreviewEval.result_payload?.summary || "No executive summary available."}
+                      {activePreviewEval.result_payload?.summary ||
+                        "No executive summary available."}
                     </p>
                   </div>
 
@@ -362,7 +396,11 @@ ${arch}
                         Key Strengths
                       </h4>
                       <ul className="space-y-1 text-xs text-neutral-300">
-                        {(activePreviewEval.result_payload?.strengths || ["Robust problem domain"]).map((s, i) => (
+                        {(
+                          activePreviewEval.result_payload?.strengths || [
+                            "Robust problem domain",
+                          ]
+                        ).map((s, i) => (
                           <li key={i}>• {s}</li>
                         ))}
                       </ul>
@@ -373,7 +411,11 @@ ${arch}
                         Risks & Weaknesses
                       </h4>
                       <ul className="space-y-1 text-xs text-neutral-300">
-                        {(activePreviewEval.result_payload?.weaknesses || ["Market saturation risks"]).map((w, i) => (
+                        {(
+                          activePreviewEval.result_payload?.weaknesses || [
+                            "Market saturation risks",
+                          ]
+                        ).map((w, i) => (
                           <li key={i}>• {w}</li>
                         ))}
                       </ul>
@@ -386,7 +428,11 @@ ${arch}
                       Strategic Recommendations
                     </h4>
                     <ul className="space-y-1 text-xs text-neutral-300">
-                      {(activePreviewEval.result_payload?.recommendations || ["Develop modular MVP"]).map((r, i) => (
+                      {(
+                        activePreviewEval.result_payload?.recommendations || [
+                          "Develop modular MVP",
+                        ]
+                      ).map((r, i) => (
                         <li key={i}>• {r}</li>
                       ))}
                     </ul>
@@ -398,7 +444,9 @@ ${arch}
                       Technical Architecture & Feasibility
                     </h4>
                     <p className="text-xs text-neutral-300 leading-relaxed font-mono">
-                      {activePreviewEval.result_payload?.architecture_breakdown || "Standard modular microservices architecture."}
+                      {activePreviewEval.result_payload
+                        ?.architecture_breakdown ||
+                        "Standard modular microservices architecture."}
                     </p>
                   </div>
                 </div>
@@ -415,13 +463,23 @@ ${arch}
                 onClick={() =>
                   handleCopyContent(
                     previewMode === "markdown"
-                      ? JSON.stringify(activePreviewEval.result_payload?.summary || "")
-                      : JSON.stringify(activePreviewEval.result_payload, null, 2)
+                      ? JSON.stringify(
+                          activePreviewEval.result_payload?.summary || "",
+                        )
+                      : JSON.stringify(
+                          activePreviewEval.result_payload,
+                          null,
+                          2,
+                        ),
                   )
                 }
                 className="inline-flex items-center gap-1.5 text-xs text-neutral-400 hover:text-white transition-colors"
               >
-                {isCopied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {isCopied ? (
+                  <Check className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
                 <span>{isCopied ? "Copied!" : "Copy Payload"}</span>
               </button>
 

@@ -12,6 +12,7 @@ Creating structured issue templates ensures that incoming bug reports and featur
 ## 2. Pull Request Template (`.github/pull_request_template.md`)
 
 A checklist for contributors before they submit a PR:
+
 - [ ] Have you run `pnpm lint` and `flake8`?
 - [ ] Is your branch based on the latest `main`?
 - [ ] Have you added tests for your changes?

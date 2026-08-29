@@ -2,16 +2,32 @@
 
 import React from "react";
 import { Badge } from "@ideagpt/ui";
-import { CheckCircle2, Calculator, Sparkles, HelpCircle, AlertTriangle, Lightbulb } from "lucide-react";
+import {
+  CheckCircle2,
+  Calculator,
+  Sparkles,
+  HelpCircle,
+  AlertTriangle,
+  Lightbulb,
+} from "lucide-react";
 
-export type EvidenceType = "FACT" | "ESTIMATE" | "INFERENCE" | "RECOMMENDATION" | "UNKNOWN" | "CONFLICTING_EVIDENCE";
+export type EvidenceType =
+  | "FACT"
+  | "ESTIMATE"
+  | "INFERENCE"
+  | "RECOMMENDATION"
+  | "UNKNOWN"
+  | "CONFLICTING_EVIDENCE";
 
 interface EvidenceBadgeProps {
   type: EvidenceType | string;
   className?: string;
 }
 
-export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({ type, className = "" }) => {
+export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
+  type,
+  className = "",
+}) => {
   const normType = (type || "INFERENCE").toUpperCase();
 
   switch (normType) {

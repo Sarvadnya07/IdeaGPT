@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Complete enterprise-grade documentation ecosystem.
 - Turborepo monorepo setup bridging Next.js and FastAPI.
 - Core landing page with dynamic, premium animations.
@@ -15,15 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared UI, config, and prompt packages.
 
 ### Changed
+
 - Re-architected backend to use highly scalable FastAPI Python implementation.
 - Standardized TypeScript configurations across frontend apps and packages.
 
 ### Fixed
+
 - Initial repository configuration alignment for pnpm workspaces.
 
 ## [1.0.0] - Planned Initial Release
 
 ### Added
+
 - Core IdeaGPT reasoning engine integration.
 - Full authentication flow.
 - Project visualization and roadmap generation dashboard.

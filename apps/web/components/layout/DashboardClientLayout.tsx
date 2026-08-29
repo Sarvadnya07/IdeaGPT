@@ -14,15 +14,13 @@ export function DashboardClientLayout({
 
   return (
     <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden">
-      <Sidebar 
-        mobileMenuOpen={mobileMenuOpen} 
-        setMobileMenuOpen={setMobileMenuOpen} 
+      <Sidebar
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
       />
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         <TopNav setMobileMenuOpen={setMobileMenuOpen} />
-        <PageContainer>
-          {children}
-        </PageContainer>
+        <PageContainer>{children}</PageContainer>
       </div>
     </div>
   );

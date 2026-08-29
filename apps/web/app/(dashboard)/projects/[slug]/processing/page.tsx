@@ -9,7 +9,7 @@ export default function ProcessingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { slug } = useParams();
-  
+
   const jobId = searchParams.get("jobId");
   const { statusQuery, retryMutation } = useEvaluationPolling(jobId || null);
 
@@ -32,7 +32,6 @@ export default function ProcessingPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-8">
-      
       {!isFailed && status !== "completed" && (
         <div className="relative flex items-center justify-center w-32 h-32">
           <div className="absolute inset-0 border-t-2 border-indigo-500 rounded-full animate-spin"></div>
@@ -60,12 +59,17 @@ export default function ProcessingPage() {
           {status === "completed" && "Evaluation Complete!"}
           {isFailed && "Evaluation Failed"}
         </h2>
-        
+
         <p className="text-zinc-400 max-w-md mx-auto">
-          {status === "queued" && "Your request has been received and is waiting for an available worker."}
-          {status === "processing" && "Our AI models are analyzing your market fit, generating competitive analysis, and grading potential."}
-          {status === "completed" && "Redirecting to your comprehensive report..."}
-          {isFailed && (statusQuery.data?.error_message || "An unknown error occurred during generation.")}
+          {status === "queued" &&
+            "Your request has been received and is waiting for an available worker."}
+          {status === "processing" &&
+            "Our AI models are analyzing your market fit, generating competitive analysis, and grading potential."}
+          {status === "completed" &&
+            "Redirecting to your comprehensive report..."}
+          {isFailed &&
+            (statusQuery.data?.error_message ||
+              "An unknown error occurred during generation.")}
         </p>
       </div>
 
@@ -75,11 +79,12 @@ export default function ProcessingPage() {
           disabled={retryMutation.isPending}
           className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-lg"
         >
-          <RefreshCcw className={`w-4 h-4 ${retryMutation.isPending ? "animate-spin" : ""}`} />
+          <RefreshCcw
+            className={`w-4 h-4 ${retryMutation.isPending ? "animate-spin" : ""}`}
+          />
           Retry Evaluation
         </button>
       )}
-
     </div>
   );
 }

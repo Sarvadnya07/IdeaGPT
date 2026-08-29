@@ -13,8 +13,10 @@ export const gradients = {
 
   // Soft Radial Gradients for glow blurs
   ambient: {
-    indigo: "radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, rgba(0, 0, 0, 0) 70%)", // Sidebar upper blurs
-    purple: "radial-gradient(circle, rgba(168, 85, 247, 0.05) 0%, rgba(0, 0, 0, 0) 70%)", // Card hover blurs
+    indigo:
+      "radial-gradient(circle, rgba(79, 70, 229, 0.05) 0%, rgba(0, 0, 0, 0) 70%)", // Sidebar upper blurs
+    purple:
+      "radial-gradient(circle, rgba(168, 85, 247, 0.05) 0%, rgba(0, 0, 0, 0) 70%)", // Card hover blurs
   },
 } as const;
 

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export default function NewProjectPage() {
   const router = useRouter();
   const { createProject } = useProjects();
-  
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Other");
@@ -33,7 +33,10 @@ export default function NewProjectPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       if (title || description) {
-        localStorage.setItem("project_draft", JSON.stringify({ title, description, category }));
+        localStorage.setItem(
+          "project_draft",
+          JSON.stringify({ title, description, category }),
+        );
         setIsDraftSaved(true);
         setTimeout(() => setIsDraftSaved(false), 2000);
       }
@@ -47,29 +50,42 @@ export default function NewProjectPage() {
       toast.error("Please provide a project title.");
       return;
     }
-    
+
     try {
-      await createProject.mutateAsync({ title: title.trim(), description: description.trim(), category });
+      await createProject.mutateAsync({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+      });
       localStorage.removeItem("project_draft"); // Clear draft on success
       toast.success("Project created successfully!");
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Project creation error:", err);
       const detail = err?.response?.data?.detail || "Failed to create project.";
-      toast.error(typeof detail === "string" ? detail : "Failed to create project.");
+      toast.error(
+        typeof detail === "string" ? detail : "Failed to create project.",
+      );
     }
   };
 
   return (
     <div className="max-w-3xl mx-auto py-8">
-      <Link href="/dashboard" className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-8 text-sm"
+      >
         <ArrowLeft className="w-4 h-4" /> Back to Dashboard
       </Link>
-      
+
       <div className="flex justify-between items-end mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Create New Project</h1>
-          <p className="text-zinc-500">Define your idea and initialize a new workspace.</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Create New Project
+          </h1>
+          <p className="text-zinc-500">
+            Define your idea and initialize a new workspace.
+          </p>
         </div>
         {isDraftSaved && (
           <div className="flex items-center gap-1.5 text-xs text-zinc-500 bg-zinc-900 px-3 py-1.5 rounded-md border border-zinc-800">
@@ -78,9 +94,14 @@ export default function NewProjectPage() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-[#0b0b0d] border border-zinc-800/60 p-8 rounded-2xl">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 bg-[#0b0b0d] border border-zinc-800/60 p-8 rounded-2xl"
+      >
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">Project Title</label>
+          <label className="text-sm font-medium text-zinc-300">
+            Project Title
+          </label>
           <input
             required
             autoFocus
@@ -108,7 +129,9 @@ export default function NewProjectPage() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-300">Description</label>
+          <label className="text-sm font-medium text-zinc-300">
+            Description
+          </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -123,7 +146,9 @@ export default function NewProjectPage() {
             disabled={createProject.isPending || !title}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition-all"
           >
-            {createProject.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {createProject.isPending && (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            )}
             Initialize Workspace
           </button>
         </div>

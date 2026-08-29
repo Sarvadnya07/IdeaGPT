@@ -1,7 +1,7 @@
 # 💾 AI Generated Data Persistence & Storage Architecture Report
 
 **System**: IdeaGPT Universal AI Gateway  
-**Scope**: Authoritative PostgreSQL Persistence, Relational Boundaries, Cache Invalidation Recovery & Ownership  
+**Scope**: Authoritative PostgreSQL Persistence, Relational Boundaries, Cache Invalidation Recovery & Ownership
 
 ---
 
@@ -35,20 +35,20 @@
 
 ## 2. AI Artifact Persistence Matrix
 
-| Feature / Generator | Table | Primary Key | Foreign Keys | Durable Storage Format | Reload Endpoint |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Startup Evaluation** | `evaluations` | `id` (UUID) | `project_id`, `idea_id` | PostgreSQL JSON `result_payload` | `GET /api/v1/evaluations/{id}` |
-| **Technology Stack** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **System Architecture** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **PRD** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Pitch Deck** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Roadmap** | `ai_artifacts`, `roadmaps` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **GitHub Scaffolding** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Investor Lab** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Mentor Lab** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Recruiter Lab** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Strategy Lab** | `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
-| **Grounded Market Dossier**| `ai_artifacts` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| Feature / Generator         | Table                      | Primary Key | Foreign Keys                       | Durable Storage Format            | Reload Endpoint                 |
+| :-------------------------- | :------------------------- | :---------- | :--------------------------------- | :-------------------------------- | :------------------------------ |
+| **Startup Evaluation**      | `evaluations`              | `id` (UUID) | `project_id`, `idea_id`            | PostgreSQL JSON `result_payload`  | `GET /api/v1/evaluations/{id}`  |
+| **Technology Stack**        | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **System Architecture**     | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **PRD**                     | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Pitch Deck**              | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Roadmap**                 | `ai_artifacts`, `roadmaps` | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **GitHub Scaffolding**      | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Investor Lab**            | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Mentor Lab**              | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Recruiter Lab**           | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Strategy Lab**            | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
+| **Grounded Market Dossier** | `ai_artifacts`             | `id` (UUID) | `user_id`, `project_id`, `idea_id` | PostgreSQL JSON `content_payload` | `GET /api/v1/ai/artifacts/{id}` |
 
 ---
 

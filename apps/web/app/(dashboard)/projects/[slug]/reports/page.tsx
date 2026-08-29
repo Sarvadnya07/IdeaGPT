@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Download,
   FileCode,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,7 +46,9 @@ export default function ProjectReportsPage({
     queryKey: ["projectSpecificEvaluations", project?.id],
     queryFn: async () => {
       if (!project?.id) return [];
-      const res = await api.get<EvaluationItem[]>(`/projects/${project.id}/evaluations`);
+      const res = await api.get<EvaluationItem[]>(
+        `/projects/${project.id}/evaluations`,
+      );
       return res.data;
     },
     enabled: !!project?.id,
@@ -61,9 +63,14 @@ export default function ProjectReportsPage({
     const score = payload.score || 70;
     const summary = payload.summary || "No summary available.";
     const strengths = (payload.strengths || []).map((s) => `- ${s}`).join("\n");
-    const weaknesses = (payload.weaknesses || []).map((w) => `- ${w}`).join("\n");
-    const recommendations = (payload.recommendations || []).map((r) => `- ${r}`).join("\n");
-    const arch = payload.architecture_breakdown || "Standard modular architecture.";
+    const weaknesses = (payload.weaknesses || [])
+      .map((w) => `- ${w}`)
+      .join("\n");
+    const recommendations = (payload.recommendations || [])
+      .map((r) => `- ${r}`)
+      .join("\n");
+    const arch =
+      payload.architecture_breakdown || "Standard modular architecture.";
 
     const mdContent = `# AI Idea Evaluation Report: ${title}
 **Evaluation ID**: \`${item.id}\`  
@@ -132,7 +139,8 @@ ${arch}
             {project?.title ? `${project.title} Reports` : "Reports"}
           </h1>
           <p className="text-neutral-400 text-xs mt-0.5">
-            Evaluation summaries, pitch documents, and technical reports generated for this project.
+            Evaluation summaries, pitch documents, and technical reports
+            generated for this project.
           </p>
         </div>
 
@@ -155,9 +163,15 @@ ${arch}
           <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center mx-auto text-neutral-400">
             <FileText className="w-5 h-5" />
           </div>
-          <h3 className="text-lg font-semibold text-white">No Reports Generated Yet</h3>
+          <h3 className="text-lg font-semibold text-white">
+            No Reports Generated Yet
+          </h3>
           <p className="text-neutral-400 text-xs">
-            Run an AI evaluation on ideas within <span className="text-neutral-200 font-semibold">{project?.title}</span> to generate and export reports.
+            Run an AI evaluation on ideas within{" "}
+            <span className="text-neutral-200 font-semibold">
+              {project?.title}
+            </span>{" "}
+            to generate and export reports.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
@@ -180,13 +194,16 @@ ${arch}
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs border-b border-neutral-800 pb-2">
-                    <span className="font-mono text-indigo-400 font-bold">Report #{idx + 1}</span>
+                    <span className="font-mono text-indigo-400 font-bold">
+                      Report #{idx + 1}
+                    </span>
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" /> {score} / 100
                     </span>
                   </div>
                   <p className="text-xs text-neutral-300 line-clamp-2">
-                    {item.result_payload?.summary || "Completed idea feasibility evaluation."}
+                    {item.result_payload?.summary ||
+                      "Completed idea feasibility evaluation."}
                   </p>
                   <div className="text-[10px] font-mono text-neutral-500">
                     {new Date(item.created_at).toLocaleDateString()}

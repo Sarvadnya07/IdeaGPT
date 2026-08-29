@@ -1,9 +1,20 @@
 "use client";
 
 import React from "react";
-import { CheckCircle, AlertTriangle, HelpCircle, RefreshCw, XCircle } from "lucide-react";
+import {
+  CheckCircle,
+  AlertTriangle,
+  HelpCircle,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 
-export type DecisionGateType = "GO" | "GO_WITH_CONDITIONS" | "VALIDATE_FIRST" | "PIVOT" | "STOP";
+export type DecisionGateType =
+  | "GO"
+  | "GO_WITH_CONDITIONS"
+  | "VALIDATE_FIRST"
+  | "PIVOT"
+  | "STOP";
 
 interface DecisionGateBadgeProps {
   gate: DecisionGateType | string;

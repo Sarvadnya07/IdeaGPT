@@ -25,6 +25,7 @@
 ## 2. Next Strategic Phase: Phase D (Execution Engines & Artifact Synthesis)
 
 Now that IdeaGPT possesses:
+
 1. **Phase A / A.1**: Universal Multi-Provider AI Gateway
 2. **Phase B**: Evidence-Grounded Research & Knowledge Layer
 3. **Phase C**: Deep Reasoning & Comparative Strategy Lab

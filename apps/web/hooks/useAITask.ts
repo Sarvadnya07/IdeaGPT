@@ -33,7 +33,11 @@ export function useAITask(taskId: string | null) {
     // Safeguard #8: Poll every 2000ms, automatically stop when terminal state reached
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      if (status === "COMPLETED" || status === "FAILED" || status === "CANCELLED") {
+      if (
+        status === "COMPLETED" ||
+        status === "FAILED" ||
+        status === "CANCELLED"
+      ) {
         return false;
       }
       return 2000;
@@ -65,7 +69,8 @@ export function useAITaskStream(taskId: string | null) {
 
     try {
       const token = await getToken();
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
       const response = await fetch(`${baseUrl}/ai/tasks/${taskId}/stream`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
@@ -156,9 +161,11 @@ export function useCreateAITask() {
       input_payload?: Record<string, any>;
       idempotency_key?: string;
     }) => {
-      const res = await api.post<{ id: string; status: string }>("/ai/tasks", payload);
+      const res = await api.post<{ id: string; status: string }>(
+        "/ai/tasks",
+        payload,
+      );
       return res.data;
     },
   });
 }
-

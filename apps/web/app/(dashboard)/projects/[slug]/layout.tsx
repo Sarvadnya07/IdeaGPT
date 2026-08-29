@@ -3,7 +3,13 @@
 import React, { use } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, BrainCircuit, Map, FileText, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  BrainCircuit,
+  Map,
+  FileText,
+  Settings,
+} from "lucide-react";
 
 export default function ProjectLayout({
   children,
@@ -17,7 +23,11 @@ export default function ProjectLayout({
 
   const navItems = [
     { name: "Overview", href: `/projects/${slug}`, icon: LayoutDashboard },
-    { name: "AI Analysis", href: `/projects/${slug}/analysis`, icon: BrainCircuit },
+    {
+      name: "AI Analysis",
+      href: `/projects/${slug}/analysis`,
+      icon: BrainCircuit,
+    },
     { name: "Roadmap", href: `/projects/${slug}/roadmap`, icon: Map },
     { name: "Reports", href: `/projects/${slug}/reports`, icon: FileText },
     { name: "Settings", href: `/projects/${slug}/settings`, icon: Settings },
@@ -34,8 +44,8 @@ export default function ProjectLayout({
               key={item.name}
               href={item.href}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                isActive 
-                  ? "bg-indigo-500/10 text-indigo-400" 
+                isActive
+                  ? "bg-indigo-500/10 text-indigo-400"
                   : "text-zinc-500 hover:text-white hover:bg-zinc-800/50"
               }`}
             >

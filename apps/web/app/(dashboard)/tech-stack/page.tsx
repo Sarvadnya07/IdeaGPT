@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  Code2
+  Code2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,16 +43,25 @@ export default function TechStackPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("llama-3.3-70b-versatile");
+  const [selectedModel, setSelectedModel] = useState<string>(
+    "llama-3.3-70b-versatile",
+  );
   const [focus, setFocus] = useState<string>("balanced");
-  const [techStackData, setTechStackData] = useState<TechStackResponse | null>(null);
+  const [techStackData, setTechStackData] = useState<TechStackResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Active project ID
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const fetchTechStack = async (projTitle: string, projCategory: string, focusVal: string) => {
+  const fetchTechStack = async (
+    projTitle: string,
+    projCategory: string,
+    focusVal: string,
+  ) => {
     setIsLoading(true);
     try {
       const res = await api.post<TechStackResponse>("/ai/tech-stack", {
@@ -73,7 +82,11 @@ export default function TechStackPage() {
 
   useEffect(() => {
     if (activeProject) {
-      fetchTechStack(activeProject.title, activeProject.category || "B2B SaaS", focus);
+      fetchTechStack(
+        activeProject.title,
+        activeProject.category || "B2B SaaS",
+        focus,
+      );
     } else if (projects.length === 0 && !projectsQuery.isLoading) {
       fetchTechStack("Nexus AI", "B2B SaaS", focus);
     }
@@ -88,9 +101,12 @@ export default function TechStackPage() {
             <Cpu className="w-4 h-4" />
             <span>AI Architecture & Stack Recommendations</span>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Tech Stack Architect</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            Tech Stack Architect
+          </h1>
           <p className="text-neutral-400 text-sm mt-1">
-            Deterministic technology stack specifications and trade-off matrices tailored to your project.
+            Deterministic technology stack specifications and trade-off matrices
+            tailored to your project.
           </p>
         </div>
 
@@ -100,11 +116,18 @@ export default function TechStackPage() {
             value={selectedModel}
             onChange={(e) => {
               setSelectedModel(e.target.value);
-              if (activeProject) fetchTechStack(activeProject.title, activeProject.category || "B2B SaaS", focus);
+              if (activeProject)
+                fetchTechStack(
+                  activeProject.title,
+                  activeProject.category || "B2B SaaS",
+                  focus,
+                );
             }}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
-            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (Groq)</option>
+            <option value="llama-3.3-70b-versatile">
+              Llama 3.3 70B Versatile (Groq)
+            </option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
           </select>
@@ -118,7 +141,11 @@ export default function TechStackPage() {
                 className="bg-transparent text-xs text-neutral-200 focus:outline-none cursor-pointer pr-2"
               >
                 {projects.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-neutral-900 text-neutral-200">
+                  <option
+                    key={p.id}
+                    value={p.id}
+                    className="bg-neutral-900 text-neutral-200"
+                  >
                     {p.title}
                   </option>
                 ))}
@@ -128,17 +155,21 @@ export default function TechStackPage() {
 
           {/* Focus Toggle */}
           <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-lg p-1 text-xs">
-            {["balanced", "rapid_mvp", "high_scale", "cost_optimized"].map((mode) => (
-              <button
-                key={mode}
-                onClick={() => setFocus(mode)}
-                className={`px-3 py-1 rounded-md capitalize transition-colors ${
-                  focus === mode ? "bg-indigo-600 text-white font-semibold" : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                {mode.replace("_", " ")}
-              </button>
-            ))}
+            {["balanced", "rapid_mvp", "high_scale", "cost_optimized"].map(
+              (mode) => (
+                <button
+                  key={mode}
+                  onClick={() => setFocus(mode)}
+                  className={`px-3 py-1 rounded-md capitalize transition-colors ${
+                    focus === mode
+                      ? "bg-indigo-600 text-white font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  {mode.replace("_", " ")}
+                </button>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -152,8 +183,12 @@ export default function TechStackPage() {
       ) : !techStackData ? (
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-12 text-center max-w-lg mx-auto my-12 space-y-4">
           <Cpu className="w-12 h-12 text-neutral-600 mx-auto" />
-          <h3 className="text-lg font-bold text-white">No Stack Blueprint Available</h3>
-          <p className="text-xs text-neutral-400">Select a project to generate custom recommendations.</p>
+          <h3 className="text-lg font-bold text-white">
+            No Stack Blueprint Available
+          </h3>
+          <p className="text-xs text-neutral-400">
+            Select a project to generate custom recommendations.
+          </p>
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-300">
@@ -167,7 +202,11 @@ export default function TechStackPage() {
                 {techStackData.title} — {techStackData.category}
               </h2>
               <p className="text-xs text-neutral-400 mt-1">
-                Optimized for <strong className="text-indigo-300 capitalize">{focus.replace("_", " ")}</strong> development lifecycle and enterprise resilience.
+                Optimized for{" "}
+                <strong className="text-indigo-300 capitalize">
+                  {focus.replace("_", " ")}
+                </strong>{" "}
+                development lifecycle and enterprise resilience.
               </p>
             </div>
 
@@ -186,12 +225,16 @@ export default function TechStackPage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
               <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
                 <Code2 className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-bold text-sm text-white">Frontend Architecture</h3>
+                <h3 className="font-bold text-sm text-white">
+                  Frontend Architecture
+                </h3>
               </div>
               <div className="space-y-3 text-xs">
                 {Object.entries(techStackData.frontend).map(([k, v]) => (
                   <div key={k} className="space-y-0.5">
-                    <span className="text-neutral-500 font-mono capitalize">{k.replace("_", " ")}:</span>
+                    <span className="text-neutral-500 font-mono capitalize">
+                      {k.replace("_", " ")}:
+                    </span>
                     <div className="font-semibold text-neutral-200">{v}</div>
                   </div>
                 ))}
@@ -207,7 +250,9 @@ export default function TechStackPage() {
               <div className="space-y-3 text-xs">
                 {Object.entries(techStackData.backend).map(([k, v]) => (
                   <div key={k} className="space-y-0.5">
-                    <span className="text-neutral-500 font-mono capitalize">{k.replace("_", " ")}:</span>
+                    <span className="text-neutral-500 font-mono capitalize">
+                      {k.replace("_", " ")}:
+                    </span>
                     <div className="font-semibold text-neutral-200">{v}</div>
                   </div>
                 ))}
@@ -218,15 +263,21 @@ export default function TechStackPage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
               <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
                 <Database className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-sm text-white">Database & Persistence</h3>
+                <h3 className="font-bold text-sm text-white">
+                  Database & Persistence
+                </h3>
               </div>
               <div className="space-y-3 text-xs">
-                {Object.entries(techStackData.database_and_caching).map(([k, v]) => (
-                  <div key={k} className="space-y-0.5">
-                    <span className="text-neutral-500 font-mono capitalize">{k.replace("_", " ")}:</span>
-                    <div className="font-semibold text-neutral-200">{v}</div>
-                  </div>
-                ))}
+                {Object.entries(techStackData.database_and_caching).map(
+                  ([k, v]) => (
+                    <div key={k} className="space-y-0.5">
+                      <span className="text-neutral-500 font-mono capitalize">
+                        {k.replace("_", " ")}:
+                      </span>
+                      <div className="font-semibold text-neutral-200">{v}</div>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
 
@@ -234,12 +285,16 @@ export default function TechStackPage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
               <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
                 <Bot className="w-5 h-5 text-purple-400" />
-                <h3 className="font-bold text-sm text-white">AI & ML Orchestration</h3>
+                <h3 className="font-bold text-sm text-white">
+                  AI & ML Orchestration
+                </h3>
               </div>
               <div className="space-y-3 text-xs">
                 {Object.entries(techStackData.ai_and_ml).map(([k, v]) => (
                   <div key={k} className="space-y-0.5">
-                    <span className="text-neutral-500 font-mono capitalize">{k.replace("_", " ")}:</span>
+                    <span className="text-neutral-500 font-mono capitalize">
+                      {k.replace("_", " ")}:
+                    </span>
                     <div className="font-semibold text-neutral-200">{v}</div>
                   </div>
                 ))}
@@ -250,15 +305,21 @@ export default function TechStackPage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4 md:col-span-2 lg:col-span-2">
               <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
                 <ShieldCheck className="w-5 h-5 text-cyan-400" />
-                <h3 className="font-bold text-sm text-white">DevOps, Auth & Cloud Infrastructure</h3>
+                <h3 className="font-bold text-sm text-white">
+                  DevOps, Auth & Cloud Infrastructure
+                </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                {Object.entries(techStackData.devops_and_security).map(([k, v]) => (
-                  <div key={k} className="space-y-0.5">
-                    <span className="text-neutral-500 font-mono capitalize">{k.replace("_", " ")}:</span>
-                    <div className="font-semibold text-neutral-200">{v}</div>
-                  </div>
-                ))}
+                {Object.entries(techStackData.devops_and_security).map(
+                  ([k, v]) => (
+                    <div key={k} className="space-y-0.5">
+                      <span className="text-neutral-500 font-mono capitalize">
+                        {k.replace("_", " ")}:
+                      </span>
+                      <div className="font-semibold text-neutral-200">{v}</div>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </div>
@@ -271,8 +332,13 @@ export default function TechStackPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
               {techStackData.architectural_tradeoffs.map((item, i) => (
-                <div key={i} className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 space-y-3">
-                  <div className="font-bold text-xs text-indigo-300">{item.decision}</div>
+                <div
+                  key={i}
+                  className="bg-neutral-950 border border-neutral-800/80 rounded-xl p-4 space-y-3"
+                >
+                  <div className="font-bold text-xs text-indigo-300">
+                    {item.decision}
+                  </div>
                   <div className="space-y-2 text-xs">
                     <div className="text-emerald-400">
                       <span className="font-semibold">Pros:</span> {item.pros}

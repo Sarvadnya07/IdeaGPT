@@ -54,7 +54,8 @@ export default function MentorLabPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -96,8 +97,9 @@ export default function MentorLabPage() {
             {activeProject?.title || "Executive Founder Advisory"}
           </h1>
           <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
-            High-leverage executive coaching, founder blindspot diagnostics, applied decision mental models,
-            and structured 30-60-90 day execution milestones.
+            High-leverage executive coaching, founder blindspot diagnostics,
+            applied decision mental models, and structured 30-60-90 day
+            execution milestones.
           </p>
         </div>
 
@@ -121,7 +123,8 @@ export default function MentorLabPage() {
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Consulting Mentor...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Consulting
+                Mentor...
               </>
             ) : (
               <>
@@ -141,8 +144,12 @@ export default function MentorLabPage() {
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">{result.mentor_persona.name}</h3>
-                <span className="text-xs text-indigo-300 block">{result.mentor_persona.role}</span>
+                <h3 className="text-sm font-bold text-white">
+                  {result.mentor_persona.name}
+                </h3>
+                <span className="text-xs text-indigo-300 block">
+                  {result.mentor_persona.role}
+                </span>
               </div>
             </div>
             <p className="text-xs text-zinc-300 leading-relaxed font-medium">
@@ -157,16 +164,29 @@ export default function MentorLabPage() {
           <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
             <div className="flex items-center gap-2">
               <AlertOctagon className="w-4 h-4 text-red-400" />
-              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Top Founder Blindspots & Traps</h3>
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Top Founder Blindspots & Traps
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {result.top_founder_blindspots.map((b, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-2">
-                  <span className="text-xs font-bold text-red-400 block">{b.blindspot}</span>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">{b.why_it_kills_startups}</p>
+                <div
+                  key={idx}
+                  className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-2"
+                >
+                  <span className="text-xs font-bold text-red-400 block">
+                    {b.blindspot}
+                  </span>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    {b.why_it_kills_startups}
+                  </p>
                   <div className="pt-2 border-t border-zinc-900">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Immediate Action:</span>
-                    <span className="text-[11px] text-zinc-300">{b.immediate_action}</span>
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+                      Immediate Action:
+                    </span>
+                    <span className="text-[11px] text-zinc-300">
+                      {b.immediate_action}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -179,13 +199,22 @@ export default function MentorLabPage() {
             <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
               <div className="flex items-center gap-2">
                 <Compass className="w-4 h-4 text-amber-400" />
-                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Applied Mental Models</h3>
+                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                  Applied Mental Models
+                </h3>
               </div>
               <div className="space-y-3">
                 {result.applied_mental_models.map((m, idx) => (
-                  <div key={idx} className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-1">
-                    <span className="text-xs font-bold text-amber-400 block">{m.model_name}</span>
-                    <p className="text-[11px] text-zinc-300 leading-relaxed">{m.how_to_apply}</p>
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-1"
+                  >
+                    <span className="text-xs font-bold text-amber-400 block">
+                      {m.model_name}
+                    </span>
+                    <p className="text-[11px] text-zinc-300 leading-relaxed">
+                      {m.how_to_apply}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -195,11 +224,15 @@ export default function MentorLabPage() {
             <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">30-60-90 Day Action Plan</h3>
+                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                  30-60-90 Day Action Plan
+                </h3>
               </div>
               <div className="space-y-3 text-xs">
                 <div className="p-3 rounded-xl bg-black/40 border border-zinc-900 space-y-1.5">
-                  <span className="font-bold text-emerald-400 text-[11px] uppercase tracking-wider">First 30 Days (Customer Discovery & MVP)</span>
+                  <span className="font-bold text-emerald-400 text-[11px] uppercase tracking-wider">
+                    First 30 Days (Customer Discovery & MVP)
+                  </span>
                   <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
                     {result.execution_plan_30_60_90.days_30.map((task, i) => (
                       <li key={i}>{task}</li>
@@ -207,7 +240,9 @@ export default function MentorLabPage() {
                   </ul>
                 </div>
                 <div className="p-3 rounded-xl bg-black/40 border border-zinc-900 space-y-1.5">
-                  <span className="font-bold text-indigo-400 text-[11px] uppercase tracking-wider">Days 31-60 (Retention & Product Loop)</span>
+                  <span className="font-bold text-indigo-400 text-[11px] uppercase tracking-wider">
+                    Days 31-60 (Retention & Product Loop)
+                  </span>
                   <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
                     {result.execution_plan_30_60_90.days_60.map((task, i) => (
                       <li key={i}>{task}</li>
@@ -215,7 +250,9 @@ export default function MentorLabPage() {
                   </ul>
                 </div>
                 <div className="p-3 rounded-xl bg-black/40 border border-zinc-900 space-y-1.5">
-                  <span className="font-bold text-purple-400 text-[11px] uppercase tracking-wider">Days 61-90 (Monetization & Sales Velocity)</span>
+                  <span className="font-bold text-purple-400 text-[11px] uppercase tracking-wider">
+                    Days 61-90 (Monetization & Sales Velocity)
+                  </span>
                   <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
                     {result.execution_plan_30_60_90.days_90.map((task, i) => (
                       <li key={i}>{task}</li>
@@ -230,12 +267,19 @@ export default function MentorLabPage() {
           <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-purple-400" />
-              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Critical Strategic Questions for Founders</h3>
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Critical Strategic Questions for Founders
+              </h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {result.critical_questions_for_the_founder.map((q, idx) => (
-                <div key={idx} className="p-3.5 rounded-xl bg-black/40 border border-zinc-900 text-xs text-zinc-300 flex items-start gap-2.5">
-                  <span className="text-purple-400 font-bold font-mono">Q{idx + 1}.</span>
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-xl bg-black/40 border border-zinc-900 text-xs text-zinc-300 flex items-start gap-2.5"
+                >
+                  <span className="text-purple-400 font-bold font-mono">
+                    Q{idx + 1}.
+                  </span>
                   <span className="leading-relaxed">{q}</span>
                 </div>
               ))}
@@ -245,9 +289,12 @@ export default function MentorLabPage() {
       ) : (
         <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
           <GraduationCap className="w-12 h-12 text-zinc-700 mb-2" />
-          <h3 className="text-lg font-bold text-white">No Mentoring Session Recorded</h3>
+          <h3 className="text-lg font-bold text-white">
+            No Mentoring Session Recorded
+          </h3>
           <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-            Click &quot;Start Advisory Session&quot; to diagnose early-stage blindspots and formulate an actionable 90-day plan.
+            Click &quot;Start Advisory Session&quot; to diagnose early-stage
+            blindspots and formulate an actionable 90-day plan.
           </p>
         </div>
       )}

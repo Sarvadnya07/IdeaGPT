@@ -6,10 +6,12 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/testing-library__jest-dom": "^5.14.9",
+    "husky": "^9.1.7",
     "prettier": "^3.0.0",
     "turbo": "^2.0.0"
   }

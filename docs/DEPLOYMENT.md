@@ -7,6 +7,7 @@ IdeaGPT's decoupled architecture allows the frontend and backend to be deployed 
 The recommended hosting provider for the `apps/web` application is **Vercel**, which provides native support for Turborepo and Next.js App Router optimizations.
 
 ### Steps for Vercel Deployment
+
 1. Connect your GitHub repository to Vercel.
 2. Select the `IdeaGPT` repository.
 3. Vercel automatically detects the Turborepo structure.
@@ -24,6 +25,7 @@ FastAPI requires a Python environment. Recommended hosts include **Render**, **R
 A `docker-compose.yml` (and corresponding `Dockerfile` in `apps/api`) should be used to containerize the application.
 
 1. **Build the Image:**
+
    ```bash
    cd apps/api
    docker build -t ideagpt-api .
@@ -35,6 +37,7 @@ A `docker-compose.yml` (and corresponding `Dockerfile` in `apps/api`) should be 
    ```
 
 ### Deploying to Render (Example)
+
 1. Create a new "Web Service" on Render.
 2. Point it to the GitHub repository.
 3. **Root Directory:** `apps/api`

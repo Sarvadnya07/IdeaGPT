@@ -26,7 +26,9 @@ describe("Phase C — Frontend Strategy Lab & Decision Components", () => {
   });
 
   it("renders ProvenanceBadge with strict data lineage types", () => {
-    const { rerender } = render(<ProvenanceBadge type="DETERMINISTIC_CALCULATION" />);
+    const { rerender } = render(
+      <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />,
+    );
     expect(screen.getByText(/DETERMINISTIC CALCULATION/i)).toBeDefined();
 
     rerender(<ProvenanceBadge type="USER_INPUT" />);
@@ -54,11 +56,17 @@ describe("Phase C — Frontend Strategy Lab & Decision Components", () => {
         validation_ease: "HIGH",
         priority_score: 3.0,
         priority_tier: "HIGH",
-        recommended_experiment: "Interview 20 founders and test landing page intent",
+        recommended_experiment:
+          "Interview 20 founders and test landing page intent",
       },
     ];
 
-    render(<AssumptionPriorityTable assumptions={mockAssumptions} onAddToRoadmap={onAdd} />);
+    render(
+      <AssumptionPriorityTable
+        assumptions={mockAssumptions}
+        onAddToRoadmap={onAdd}
+      />,
+    );
     expect(screen.getByText(/HIGH PRIORITY/i)).toBeDefined();
     expect(screen.getByText(/Founders will pay \$49\/mo/i)).toBeDefined();
 
@@ -68,7 +76,13 @@ describe("Phase C — Frontend Strategy Lab & Decision Components", () => {
   });
 
   it("renders ScenarioSimulator and updates calculations on slider movement", () => {
-    render(<ScenarioSimulator initialBudget={60000} initialTimeline={3} initialBurn={6000} />);
+    render(
+      <ScenarioSimulator
+        initialBudget={60000}
+        initialTimeline={3}
+        initialBurn={6000}
+      />,
+    );
     expect(screen.getByText(/Calculated Runway/i)).toBeDefined();
     expect(screen.getByText(/LOW RISK/i)).toBeDefined();
   });

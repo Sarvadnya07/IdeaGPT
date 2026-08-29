@@ -20,7 +20,9 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
 
   if (normLevel === "HIGH") {
     return (
-      <div className={`inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 ${className}`}>
+      <div
+        className={`inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 ${className}`}
+      >
         {showIcon && <ShieldCheck className="w-3.5 h-3.5" />}
         <span>High Confidence</span>
       </div>
@@ -29,7 +31,9 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
 
   if (normLevel === "LOW") {
     return (
-      <div className={`inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400 ${className}`}>
+      <div
+        className={`inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400 ${className}`}
+      >
         {showIcon && <ShieldAlert className="w-3.5 h-3.5" />}
         <span>Low Confidence</span>
       </div>
@@ -37,7 +41,9 @@ export const ConfidenceIndicator: React.FC<ConfidenceIndicatorProps> = ({
   }
 
   return (
-    <div className={`inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 ${className}`}>
+    <div
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400 ${className}`}
+    >
       {showIcon && <Shield className="w-3.5 h-3.5" />}
       <span>Medium Confidence</span>
     </div>

@@ -5,6 +5,7 @@ Follow this guide to get the complete IdeaGPT ecosystem running on your local ma
 ## Prerequisites
 
 Ensure you have the following installed on your machine:
+
 - [Node.js](https://nodejs.org/) (v18.17+ required for Next.js)
 - [pnpm](https://pnpm.io/) (v9+ recommended, to manage the Turborepo workspace)
 - [Python](https://www.python.org/downloads/) (3.11+ required for FastAPI)
@@ -54,7 +55,9 @@ cd ../..
 You need to set up environment variables for both the frontend and backend.
 
 ### Backend (`apps/api/.env`)
+
 Create a `.env` file in `apps/api/`:
+
 ```env
 # Required for LLM Reasoning
 OPENAI_API_KEY=your_openai_api_key_here
@@ -66,7 +69,9 @@ CORS_ORIGINS=http://localhost:3000
 ```
 
 ### Frontend (`apps/web/.env.local`)
+
 Create a `.env.local` file in `apps/web/`:
+
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
@@ -80,6 +85,7 @@ pnpm run dev
 ```
 
 ### What this does:
+
 1. `apps/web` (Next.js) will start on [http://localhost:3000](http://localhost:3000)
 2. `apps/api` (FastAPI) will start on [http://localhost:8000](http://localhost:8000)
 

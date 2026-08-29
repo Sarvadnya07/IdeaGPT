@@ -16,7 +16,8 @@ export function useApiClient() {
 
   const client = useMemo(() => {
     const instance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
+      baseURL:
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
       timeout: 45000,
       headers: {
         "Content-Type": "application/json",
@@ -35,7 +36,7 @@ export function useApiClient() {
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     instance.interceptors.response.use(
@@ -43,7 +44,7 @@ export function useApiClient() {
       (error: AxiosError<ApiErrorResponse>) => {
         const errorData = error.response?.data;
         const statusCode = error.response?.status;
-        
+
         // Standardize Error Notifications
         if (statusCode === 401 || statusCode === 403) {
           toast.error("Session expired or unauthorized. Please log in again.");
@@ -58,7 +59,7 @@ export function useApiClient() {
         }
 
         return Promise.reject(error);
-      }
+      },
     );
 
     return instance;

@@ -3,7 +3,14 @@
 import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useProjects } from "@/hooks/useProjects";
-import { Settings, Save, Trash2, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
+import {
+  Settings,
+  Save,
+  Trash2,
+  AlertTriangle,
+  RefreshCw,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function ProjectSettingsPage({
   params,
@@ -64,7 +71,7 @@ export default function ProjectSettingsPage({
   const handleSoftDelete = async () => {
     if (!project?.id) return;
     const confirmDelete = window.confirm(
-      `Are you sure you want to archive "${project.title}"? This project will be soft-deleted.`
+      `Are you sure you want to archive "${project.title}"? This project will be soft-deleted.`,
     );
     if (!confirmDelete) return;
 
@@ -86,9 +93,12 @@ export default function ProjectSettingsPage({
             <Settings className="w-3.5 h-3.5" />
             <span>Project Configuration</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Project Settings</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Project Settings
+          </h1>
           <p className="text-neutral-400 text-xs mt-0.5">
-            Manage metadata, status, visibility, and archiving options for this project.
+            Manage metadata, status, visibility, and archiving options for this
+            project.
           </p>
         </div>
       </div>
@@ -105,7 +115,10 @@ export default function ProjectSettingsPage({
       ) : (
         <div className="space-y-8">
           {/* Settings Form */}
-          <form onSubmit={handleSave} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-5">
+          <form
+            onSubmit={handleSave}
+            className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-5"
+          >
             {saveSuccess && (
               <div className="bg-emerald-950/50 border border-emerald-800/60 rounded-lg p-3 flex items-center gap-2 text-emerald-300 text-xs">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -122,7 +135,9 @@ export default function ProjectSettingsPage({
 
             {/* Title */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-neutral-300">Project Title</label>
+              <label className="text-xs font-medium text-neutral-300">
+                Project Title
+              </label>
               <input
                 type="text"
                 value={title}
@@ -134,7 +149,9 @@ export default function ProjectSettingsPage({
 
             {/* Description */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-neutral-300">Description</label>
+              <label className="text-xs font-medium text-neutral-300">
+                Description
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -146,7 +163,9 @@ export default function ProjectSettingsPage({
             {/* Category & Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-300">Category</label>
+                <label className="text-xs font-medium text-neutral-300">
+                  Category
+                </label>
                 <input
                   type="text"
                   value={category}
@@ -157,7 +176,9 @@ export default function ProjectSettingsPage({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-300">Status</label>
+                <label className="text-xs font-medium text-neutral-300">
+                  Status
+                </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
@@ -199,7 +220,9 @@ export default function ProjectSettingsPage({
               <span>Archive / Delete Project</span>
             </h3>
             <p className="text-xs text-neutral-400">
-              Soft-deletes this project by setting <span className="font-mono text-neutral-300">deleted_at</span>. The project can be recovered if needed.
+              Soft-deletes this project by setting{" "}
+              <span className="font-mono text-neutral-300">deleted_at</span>.
+              The project can be recovered if needed.
             </p>
             <div className="pt-2">
               <button

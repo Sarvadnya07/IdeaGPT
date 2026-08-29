@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { ExternalLink, BookOpen, ChevronRight, Globe, Award } from "lucide-react";
+import {
+  ExternalLink,
+  BookOpen,
+  ChevronRight,
+  Globe,
+  Award,
+} from "lucide-react";
 
 export interface CitationItem {
   id: string;
@@ -21,7 +27,10 @@ interface CitationsDrawerProps {
   className?: string;
 }
 
-export const CitationsDrawer: React.FC<CitationsDrawerProps> = ({ citations, className = "" }) => {
+export const CitationsDrawer: React.FC<CitationsDrawerProps> = ({
+  citations,
+  className = "",
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!citations || citations.length === 0) {
@@ -33,7 +42,9 @@ export const CitationsDrawer: React.FC<CitationsDrawerProps> = ({ citations, cla
   }
 
   return (
-    <div className={`border border-white/10 rounded-xl bg-slate-900/50 p-4 ${className}`}>
+    <div
+      className={`border border-white/10 rounded-xl bg-slate-900/50 p-4 ${className}`}
+    >
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between text-left text-sm font-semibold text-slate-200 hover:text-white transition"
@@ -86,7 +97,9 @@ export const CitationsDrawer: React.FC<CitationsDrawerProps> = ({ citations, cla
                 <span className="flex items-center gap-1">
                   <Globe className="w-3 h-3" /> {cite.domain || "Web Source"}
                 </span>
-                {cite.published_at && <span>Published: {cite.published_at}</span>}
+                {cite.published_at && (
+                  <span>Published: {cite.published_at}</span>
+                )}
                 {cite.source_type && <span>Type: {cite.source_type}</span>}
               </div>
             </div>

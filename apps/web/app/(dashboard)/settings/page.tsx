@@ -38,7 +38,11 @@ interface UserData {
 
 const PROVIDERS = ["groq", "gemini", "openai", "ollama", "tavily"];
 const MODELS: Record<string, string[]> = {
-  groq: ["llama-3.3-70b-versatile", "openai/gpt-oss-120b", "llama-3.1-8b-instant"],
+  groq: [
+    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-120b",
+    "llama-3.1-8b-instant",
+  ],
   gemini: ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"],
   openai: ["gpt-4o", "gpt-4o-mini", "o3-mini"],
   ollama: ["llama3", "mistral", "phi3"],
@@ -89,7 +93,9 @@ export default function SettingsPage() {
   // BYOK Key Input States
   const [byokProvider, setByokProvider] = useState("groq");
   const [byokApiKey, setByokApiKey] = useState("");
-  const [verifyingProvider, setVerifyingProvider] = useState<string | null>(null);
+  const [verifyingProvider, setVerifyingProvider] = useState<string | null>(
+    null,
+  );
 
   // Theme & Language
   const [theme, setTheme] = useState("Dark");
@@ -139,7 +145,10 @@ export default function SettingsPage() {
       return;
     }
     try {
-      await saveCredential({ provider: byokProvider, apiKey: byokApiKey.trim() });
+      await saveCredential({
+        provider: byokProvider,
+        apiKey: byokApiKey.trim(),
+      });
       toast.success(`Saved API key for ${byokProvider.toUpperCase()}`);
       setByokApiKey("");
       refetchProviders();
@@ -176,7 +185,8 @@ export default function SettingsPage() {
 
   const sectionCls =
     "p-6 rounded-2xl bg-zinc-950/40 border border-zinc-900 backdrop-blur-xl relative overflow-hidden";
-  const sectionHeaderCls = "text-base font-semibold text-white mb-4 flex items-center gap-2";
+  const sectionHeaderCls =
+    "text-base font-semibold text-white mb-4 flex items-center gap-2";
   const labelCls = "text-xs font-medium text-zinc-400 block mb-1.5";
   const inputCls =
     "block w-full px-4 py-2.5 text-xs text-white bg-zinc-900/80 border border-zinc-800 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
@@ -187,7 +197,7 @@ export default function SettingsPage() {
     label: string,
     desc: string,
     value: boolean,
-    onChange: (val: boolean) => void
+    onChange: (val: boolean) => void,
   ) => (
     <div className="flex items-center justify-between py-2">
       <div>
@@ -226,10 +236,13 @@ export default function SettingsPage() {
           <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
             <Settings className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Settings</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Settings
+          </h1>
         </div>
         <p className="text-sm text-zinc-500 leading-relaxed">
-          Manage your authenticated profile, AI gateway configurations, and BYOK credentials.
+          Manage your authenticated profile, AI gateway configurations, and BYOK
+          credentials.
         </p>
       </div>
 
@@ -292,7 +305,8 @@ export default function SettingsPage() {
             AI Provider Defaults
           </h3>
           <p className="text-xs text-zinc-500 mb-5 -mt-2 leading-relaxed">
-            Select default AI routing preferences and generation hyperparameters.
+            Select default AI routing preferences and generation
+            hyperparameters.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
@@ -301,7 +315,9 @@ export default function SettingsPage() {
                 value={defaultProvider}
                 onChange={(e) => {
                   setDefaultProvider(e.target.value);
-                  setDefaultModel(MODELS[e.target.value] ? MODELS[e.target.value][0] : "auto");
+                  setDefaultModel(
+                    MODELS[e.target.value] ? MODELS[e.target.value][0] : "auto",
+                  );
                 }}
                 className={selectCls}
               >
@@ -336,7 +352,11 @@ export default function SettingsPage() {
             disabled={isSaving}
             className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
             Save Profile Settings
           </button>
         </div>
@@ -349,14 +369,16 @@ export default function SettingsPage() {
           AI Provider BYOK Key Vault (Encrypted)
         </h3>
         <p className="text-xs text-zinc-500 mb-5 -mt-2 leading-relaxed">
-          Provide your own API keys for personal quota and unthrottled capability routing. Keys are
-          encrypted server-side and never exposed.
+          Provide your own API keys for personal quota and unthrottled
+          capability routing. Keys are encrypted server-side and never exposed.
         </p>
 
         {/* Active BYOK Credentials Table */}
         {credentials.length > 0 ? (
           <div className="space-y-3 mb-6">
-            <span className="text-xs font-medium text-zinc-300">Configured BYOK Keys</span>
+            <span className="text-xs font-medium text-zinc-300">
+              Configured BYOK Keys
+            </span>
             <div className="space-y-2">
               {credentials.map((c) => (
                 <div
@@ -366,8 +388,12 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <div>
-                      <span className="font-semibold text-white uppercase">{c.provider}</span>
-                      <span className="text-zinc-500 ml-2 font-mono">{c.key_hint}</span>
+                      <span className="font-semibold text-white uppercase">
+                        {c.provider}
+                      </span>
+                      <span className="text-zinc-500 ml-2 font-mono">
+                        {c.key_hint}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -400,12 +426,16 @@ export default function SettingsPage() {
         ) : (
           <div className="p-4 mb-6 rounded-xl bg-zinc-900/30 border border-zinc-800/50 text-xs text-zinc-500 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-zinc-400" />
-            No personal BYOK keys configured yet. IdeaGPT will route through system-managed tier.
+            No personal BYOK keys configured yet. IdeaGPT will route through
+            system-managed tier.
           </div>
         )}
 
         {/* Add Key Form */}
-        <form onSubmit={handleSaveBYOK} className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-900">
+        <form
+          onSubmit={handleSaveBYOK}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-zinc-900"
+        >
           <div className="space-y-1.5">
             <label className={labelCls}>Provider</label>
             <select
@@ -435,7 +465,11 @@ export default function SettingsPage() {
                 disabled={isSavingCred || !byokApiKey.trim()}
                 className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 cursor-pointer shadow-md shadow-amber-600/20"
               >
-                {isSavingCred ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                {isSavingCred ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5" />
+                )}
                 Add Key
               </button>
             </div>

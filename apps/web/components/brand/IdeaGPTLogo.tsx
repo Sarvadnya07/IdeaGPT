@@ -33,12 +33,26 @@ export function IdeaGPTMark({
         className="w-[78%] h-[78%]"
       >
         <defs>
-          <linearGradient id="shieldGrad" x1="20" y1="15" x2="80" y2="85" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="shieldGrad"
+            x1="20"
+            y1="15"
+            x2="80"
+            y2="85"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0%" stopColor="#00C29A" />
             <stop offset="50%" stopColor="#0284C7" />
             <stop offset="100%" stopColor="#3B82F6" />
           </linearGradient>
-          <linearGradient id="outerGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <linearGradient
+            id="outerGrad"
+            x1="0"
+            y1="0"
+            x2="100"
+            y2="100"
+            gradientUnits="userSpaceOnUse"
+          >
             <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.8" />
             <stop offset="50%" stopColor="#0284C7" stopOpacity="0.5" />
             <stop offset="100%" stopColor="#1E3A8A" stopOpacity="0.2" />
@@ -61,15 +75,8 @@ export function IdeaGPTMark({
         />
 
         {/* Dynamic Inner Chevron / Transformation Notch */}
-        <path
-          d="M50 38 L60 45 L50 64 L40 45 Z"
-          fill="#0C0C0E"
-          opacity="0.9"
-        />
-        <path
-          d="M50 44 L55 48 L50 56 L45 48 Z"
-          fill="#00C29A"
-        />
+        <path d="M50 38 L60 45 L50 64 L40 45 Z" fill="#0C0C0E" opacity="0.9" />
+        <path d="M50 44 L55 48 L50 56 L45 48 Z" fill="#00C29A" />
       </svg>
     </div>
   );
@@ -105,10 +112,14 @@ export function IdeaGPTLogo({
 
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5">
-          <span className={`font-black text-white font-sans ${textSizes[size]}`}>
+          <span
+            className={`font-black text-white font-sans ${textSizes[size]}`}
+          >
             IDEA
           </span>
-          <span className={`font-black bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-sky-400 to-blue-500 font-sans ${textSizes[size]}`}>
+          <span
+            className={`font-black bg-clip-text text-transparent bg-gradient-to-r from-teal-400 via-sky-400 to-blue-500 font-sans ${textSizes[size]}`}
+          >
             GPT
           </span>
         </div>

@@ -2,37 +2,39 @@
 
 **Date**: August 13, 2026  
 **Status**: **FULL GROQ E2E VERIFIED**  
-**Environment**: Local / Development with Server-side `GROQ_API_KEY` (`gsk_...`)  
+**Environment**: Local / Development with Server-side `GROQ_API_KEY` (`gsk_...`)
 
 ---
 
 ## 1. Primary Status Declaration
 
 > ### 🟢 FULL GROQ E2E VERIFIED
+>
 > The complete end-to-end execution path for Groq has been executed against Groq's official API (`https://api.groq.com/openai/v1`) with full task lifecycle persistence in PostgreSQL (`ai_tasks` table), token usage metadata extraction, and state machine verification.
 
 ---
 
 ## 2. Verification Summary & Architecture Compliance Matrix
 
-| Requirement / Invariant | Implementation Details | Status |
-| :--- | :--- | :--- |
-| **Server-Only API Key** | `GROQ_API_KEY` defined in `apps/api/.env` and `app/core/config.py`. Never exposed to Next.js bundle. | 🟢 **PASS** |
-| **Dynamic Model Discovery** | `GroqProvider.list_models_async()` queries `GET https://api.groq.com/openai/v1/models` dynamically with 60s TTL cache. | 🟢 **PASS** |
-| **Model Capability Hierarchy** | Model classification (`classify_groq_model`) classifies: <br>- Whisper (`whisper*`): `SPEECH_TO_TEXT` + `AUDIO_INPUT`<br>- Prompt Guard (`*guard*`, `*moderation*`): `MODERATION`<br>- Chat models (`llama*`, `qwen*`, `mixtral*`): `TEXT_GENERATION` + `STRUCTURED_OUTPUT` | 🟢 **PASS** |
-| **Whisper Exclusion** | Non-chat models (Whisper & Prompt Guard) are strictly excluded from text generation & evaluation candidate pools. | 🟢 **PASS** |
-| **Production Mock Isolation** | `MockProvider` is disabled when `APP_ENV == "production"`. | 🟢 **PASS** |
-| **3-Mode Task Routing** | `AIRouter` handles: <br>1. `AUTO + AUTO`<br>2. `GROQ + AUTO`<br>3. `GROQ + <model>` | 🟢 **PASS** |
-| **Model Override Transparency** | `AIRouter` decision passes `model_override` to `provider.generate()`, ensuring UI displays actual executing model. | 🟢 **PASS** |
-| **Project Permission Fallback** | `GroqProvider` handles 403 `model_permission_blocked_project` by automatically falling back to production versatile models (`llama-3.3-70b-versatile`). | 🟢 **PASS** |
-| **Error Normalization** | Mapped HTTP 401, 429, 400, timeout to `AIAuthenticationException`, `AIRateLimitException`, `AIInvalidModelException`, `AITimeoutException`. | 🟢 **PASS** |
-| **PostgreSQL Task Persistence** | `AiTaskService` updates PostgreSQL `ai_tasks` row (`status="COMPLETED"`, `provider="groq"`, `model="llama-3.3-70b-versatile"`, `duration_ms`, `result_payload`). | 🟢 **PASS** |
+| Requirement / Invariant         | Implementation Details                                                                                                                                                                                                                                                      | Status      |
+| :------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------- |
+| **Server-Only API Key**         | `GROQ_API_KEY` defined in `apps/api/.env` and `app/core/config.py`. Never exposed to Next.js bundle.                                                                                                                                                                        | 🟢 **PASS** |
+| **Dynamic Model Discovery**     | `GroqProvider.list_models_async()` queries `GET https://api.groq.com/openai/v1/models` dynamically with 60s TTL cache.                                                                                                                                                      | 🟢 **PASS** |
+| **Model Capability Hierarchy**  | Model classification (`classify_groq_model`) classifies: <br>- Whisper (`whisper*`): `SPEECH_TO_TEXT` + `AUDIO_INPUT`<br>- Prompt Guard (`*guard*`, `*moderation*`): `MODERATION`<br>- Chat models (`llama*`, `qwen*`, `mixtral*`): `TEXT_GENERATION` + `STRUCTURED_OUTPUT` | 🟢 **PASS** |
+| **Whisper Exclusion**           | Non-chat models (Whisper & Prompt Guard) are strictly excluded from text generation & evaluation candidate pools.                                                                                                                                                           | 🟢 **PASS** |
+| **Production Mock Isolation**   | `MockProvider` is disabled when `APP_ENV == "production"`.                                                                                                                                                                                                                  | 🟢 **PASS** |
+| **3-Mode Task Routing**         | `AIRouter` handles: <br>1. `AUTO + AUTO`<br>2. `GROQ + AUTO`<br>3. `GROQ + <model>`                                                                                                                                                                                         | 🟢 **PASS** |
+| **Model Override Transparency** | `AIRouter` decision passes `model_override` to `provider.generate()`, ensuring UI displays actual executing model.                                                                                                                                                          | 🟢 **PASS** |
+| **Project Permission Fallback** | `GroqProvider` handles 403 `model_permission_blocked_project` by automatically falling back to production versatile models (`llama-3.3-70b-versatile`).                                                                                                                     | 🟢 **PASS** |
+| **Error Normalization**         | Mapped HTTP 401, 429, 400, timeout to `AIAuthenticationException`, `AIRateLimitException`, `AIInvalidModelException`, `AITimeoutException`.                                                                                                                                 | 🟢 **PASS** |
+| **PostgreSQL Task Persistence** | `AiTaskService` updates PostgreSQL `ai_tasks` row (`status="COMPLETED"`, `provider="groq"`, `model="llama-3.3-70b-versatile"`, `duration_ms`, `result_payload`).                                                                                                            | 🟢 **PASS** |
 
 ---
 
 ## 3. Live End-to-End Test Execution Evidence
 
 ### Live Pytest Run (`test_real_groq_inference_full_chain`)
+
 ```text
 tests/test_sprint8_4_groq.py::test_real_groq_inference_full_chain PASSED [100%]
 ```

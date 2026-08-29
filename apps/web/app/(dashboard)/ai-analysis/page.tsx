@@ -59,7 +59,9 @@ export default function AIAnalysisPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [selectedProvider, setSelectedProvider] = useState<string>("auto");
   const [selectedModel, setSelectedModel] = useState<string>("default");
-  const [activeTab, setActiveTab] = useState<"evaluation" | "market" | "competitors" | "risks">("evaluation");
+  const [activeTab, setActiveTab] = useState<
+    "evaluation" | "market" | "competitors" | "risks"
+  >("evaluation");
 
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const createTaskMutation = useCreateAITask();
@@ -67,7 +69,8 @@ export default function AIAnalysisPage() {
 
   const { providers, models, isLoading: isProvidersLoading } = useAIProviders();
 
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : null);
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : null);
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const { ideasListQuery } = useIdeaSubmission(activeProjectId);
@@ -79,14 +82,17 @@ export default function AIAnalysisPage() {
     queryKey: ["projectEvaluations", activeProjectId],
     queryFn: async () => {
       if (!activeProjectId) return [];
-      const res = await api.get<EvaluationPayload[]>(`/projects/${activeProjectId}/evaluations`);
+      const res = await api.get<EvaluationPayload[]>(
+        `/projects/${activeProjectId}/evaluations`,
+      );
       return res.data;
     },
     enabled: !!activeProjectId,
   });
 
   const evaluations = evaluationsQuery.data || [];
-  const completedEval = evaluations.find((e) => e.status === "COMPLETED") || evaluations[0];
+  const completedEval =
+    evaluations.find((e) => e.status === "COMPLETED") || evaluations[0];
   const evalResult = completedEval?.result_payload;
 
   // Grounded Market Analysis Mutation
@@ -112,7 +118,8 @@ export default function AIAnalysisPage() {
       const res = await api.post("/ai/competitors-grounded", {
         title: latestIdea.title,
         industry: latestIdea.industry || "Technology",
-        solution_description: latestIdea.solution_description || latestIdea.title,
+        solution_description:
+          latestIdea.solution_description || latestIdea.title,
         provider: selectedProvider,
         model: selectedModel,
       });
@@ -173,7 +180,8 @@ export default function AIAnalysisPage() {
         <Folder className="w-12 h-12 text-zinc-700 mb-2" />
         <h3 className="text-xl font-bold text-white">No Projects Found</h3>
         <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-          You haven&apos;t created any projects yet. Create a project to begin your AI startup evaluations.
+          You haven&apos;t created any projects yet. Create a project to begin
+          your AI startup evaluations.
         </p>
         <Link
           href="/projects/new"
@@ -195,7 +203,8 @@ export default function AIAnalysisPage() {
             AI Research & Intelligence Hub
           </h1>
           <p className="text-xs text-zinc-400 mt-1">
-            Evidence-grounded web research, market validation, and multi-provider AI evaluation.
+            Evidence-grounded web research, market validation, and
+            multi-provider AI evaluation.
           </p>
         </div>
 
@@ -248,7 +257,11 @@ export default function AIAnalysisPage() {
             >
               <option value="default">Default Active Model</option>
               {models
-                .filter((m) => selectedProvider === "auto" || m.provider === selectedProvider)
+                .filter(
+                  (m) =>
+                    selectedProvider === "auto" ||
+                    m.provider === selectedProvider,
+                )
                 .map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name} ({m.provider})
@@ -266,7 +279,8 @@ export default function AIAnalysisPage() {
           >
             {createTaskMutation.isPending || taskStatus === "RUNNING" ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing Task...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Processing
+                Task...
               </>
             ) : (
               <>
@@ -294,7 +308,10 @@ export default function AIAnalysisPage() {
         <button
           onClick={() => {
             setActiveTab("market");
-            if (!marketResearchMutation.data && !marketResearchMutation.isPending) {
+            if (
+              !marketResearchMutation.data &&
+              !marketResearchMutation.isPending
+            ) {
               marketResearchMutation.mutate();
             }
           }}
@@ -311,7 +328,10 @@ export default function AIAnalysisPage() {
         <button
           onClick={() => {
             setActiveTab("competitors");
-            if (!competitorResearchMutation.data && !competitorResearchMutation.isPending) {
+            if (
+              !competitorResearchMutation.data &&
+              !competitorResearchMutation.isPending
+            ) {
               competitorResearchMutation.mutate();
             }
           }}
@@ -353,9 +373,15 @@ export default function AIAnalysisPage() {
           ) : !completedEval || !evalResult ? (
             <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
               <BrainCircuit className="w-12 h-12 text-zinc-700 mb-2" />
-              <h3 className="text-lg font-bold text-white">No Evaluation Results Yet</h3>
+              <h3 className="text-lg font-bold text-white">
+                No Evaluation Results Yet
+              </h3>
               <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-                Submit idea parameters for <span className="text-white font-medium">{activeProject?.title}</span> to trigger evaluation.
+                Submit idea parameters for{" "}
+                <span className="text-white font-medium">
+                  {activeProject?.title}
+                </span>{" "}
+                to trigger evaluation.
               </p>
             </div>
           ) : (
@@ -366,17 +392,22 @@ export default function AIAnalysisPage() {
                     Overall Evaluation Score
                   </span>
                   <div className="text-3xl font-black text-white">
-                    {evalResult.score || 85} <span className="text-xs font-normal text-zinc-500">/ 100</span>
+                    {evalResult.score || 85}{" "}
+                    <span className="text-xs font-normal text-zinc-500">
+                      / 100
+                    </span>
                   </div>
                   <p className="text-xs text-zinc-400 font-medium">
-                    Synthesized from deterministic multi-dimensional scoring rules.
+                    Synthesized from deterministic multi-dimensional scoring
+                    rules.
                   </p>
                 </div>
                 <Link
                   href={`/projects/${activeProject?.slug}/analysis`}
                   className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-white rounded-xl transition-all"
                 >
-                  View Full Interactive Report <ArrowRight className="w-3.5 h-3.5" />
+                  View Full Interactive Report{" "}
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
 
@@ -386,24 +417,29 @@ export default function AIAnalysisPage() {
                     <CheckCircle2 className="w-4 h-4" /> Core Strengths
                   </h3>
                   <ul className="space-y-2 text-xs text-zinc-300">
-                    {(evalResult.strengths || ["Robust problem statement"]).map((s, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-emerald-500">•</span> {s}
-                      </li>
-                    ))}
+                    {(evalResult.strengths || ["Robust problem statement"]).map(
+                      (s, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-emerald-500">•</span> {s}
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
 
                 <div className="bg-[#0b0b0d] border border-red-900/30 p-6 rounded-2xl">
                   <h3 className="text-sm font-bold text-red-400 mb-4 flex items-center gap-2 uppercase tracking-wider">
-                    <AlertTriangle className="w-4 h-4" /> Vulnerabilities & Weaknesses
+                    <AlertTriangle className="w-4 h-4" /> Vulnerabilities &
+                    Weaknesses
                   </h3>
                   <ul className="space-y-2 text-xs text-zinc-300">
-                    {(evalResult.weaknesses || ["High competition"]).map((w, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-red-500">•</span> {w}
-                      </li>
-                    ))}
+                    {(evalResult.weaknesses || ["High competition"]).map(
+                      (w, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-red-500">•</span> {w}
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
               </div>
@@ -425,7 +461,9 @@ export default function AIAnalysisPage() {
               disabled={marketResearchMutation.isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 text-xs font-semibold rounded-lg transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${marketResearchMutation.isPending ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${marketResearchMutation.isPending ? "animate-spin" : ""}`}
+              />
               Re-run Market Research
             </button>
           </div>
@@ -433,7 +471,9 @@ export default function AIAnalysisPage() {
           {marketResearchMutation.isPending ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-3">
               <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-              <p className="text-xs text-zinc-400">Querying Tavily search index and validating sources...</p>
+              <p className="text-xs text-zinc-400">
+                Querying Tavily search index and validating sources...
+              </p>
             </div>
           ) : marketResearchMutation.data ? (
             <div className="space-y-6">
@@ -445,15 +485,23 @@ export default function AIAnalysisPage() {
               <div className="bg-[#0b0b0d] border border-white/10 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
                   <div>
-                    <h4 className="text-sm font-bold text-white">Market Definition & Scope</h4>
-                    <p className="text-xs text-zinc-400 mt-0.5">{marketResearchMutation.data.market_definition}</p>
+                    <h4 className="text-sm font-bold text-white">
+                      Market Definition & Scope
+                    </h4>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      {marketResearchMutation.data.market_definition}
+                    </p>
                   </div>
-                  <ConfidenceIndicator level={marketResearchMutation.data.overall_confidence} />
+                  <ConfidenceIndicator
+                    level={marketResearchMutation.data.overall_confidence}
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">TAM (Total Addressable)</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">
+                      TAM (Total Addressable)
+                    </span>
                     <div className="text-lg font-black text-emerald-400">
                       {marketResearchMutation.data.tam_estimate || "UNKNOWN"}
                     </div>
@@ -461,7 +509,9 @@ export default function AIAnalysisPage() {
                   </div>
 
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Target Segment</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">
+                      Target Segment
+                    </span>
                     <div className="text-sm font-bold text-white truncate">
                       {marketResearchMutation.data.target_segment}
                     </div>
@@ -469,7 +519,9 @@ export default function AIAnalysisPage() {
                   </div>
 
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-zinc-500">Growth CAGR</span>
+                    <span className="text-[10px] font-bold uppercase text-zinc-500">
+                      Growth CAGR
+                    </span>
                     <div className="text-lg font-black text-indigo-400">
                       {marketResearchMutation.data.growth_cagr || "ESTIMATE"}
                     </div>
@@ -479,25 +531,39 @@ export default function AIAnalysisPage() {
 
                 {marketResearchMutation.data.key_market_drivers && (
                   <div className="pt-4 space-y-2">
-                    <h5 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Key Market Drivers</h5>
+                    <h5 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                      Key Market Drivers
+                    </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {marketResearchMutation.data.key_market_drivers.map((d: string, idx: number) => (
-                        <div key={idx} className="p-3 rounded-lg bg-zinc-900/40 border border-white/5 text-xs text-zinc-300 flex items-start gap-2">
-                          <span className="text-emerald-400 font-bold">•</span>
-                          <span>{d}</span>
-                        </div>
-                      ))}
+                      {marketResearchMutation.data.key_market_drivers.map(
+                        (d: string, idx: number) => (
+                          <div
+                            key={idx}
+                            className="p-3 rounded-lg bg-zinc-900/40 border border-white/5 text-xs text-zinc-300 flex items-start gap-2"
+                          >
+                            <span className="text-emerald-400 font-bold">
+                              •
+                            </span>
+                            <span>{d}</span>
+                          </div>
+                        ),
+                      )}
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Citations Drawer */}
-              <CitationsDrawer citations={marketResearchMutation.data.citations || []} />
+              <CitationsDrawer
+                citations={marketResearchMutation.data.citations || []}
+              />
             </div>
           ) : (
             <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl">
-              <p className="text-xs text-zinc-400">Click &apos;Re-run Market Research&apos; to query real-time market data.</p>
+              <p className="text-xs text-zinc-400">
+                Click &apos;Re-run Market Research&apos; to query real-time
+                market data.
+              </p>
             </div>
           )}
         </div>
@@ -516,7 +582,9 @@ export default function AIAnalysisPage() {
               disabled={competitorResearchMutation.isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 text-xs font-semibold rounded-lg transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${competitorResearchMutation.isPending ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${competitorResearchMutation.isPending ? "animate-spin" : ""}`}
+              />
               Re-run Competitor Intelligence
             </button>
           </div>
@@ -524,13 +592,17 @@ export default function AIAnalysisPage() {
           {competitorResearchMutation.isPending ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-3">
               <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-              <p className="text-xs text-zinc-400">Scanning competitive landscape and pricing models...</p>
+              <p className="text-xs text-zinc-400">
+                Scanning competitive landscape and pricing models...
+              </p>
             </div>
           ) : competitorResearchMutation.data ? (
             <div className="space-y-6">
               <ResearchStatusBanner
                 status={competitorResearchMutation.data.status}
-                sourceCount={competitorResearchMutation.data.citations?.length || 0}
+                sourceCount={
+                  competitorResearchMutation.data.citations?.length || 0
+                }
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -539,13 +611,22 @@ export default function AIAnalysisPage() {
                     <Globe className="w-4 h-4" /> Direct Competitors
                   </h4>
                   <div className="space-y-3">
-                    {(competitorResearchMutation.data.direct_competitors || []).map((comp: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-2">
+                    {(
+                      competitorResearchMutation.data.direct_competitors || []
+                    ).map((comp: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-2"
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-white">{comp.name}</span>
+                          <span className="font-bold text-sm text-white">
+                            {comp.name}
+                          </span>
                           <EvidenceBadge type="FACT" />
                         </div>
-                        <p className="text-xs text-zinc-400"><strong>Gap:</strong> {comp.differentiation_gap}</p>
+                        <p className="text-xs text-zinc-400">
+                          <strong>Gap:</strong> {comp.differentiation_gap}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -556,17 +637,28 @@ export default function AIAnalysisPage() {
                     <Sparkles className="w-4 h-4" /> Competitive Moat & Strategy
                   </h4>
                   <div className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-3 text-xs text-zinc-300">
-                    <p><strong>Primary Defensibility Moat:</strong> {competitorResearchMutation.data.competitive_moat}</p>
-                    <p><strong>Category Pricing:</strong> {competitorResearchMutation.data.pricing_landscape}</p>
+                    <p>
+                      <strong>Primary Defensibility Moat:</strong>{" "}
+                      {competitorResearchMutation.data.competitive_moat}
+                    </p>
+                    <p>
+                      <strong>Category Pricing:</strong>{" "}
+                      {competitorResearchMutation.data.pricing_landscape}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <CitationsDrawer citations={competitorResearchMutation.data.citations || []} />
+              <CitationsDrawer
+                citations={competitorResearchMutation.data.citations || []}
+              />
             </div>
           ) : (
             <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl">
-              <p className="text-xs text-zinc-400">Click &apos;Re-run Competitor Intelligence&apos; to scan competitors.</p>
+              <p className="text-xs text-zinc-400">
+                Click &apos;Re-run Competitor Intelligence&apos; to scan
+                competitors.
+              </p>
             </div>
           )}
         </div>
@@ -585,7 +677,9 @@ export default function AIAnalysisPage() {
               disabled={riskResearchMutation.isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/20 text-purple-400 border border-purple-500/30 hover:bg-purple-600/30 text-xs font-semibold rounded-lg transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${riskResearchMutation.isPending ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${riskResearchMutation.isPending ? "animate-spin" : ""}`}
+              />
               Re-run Risk Intelligence
             </button>
           </div>
@@ -593,7 +687,9 @@ export default function AIAnalysisPage() {
           {riskResearchMutation.isPending ? (
             <div className="flex flex-col items-center justify-center py-20 space-y-3">
               <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-              <p className="text-xs text-zinc-400">Analyzing regulatory precedents and security requirements...</p>
+              <p className="text-xs text-zinc-400">
+                Analyzing regulatory precedents and security requirements...
+              </p>
             </div>
           ) : riskResearchMutation.data ? (
             <div className="space-y-6">
@@ -604,36 +700,53 @@ export default function AIAnalysisPage() {
 
               <div className="bg-[#0b0b0d] border border-white/10 rounded-2xl p-6 space-y-4">
                 <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                  <h4 className="text-sm font-bold text-white">Regulatory & Execution Risks</h4>
+                  <h4 className="text-sm font-bold text-white">
+                    Regulatory & Execution Risks
+                  </h4>
                   <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/20">
-                    Risk Score: {riskResearchMutation.data.overall_risk_score}/100
+                    Risk Score: {riskResearchMutation.data.overall_risk_score}
+                    /100
                   </span>
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  {(riskResearchMutation.data.risks || []).map((risk: any, idx: number) => (
-                    <div key={idx} className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-sm">{risk.title}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase text-zinc-400">{risk.category}</span>
-                          <EvidenceBadge type="INFERENCE" />
+                  {(riskResearchMutation.data.risks || []).map(
+                    (risk: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white text-sm">
+                            {risk.title}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase text-zinc-400">
+                              {risk.category}
+                            </span>
+                            <EvidenceBadge type="INFERENCE" />
+                          </div>
+                        </div>
+                        <p className="text-zinc-300">{risk.description}</p>
+                        <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 text-emerald-300 text-[11px]">
+                          <strong>Mitigation:</strong>{" "}
+                          {risk.mitigation_strategy}
                         </div>
                       </div>
-                      <p className="text-zinc-300">{risk.description}</p>
-                      <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 text-emerald-300 text-[11px]">
-                        <strong>Mitigation:</strong> {risk.mitigation_strategy}
-                      </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
 
-              <CitationsDrawer citations={riskResearchMutation.data.citations || []} />
+              <CitationsDrawer
+                citations={riskResearchMutation.data.citations || []}
+              />
             </div>
           ) : (
             <div className="p-12 text-center border border-dashed border-zinc-800 rounded-2xl">
-              <p className="text-xs text-zinc-400">Click &apos;Re-run Risk Intelligence&apos; to analyze risks.</p>
+              <p className="text-xs text-zinc-400">
+                Click &apos;Re-run Risk Intelligence&apos; to analyze risks.
+              </p>
             </div>
           )}
         </div>

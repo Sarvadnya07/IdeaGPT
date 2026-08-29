@@ -57,7 +57,8 @@ export default function RecruiterLabPage() {
   const projects = projectsQuery.data?.items || [];
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const activeProjectId = selectedProjectId || (projects.length > 0 ? projects[0].id : "");
+  const activeProjectId =
+    selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -76,7 +77,8 @@ export default function RecruiterLabPage() {
         title: activeProject.title,
         category: activeProject.category || "B2B SaaS",
         current_team_size: "Founding Team (1-2)",
-        target_roles: "Founding Full-Stack Engineer, Head of Growth, Product Designer",
+        target_roles:
+          "Founding Full-Stack Engineer, Head of Growth, Product Designer",
       });
       setResult(res.data);
       toast.success("Executive Talent Blueprint synthesized successfully!");
@@ -110,8 +112,9 @@ export default function RecruiterLabPage() {
             {activeProject?.title || "Hiring & Talent Architecture"}
           </h1>
           <p className="text-xs text-zinc-500 max-w-2xl leading-relaxed">
-            Synthesize organizational hiring roadmaps, production job specifications, compensation & equity benchmarks,
-            and candidate interview scorecards.
+            Synthesize organizational hiring roadmaps, production job
+            specifications, compensation & equity benchmarks, and candidate
+            interview scorecards.
           </p>
         </div>
 
@@ -135,7 +138,8 @@ export default function RecruiterLabPage() {
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Formulating Roles...
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Formulating
+                Roles...
               </>
             ) : (
               <>
@@ -162,11 +166,16 @@ export default function RecruiterLabPage() {
           <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
             <div className="flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Hiring Roadmap & Headcount</h3>
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Hiring Roadmap & Headcount
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {result.hiring_roadmap.map((phase, idx) => (
-                <div key={idx} className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-2">
+                <div
+                  key={idx}
+                  className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-2"
+                >
                   <div className="flex justify-between items-center text-xs">
                     <span className="font-bold text-white">{phase.phase}</span>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
@@ -175,7 +184,10 @@ export default function RecruiterLabPage() {
                   </div>
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {phase.roles.map((r, rIdx) => (
-                      <span key={rIdx} className="px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] rounded-md font-mono">
+                      <span
+                        key={rIdx}
+                        className="px-2 py-0.5 bg-zinc-900 text-zinc-300 text-[10px] rounded-md font-mono"
+                      >
                         {r}
                       </span>
                     ))}
@@ -193,7 +205,9 @@ export default function RecruiterLabPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Role Specifications & JDs</h3>
+                <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                  Role Specifications & JDs
+                </h3>
               </div>
               <div className="flex gap-2">
                 {result.job_descriptions.map((jd, idx) => (
@@ -216,23 +230,37 @@ export default function RecruiterLabPage() {
               <div className="p-5 rounded-xl bg-black/40 border border-zinc-900 space-y-4 text-xs">
                 <div className="flex flex-wrap justify-between items-start gap-4">
                   <div>
-                    <h4 className="text-sm font-bold text-white">{currentJob.role_title}</h4>
-                    <span className="text-[11px] text-indigo-400 font-mono">{currentJob.level} Level</span>
+                    <h4 className="text-sm font-bold text-white">
+                      {currentJob.role_title}
+                    </h4>
+                    <span className="text-[11px] text-indigo-400 font-mono">
+                      {currentJob.level} Level
+                    </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-right">
-                    <span className="text-white font-bold block">{currentJob.compensation_range.salary_usd}</span>
-                    <span className="text-[10px] text-emerald-400 font-mono">{currentJob.compensation_range.equity_pct} Equity</span>
+                    <span className="text-white font-bold block">
+                      {currentJob.compensation_range.salary_usd}
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-mono">
+                      {currentJob.compensation_range.equity_pct} Equity
+                    </span>
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Mission</span>
-                  <p className="text-zinc-300 text-[11px] leading-relaxed">{currentJob.mission}</p>
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">
+                    Mission
+                  </span>
+                  <p className="text-zinc-300 text-[11px] leading-relaxed">
+                    {currentJob.mission}
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-zinc-900">
                   <div>
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">Core Responsibilities</span>
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                      Core Responsibilities
+                    </span>
                     <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
                       {currentJob.responsibilities.map((res, i) => (
                         <li key={i}>{res}</li>
@@ -240,10 +268,15 @@ export default function RecruiterLabPage() {
                     </ul>
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">Required Skills</span>
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                      Required Skills
+                    </span>
                     <div className="flex flex-wrap gap-1.5">
                       {currentJob.required_skills.map((skill, i) => (
-                        <span key={i} className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 text-[10px] rounded-lg">
+                        <span
+                          key={i}
+                          className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-zinc-300 text-[10px] rounded-lg"
+                        >
                           {skill}
                         </span>
                       ))}
@@ -258,7 +291,9 @@ export default function RecruiterLabPage() {
           <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 space-y-4">
             <div className="flex items-center gap-2">
               <Award className="w-4 h-4 text-purple-400" />
-              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Interview Rubrics & Evaluation</h3>
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Interview Rubrics & Evaluation
+              </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="p-4 rounded-xl bg-black/40 border border-zinc-900 space-y-2">
@@ -277,9 +312,11 @@ export default function RecruiterLabPage() {
                   <UserCheck className="w-3.5 h-3.5" /> Technical Probes
                 </span>
                 <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
-                  {result.interview_scorecard.technical_evaluation_probes.map((p, i) => (
-                    <li key={i}>{p}</li>
-                  ))}
+                  {result.interview_scorecard.technical_evaluation_probes.map(
+                    (p, i) => (
+                      <li key={i}>{p}</li>
+                    ),
+                  )}
                 </ul>
               </div>
 
@@ -288,9 +325,11 @@ export default function RecruiterLabPage() {
                   <AlertTriangle className="w-3.5 h-3.5" /> Red Flags
                 </span>
                 <ul className="text-[11px] text-zinc-400 list-disc list-inside space-y-1">
-                  {result.interview_scorecard.red_flags_to_reject.map((f, i) => (
-                    <li key={i}>{f}</li>
-                  ))}
+                  {result.interview_scorecard.red_flags_to_reject.map(
+                    (f, i) => (
+                      <li key={i}>{f}</li>
+                    ),
+                  )}
                 </ul>
               </div>
             </div>
@@ -299,9 +338,12 @@ export default function RecruiterLabPage() {
       ) : (
         <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
           <Users className="w-12 h-12 text-zinc-700 mb-2" />
-          <h3 className="text-lg font-bold text-white">No Talent Blueprint Generated</h3>
+          <h3 className="text-lg font-bold text-white">
+            No Talent Blueprint Generated
+          </h3>
           <p className="text-xs text-zinc-500 max-w-md leading-relaxed">
-            Click &quot;Plan Hiring Blueprint&quot; to synthesize headcounts, compensation bands, job descriptions, and interview rubrics.
+            Click &quot;Plan Hiring Blueprint&quot; to synthesize headcounts,
+            compensation bands, job descriptions, and interview rubrics.
           </p>
         </div>
       )}

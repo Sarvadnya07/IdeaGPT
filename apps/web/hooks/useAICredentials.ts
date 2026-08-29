@@ -34,7 +34,13 @@ export function useAICredentials() {
   });
 
   const saveCredentialMutation = useMutation({
-    mutationFn: async ({ provider, apiKey }: { provider: string; apiKey: string }) => {
+    mutationFn: async ({
+      provider,
+      apiKey,
+    }: {
+      provider: string;
+      apiKey: string;
+    }) => {
       const res = await api.post<AICredentialInfo>("/ai/credentials", {
         provider,
         api_key: apiKey,
@@ -49,7 +55,9 @@ export function useAICredentials() {
 
   const verifyCredentialMutation = useMutation({
     mutationFn: async (provider: string) => {
-      const res = await api.post<CredentialVerifyResult>(`/ai/credentials/${provider}/verify`);
+      const res = await api.post<CredentialVerifyResult>(
+        `/ai/credentials/${provider}/verify`,
+      );
       return res.data;
     },
     onSuccess: () => {

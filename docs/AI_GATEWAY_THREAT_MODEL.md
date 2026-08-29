@@ -2,7 +2,7 @@
 
 **System**: IdeaGPT Universal AI Gateway  
 **Methodology**: STRIDE / OWASP Top 10 for LLM Applications  
-**Status**: AUDITED & REMEDIATED  
+**Status**: AUDITED & REMEDIATED
 
 ---
 
@@ -45,15 +45,15 @@
 
 ## 2. OWASP LLM Top 10 Compliance Matrix
 
-| OWASP LLM Category | Description | IdeaGPT Status | Verification Reference |
-| :--- | :--- | :--- | :--- |
-| **LLM01: Prompt Injection** | Untrusted content hijacking model intent | ✅ MITIGATED | `PromptGuard` untrusted data boundaries |
-| **LLM02: Sensitive Info Disclosure** | Model revealing API keys / system secrets | ✅ MITIGATED | `CredentialVaultService` encryption & redaction |
-| **LLM03: Supply Chain Vulnerabilities** | Compromised models or providers | ✅ MITIGATED | `CapabilityRouter` strict allowlist & checksums |
-| **LLM04: Data & Model Poisoning** | Malicious retrieved evidence | ✅ MITIGATED | Evidence scoring, confidence thresholds, citations |
-| **LLM05: Improper Output Handling** | XSS / HTML injection in UI | ✅ MITIGATED | `ContentSanitizer` regex & DOM stripping |
-| **LLM06: Excessive Agency** | Autonomous tool over-reach | ✅ MITIGATED | `ToolPolicyEngine` least-privilege tool whitelist |
-| **LLM07: System Prompt Leakage** | Extraction of internal system prompts | ✅ MITIGATED | Separated role envelopes, schema-only outputs |
-| **LLM08: Vector & Embedding Weaknesses** | Cross-tenant vector similarity poisoning | ✅ MITIGATED | User & project tenancy scoping on embeddings |
-| **LLM09: Misinformation** | Hallucinated facts and claims | ✅ MITIGATED | Multi-source grounded evidence normalization |
-| **LLM10: Unbounded Consumption** | Resource exhaustion / DoS / billing spike | ✅ MITIGATED | Token admission, cost ceilings, circuit breaker |
+| OWASP LLM Category                       | Description                               | IdeaGPT Status | Verification Reference                             |
+| :--------------------------------------- | :---------------------------------------- | :------------- | :------------------------------------------------- |
+| **LLM01: Prompt Injection**              | Untrusted content hijacking model intent  | ✅ MITIGATED   | `PromptGuard` untrusted data boundaries            |
+| **LLM02: Sensitive Info Disclosure**     | Model revealing API keys / system secrets | ✅ MITIGATED   | `CredentialVaultService` encryption & redaction    |
+| **LLM03: Supply Chain Vulnerabilities**  | Compromised models or providers           | ✅ MITIGATED   | `CapabilityRouter` strict allowlist & checksums    |
+| **LLM04: Data & Model Poisoning**        | Malicious retrieved evidence              | ✅ MITIGATED   | Evidence scoring, confidence thresholds, citations |
+| **LLM05: Improper Output Handling**      | XSS / HTML injection in UI                | ✅ MITIGATED   | `ContentSanitizer` regex & DOM stripping           |
+| **LLM06: Excessive Agency**              | Autonomous tool over-reach                | ✅ MITIGATED   | `ToolPolicyEngine` least-privilege tool whitelist  |
+| **LLM07: System Prompt Leakage**         | Extraction of internal system prompts     | ✅ MITIGATED   | Separated role envelopes, schema-only outputs      |
+| **LLM08: Vector & Embedding Weaknesses** | Cross-tenant vector similarity poisoning  | ✅ MITIGATED   | User & project tenancy scoping on embeddings       |
+| **LLM09: Misinformation**                | Hallucinated facts and claims             | ✅ MITIGATED   | Multi-source grounded evidence normalization       |
+| **LLM10: Unbounded Consumption**         | Resource exhaustion / DoS / billing spike | ✅ MITIGATED   | Token admission, cost ceilings, circuit breaker    |

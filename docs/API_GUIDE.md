@@ -10,12 +10,14 @@ When running locally, the API is available at:
 ## Endpoints
 
 ### 1. Health Check
+
 Checks if the API service is active and responsive.
 
 **Request:**
 `GET /`
 
 **Response (200 OK):**
+
 ```json
 {
   "status": "healthy",
@@ -26,16 +28,19 @@ Checks if the API service is active and responsive.
 ---
 
 ### 2. Submit Project Idea
+
 Analyzes a user's startup idea and generates a technical roadmap and evaluation.
 
 **Request:**
 `POST /api/v1/projects/submit`
 
 **Headers:**
+
 - `Content-Type: application/json`
 - `Authorization: Bearer <token>` (If authentication is enabled)
 
 **Body (`ProjectCreate` Schema):**
+
 ```json
 {
   "idea_description": "An AI-powered application that generates marketing copy for real estate agents.",
@@ -45,6 +50,7 @@ Analyzes a user's startup idea and generates a technical roadmap and evaluation.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "project_id": "uuid-1234",
@@ -65,12 +71,13 @@ Analyzes a user's startup idea and generates a technical roadmap and evaluation.
 ```
 
 **Error Responses:**
+
 - **422 Unprocessable Entity:** Payload failed validation (e.g., missing `idea_description`).
 - **500 Internal Server Error:** LLM service timeout or failure.
 
 ## Authentication
 
-Authentication (when implemented) will use JWT (JSON Web Tokens). 
+Authentication (when implemented) will use JWT (JSON Web Tokens).
 Include the token in the `Authorization` header:
 `Authorization: Bearer YOUR_ACCESS_TOKEN`
 
@@ -79,6 +86,7 @@ Include the token in the `Authorization` header:
 FastAPI automatically handles schema validation errors and returns a `422 Unprocessable Entity` with a detailed breakdown of which fields failed.
 
 Custom application errors will follow this structure:
+
 ```json
 {
   "detail": "Descriptive error message",

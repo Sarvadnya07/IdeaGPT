@@ -40,12 +40,12 @@ There was **zero** legitimate HTML source code in the repository. The single bun
 
 The following non-source, generated, and dead files were removed from Git tracking:
 
-| File Path | Size | Reason for Removal |
-|:---|:---|:---|
-| `apps/web/playwright-report/index.html` | 532.08 KB | Generated test artifact |
-| `apps/api/scratch_test_output.txt` | 51.34 KB | Temporary test execution dump |
-| `apps/structure.txt` | 18.49 KB | Obsolete filesystem snapshot |
-| `apps/web/lib/utils/cn.ts` | 0 KB | Dead 0-byte orphan file |
+| File Path                               | Size      | Reason for Removal            |
+| :-------------------------------------- | :-------- | :---------------------------- |
+| `apps/web/playwright-report/index.html` | 532.08 KB | Generated test artifact       |
+| `apps/api/scratch_test_output.txt`      | 51.34 KB  | Temporary test execution dump |
+| `apps/structure.txt`                    | 18.49 KB  | Obsolete filesystem snapshot  |
+| `apps/web/lib/utils/cn.ts`              | 0 KB      | Dead 0-byte orphan file       |
 
 Total files removed: **4**  
 Total size reduction: **602.4 KB**
@@ -82,6 +82,7 @@ The root `.gitignore` was verified and confirmed to properly cover all build, te
 - `*.env*` (with whitelist for safe `.env.example` templates)
 
 Verification test:
+
 ```powershell
 git check-ignore -v apps/web/playwright-report/index.html
 # Result: .gitignore:96:playwright-report/ apps/web/playwright-report/index.html (PASS)
@@ -96,15 +97,15 @@ git ls-files apps/web/playwright-report/index.html
 
 Post-cleanup analysis of the top tracked files across the repository:
 
-| Path | Size (KB) | Type | Status |
-|:---|:---|:---|:---|
-| `pnpm-lock.yaml` | 290.72 | Monorepo Lockfile | Legitimate Dependency Truth |
-| `apps/api/openapi.json` | 125.60 | API Schema Spec | Legitimate API Contract |
-| `apps/api/app/ai/orchestrator/orchestrator.py` | 46.33 | Python Source | Legitimate Backend Core |
-| `apps/api/app/api/routes/ai_routes.py` | 29.41 | Python Source | Legitimate API Endpoints |
-| `apps/web/app/(dashboard)/ai-analysis/page.tsx` | 28.62 | TSX React Page | Legitimate Frontend UI |
-| `apps/api/app/services/architecture_service.py` | 27.19 | Python Source | Legitimate Service Logic |
-| `apps/api/tests/test_auth.py` | 25.47 | Pytest Suite | Legitimate Test Suite |
+| Path                                            | Size (KB) | Type              | Status                      |
+| :---------------------------------------------- | :-------- | :---------------- | :-------------------------- |
+| `pnpm-lock.yaml`                                | 290.72    | Monorepo Lockfile | Legitimate Dependency Truth |
+| `apps/api/openapi.json`                         | 125.60    | API Schema Spec   | Legitimate API Contract     |
+| `apps/api/app/ai/orchestrator/orchestrator.py`  | 46.33     | Python Source     | Legitimate Backend Core     |
+| `apps/api/app/api/routes/ai_routes.py`          | 29.41     | Python Source     | Legitimate API Endpoints    |
+| `apps/web/app/(dashboard)/ai-analysis/page.tsx` | 28.62     | TSX React Page    | Legitimate Frontend UI      |
+| `apps/api/app/services/architecture_service.py` | 27.19     | Python Source     | Legitimate Service Logic    |
+| `apps/api/tests/test_auth.py`                   | 25.47     | Pytest Suite      | Legitimate Test Suite       |
 
 No generated binaries, videos, zip archives, or uncompressed bundles are tracked.
 
@@ -122,26 +123,26 @@ No generated binaries, videos, zip archives, or uncompressed bundles are tracked
 
 ### Direct Source Code Byte Distribution (Excluding Docs & Lockfiles)
 
-| Language | Extension | Tracked Files | Total Bytes | % of Codebase |
-|:---|:---|:---|:---|:---|
-| **Python** | `.py` | 180 | 889,916 | **61.70%** |
-| **TypeScript / TSX** | `.ts`, `.tsx` | 129 | 545,801 | **37.84%** |
-| **CSS** | `.css` | 1 | 3,083 | **0.21%** |
-| **JavaScript** | `.js`, `.mjs` | 4 | 3,284 | **0.23%** |
-| **Mako** | `.mako` | 1 | 704 | **0.05%** |
-| **HTML** | `.html` | 0 | 0 | **0.00%** |
+| Language             | Extension     | Tracked Files | Total Bytes | % of Codebase |
+| :------------------- | :------------ | :------------ | :---------- | :------------ |
+| **Python**           | `.py`         | 180           | 889,916     | **61.70%**    |
+| **TypeScript / TSX** | `.ts`, `.tsx` | 129           | 545,801     | **37.84%**    |
+| **CSS**              | `.css`        | 1             | 3,083       | **0.21%**     |
+| **JavaScript**       | `.js`, `.mjs` | 4             | 3,284       | **0.23%**     |
+| **Mako**             | `.mako`       | 1             | 704         | **0.05%**     |
+| **HTML**             | `.html`       | 0             | 0           | **0.00%**     |
 
 ### Complete Repository Size Distribution (Including Markdown & Configurations)
 
-| Extension | Count | Total Bytes | % of Repository |
-|:---|:---|:---|:---|
-| `.py` | 180 | 889,916 | 42.16% |
-| `.tsx` | 82 | 488,560 | 23.15% |
-| `.yaml` | 2 | 297,793 | 14.11% |
-| `.md` | 57 | 210,801 | 9.99% |
-| `.json` | 17 | 136,771 | 6.48% |
-| `.ts` | 47 | 57,241 | 2.71% |
-| Other configs | 15 | 30,064 | 1.40% |
+| Extension     | Count | Total Bytes | % of Repository |
+| :------------ | :---- | :---------- | :-------------- |
+| `.py`         | 180   | 889,916     | 42.16%          |
+| `.tsx`        | 82    | 488,560     | 23.15%          |
+| `.yaml`       | 2     | 297,793     | 14.11%          |
+| `.md`         | 57    | 210,801     | 9.99%           |
+| `.json`       | 17    | 136,771     | 6.48%           |
+| `.ts`         | 47    | 57,241      | 2.71%           |
+| Other configs | 15    | 30,064      | 1.40%           |
 
 ---
 

@@ -1,12 +1,15 @@
-import React from 'react';
-import { Construction } from 'lucide-react';
+import React from "react";
+import { Construction } from "lucide-react";
 
 interface ComingSoonOverlayProps {
   title: string;
   description: string;
 }
 
-export function ComingSoonOverlay({ title, description }: ComingSoonOverlayProps) {
+export function ComingSoonOverlay({
+  title,
+  description,
+}: ComingSoonOverlayProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-in fade-in zoom-in duration-500">
       <div className="w-20 h-20 bg-indigo-500/10 border border-indigo-500/20 rounded-full flex items-center justify-center mb-6">

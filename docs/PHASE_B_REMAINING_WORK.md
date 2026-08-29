@@ -26,6 +26,7 @@
 With the universal AI gateway (Phase A/A.1) and evidence-grounded research layer (Phase B) established, the next product expansion is:
 
 ### Phase C Scope
+
 1. **Multi-Idea Comparative Strategy Lab**: Side-by-side evidence-backed analysis comparing two or more startup ideas.
 2. **Deep Reasoning Architecture**: Extended chain-of-thought evaluation for complex unit economics, defensibility moats, and regulatory compliance.
 3. **Structured PRD & Technical Roadmap Synthesis**: Generating evidence-grounded architecture breakdowns and execution roadmaps.

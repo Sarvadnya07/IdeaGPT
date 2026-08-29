@@ -50,7 +50,10 @@ export const useRoadmaps = (projectId: string | null) => {
   const createRoadmap = useMutation({
     mutationFn: async (data: RoadmapCreate) => {
       if (!projectId) throw new Error("No project ID specified");
-      const res = await api.post<Roadmap>(`/projects/${projectId}/roadmaps`, data);
+      const res = await api.post<Roadmap>(
+        `/projects/${projectId}/roadmaps`,
+        data,
+      );
       return res.data;
     },
     onSuccess: () => {
@@ -59,7 +62,13 @@ export const useRoadmaps = (projectId: string | null) => {
   });
 
   const updateRoadmap = useMutation({
-    mutationFn: async ({ roadmapId, data }: { roadmapId: string; data: RoadmapUpdate }) => {
+    mutationFn: async ({
+      roadmapId,
+      data,
+    }: {
+      roadmapId: string;
+      data: RoadmapUpdate;
+    }) => {
       const res = await api.patch<Roadmap>(`/roadmaps/${roadmapId}`, data);
       return res.data;
     },

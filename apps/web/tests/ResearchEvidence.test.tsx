@@ -46,7 +46,9 @@ describe("Phase B — Frontend Research & Evidence Components", () => {
     ];
 
     render(<CitationsDrawer citations={mockCitations} />);
-    expect(screen.getByText(/Verified Sources & Citations \(1\)/i)).toBeDefined();
+    expect(
+      screen.getByText(/Verified Sources & Citations \(1\)/i),
+    ).toBeDefined();
   });
 
   it("renders ResearchStatusBanner for active and fallback states", () => {
@@ -57,7 +59,9 @@ describe("Phase B — Frontend Research & Evidence Components", () => {
     expect(screen.getByText(/Research Provider Offline/i)).toBeDefined();
 
     rerender(<ResearchStatusBanner status="COMPLETED" sourceCount={4} />);
-    expect(screen.getByText(/Evidence-Grounded Analysis Active/i)).toBeDefined();
+    expect(
+      screen.getByText(/Evidence-Grounded Analysis Active/i),
+    ).toBeDefined();
     expect(screen.getByText(/4 Verified Sources Cited/i)).toBeDefined();
   });
 });

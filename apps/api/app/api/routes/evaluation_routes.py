@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_, func
 from typing import List, Annotated, Dict, Any, Optional
+from pydantic import BaseModel
 
 from app.db.session import get_db
 from app.models.user import User
@@ -194,12 +195,12 @@ async def get_project_comparisons(
 async def get_evaluation_export(
     request: Request,
     evaluation_id: str,
-    format: str = Query("json", pattern="^(json|markdown|md)$", description="Export format: json or markdown"),
+    format: str = Query("json", pattern="^(json|markdown|md|pdf|html)$", description="Export format: json, markdown, pdf, or html"),
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    RESTful GET export for evaluation payload as JSON or Markdown.
+    RESTful GET export for evaluation payload as JSON, Markdown, or PDF Printable HTML.
     """
     evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
     payload = evaluation.result_payload or {}
@@ -210,11 +211,36 @@ async def get_evaluation_export(
             "format": "markdown",
             "content": export_service.to_markdown(payload),
         }
+    elif format in ("pdf", "html"):
+        return {
+            "filename": f"evaluation_{evaluation_id}.pdf.html",
+            "format": "pdf",
+            "content": export_service.to_pdf_html(payload, project_title=f"Evaluation {evaluation_id[:8]}"),
+        }
     return {
         "filename": f"evaluation_{evaluation_id}.json",
         "format": "json",
         "content": export_service.to_json(payload),
     }
+
+
+class EvaluationDiffRequest(BaseModel):
+    evaluation_id_a: str
+    evaluation_id_b: str
+
+
+@router.post("/evaluations/diff", summary="Semantic version diffing between two evaluation reports")
+async def diff_evaluations(
+    payload: EvaluationDiffRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db)
+):
+    return await evaluation_service.diff_evaluations(
+        db=db,
+        evaluation_id_a=payload.evaluation_id_a,
+        evaluation_id_b=payload.evaluation_id_b,
+        user_id=current_user.id
+    )
 
 @router.post("/exports/json")
 @limiter.limit("20/minute")

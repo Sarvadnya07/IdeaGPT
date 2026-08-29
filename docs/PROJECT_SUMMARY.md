@@ -2,9 +2,10 @@
 
 ## 📌 What the Project Does
 
-**IdeaGPT** is an advanced reasoning and evaluation engine tailored for tech startups and software engineering teams. It allows users to input raw, unstructured startup ideas or feature concepts and automatically processes them to generate a comprehensive technical evaluation. 
+**IdeaGPT** is an advanced reasoning and evaluation engine tailored for tech startups and software engineering teams. It allows users to input raw, unstructured startup ideas or feature concepts and automatically processes them to generate a comprehensive technical evaluation.
 
 The platform acts as an automated "Virtual CTO", providing instant validation on:
+
 - Technical complexity and feasibility.
 - Targeted timelines and Time-to-Market (TTM) estimates.
 - Core risks (security, scalability, operational).

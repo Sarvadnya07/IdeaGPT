@@ -11,7 +11,7 @@ interface ErrorStateProps {
 export function ErrorState({
   title = "Something went wrong",
   message = "An unexpected error occurred. Please try again.",
-  onRetry
+  onRetry,
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center p-12 border border-red-900/30 rounded-2xl bg-red-950/10">
@@ -21,7 +21,11 @@ export function ErrorState({
         {message}
       </p>
       {onRetry && (
-        <Button onClick={onRetry} variant="outline" className="border-red-900 text-red-400 hover:bg-red-950">
+        <Button
+          onClick={onRetry}
+          variant="outline"
+          className="border-red-900 text-red-400 hover:bg-red-950"
+        >
           <RefreshCcw className="w-4 h-4 mr-2" />
           Retry
         </Button>

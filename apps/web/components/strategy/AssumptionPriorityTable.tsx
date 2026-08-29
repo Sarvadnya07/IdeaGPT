@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, ArrowUpRight, Flame, ShieldAlert, Sparkles, CheckCircle2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowUpRight,
+  Flame,
+  ShieldAlert,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 import { ProvenanceBadge } from "./ProvenanceBadge";
 
 export interface AssumptionItemUI {
@@ -23,11 +30,9 @@ interface AssumptionPriorityTableProps {
   className?: string;
 }
 
-export const AssumptionPriorityTable: React.FC<AssumptionPriorityTableProps> = ({
-  assumptions,
-  onAddToRoadmap,
-  className = "",
-}) => {
+export const AssumptionPriorityTable: React.FC<
+  AssumptionPriorityTableProps
+> = ({ assumptions, onAddToRoadmap, className = "" }) => {
   if (!assumptions || assumptions.length === 0) {
     return (
       <div className="text-xs text-slate-500 italic p-4 text-center border border-zinc-800 rounded-xl">
@@ -45,7 +50,8 @@ export const AssumptionPriorityTable: React.FC<AssumptionPriorityTableProps> = (
             Prioritized Assumptions & Validation Experiments
           </h4>
           <p className="text-xs text-zinc-400 mt-0.5">
-            Ranked by normalized formula: Priority = (Impact × Uncertainty) / Ease of Validation.
+            Ranked by normalized formula: Priority = (Impact × Uncertainty) /
+            Ease of Validation.
           </p>
         </div>
         <ProvenanceBadge type="DETERMINISTIC_CALCULATION" />
@@ -64,21 +70,32 @@ export const AssumptionPriorityTable: React.FC<AssumptionPriorityTableProps> = (
                     item.priority_tier === "CRITICAL"
                       ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
                       : item.priority_tier === "HIGH"
-                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                      : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                        : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                   }`}
                 >
-                  {item.priority_tier} PRIORITY ({item.priority_score.toFixed(1)} / 9.0)
+                  {item.priority_tier} PRIORITY (
+                  {item.priority_score.toFixed(1)} / 9.0)
                 </span>
-                <span className="text-xs font-mono text-zinc-400">#{item.classification}</span>
+                <span className="text-xs font-mono text-zinc-400">
+                  #{item.classification}
+                </span>
               </div>
 
               <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-                <span>Impact: <strong className="text-white">{item.impact}</strong></span>
+                <span>
+                  Impact: <strong className="text-white">{item.impact}</strong>
+                </span>
                 <span>•</span>
-                <span>Uncertainty: <strong className="text-white">{item.uncertainty}</strong></span>
+                <span>
+                  Uncertainty:{" "}
+                  <strong className="text-white">{item.uncertainty}</strong>
+                </span>
                 <span>•</span>
-                <span>Ease: <strong className="text-white">{item.validation_ease}</strong></span>
+                <span>
+                  Ease:{" "}
+                  <strong className="text-white">{item.validation_ease}</strong>
+                </span>
               </div>
             </div>
 
@@ -91,7 +108,9 @@ export const AssumptionPriorityTable: React.FC<AssumptionPriorityTableProps> = (
                 <span className="font-bold text-indigo-400 uppercase text-[10px] tracking-wider block">
                   Recommended Validation Experiment
                 </span>
-                <span className="text-zinc-300">{item.recommended_experiment}</span>
+                <span className="text-zinc-300">
+                  {item.recommended_experiment}
+                </span>
               </div>
 
               {onAddToRoadmap && (

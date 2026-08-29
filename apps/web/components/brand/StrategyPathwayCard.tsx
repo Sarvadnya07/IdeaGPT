@@ -1,6 +1,12 @@
 import React from "react";
 import { EvidenceBadge } from "./EvidenceBadge";
-import { ArrowRight, GitFork, ShieldAlert, Sparkles, Target } from "lucide-react";
+import {
+  ArrowRight,
+  GitFork,
+  ShieldAlert,
+  Sparkles,
+  Target,
+} from "lucide-react";
 
 export function StrategyPathwayCard({
   title = "Authentication Architecture Validation",
@@ -27,7 +33,9 @@ export function StrategyPathwayCard({
             <GitFork className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white tracking-tight">{title}</h4>
+            <h4 className="text-xs font-bold text-white tracking-tight">
+              {title}
+            </h4>
             <span className="text-[10px] text-zinc-400 font-mono">
               STRATEGY FLOW: IDEA → REASONING → DECISION
             </span>
@@ -63,7 +71,11 @@ export function StrategyPathwayCard({
           <div className="flex flex-wrap gap-1.5">
             <EvidenceBadge type="FACT" label="99.9% Auth Uptime" size="sm" />
             <EvidenceBadge type="ESTIMATE" label="~2 Days Setup" size="sm" />
-            <EvidenceBadge type="INFERENCE" label="Zero Token Leakage" size="sm" />
+            <EvidenceBadge
+              type="INFERENCE"
+              label="Zero Token Leakage"
+              size="sm"
+            />
           </div>
         </div>
 

@@ -7,7 +7,7 @@ tech stacks, system architectures, research dossiers, and strategy labs.
 import uuid
 from datetime import datetime
 from typing import Optional, Dict, Any
-from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, JSON
+from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, JSON, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -16,6 +16,9 @@ from app.db.base import Base
 
 class AIArtifact(Base):
     __tablename__ = "ai_artifacts"
+    __table_args__ = (
+        Index("idx_user_artifact_type", "user_id", "artifact_type", unique=False),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)

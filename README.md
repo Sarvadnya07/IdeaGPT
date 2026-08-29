@@ -42,16 +42,17 @@
 - **🔒 Enterprise-Grade Security:** Strict multi-tenant data isolation via PostgreSQL and secure JWT-based session management through Clerk.
 
 ### 🚧 Future Vision & Roadmap
+
 - **🤝 Extended Simulations:** AI Mentor, Recruiter Sim, GitHub Lab, and Strategy Lab (see [FUTURE_SCOPE.md](./FUTURE_SCOPE.md)).
 
 ---
 
 ## 📸 Screenshots & Demo
 
-*(Note: Replace placeholder links with actual demo screenshots when ready)*
+_(Note: Replace placeholder links with actual demo screenshots when ready)_
 
-| Dashboard Overview | Idea Analysis & Insights |
-| :---: | :---: |
+|                                                      Dashboard Overview                                                       |                                              Idea Analysis & Insights                                               |
+| :---------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
 | <img src="https://via.placeholder.com/600x350/0c0c0e/ffffff?text=Dashboard+Overview" alt="Dashboard Overview" width="100%" /> | <img src="https://via.placeholder.com/600x350/0c0c0e/ffffff?text=Idea+Analysis" alt="Idea Analysis" width="100%" /> |
 
 ---
@@ -59,6 +60,7 @@
 ## 🛠️ Tech Stack
 
 **Frontend Environment:**
+
 - **Framework:** Next.js 16+ (React 19, App Router, Turbopack)
 - **Language:** TypeScript
 - **Styling:** TailwindCSS, Framer Motion
@@ -66,6 +68,7 @@
 - **Authentication:** Clerk
 
 **Backend Environment:**
+
 - **Framework:** FastAPI
 - **Language:** Python 3.11+
 - **Database:** PostgreSQL (with Asyncpg & SQLAlchemy)
@@ -73,6 +76,7 @@
 - **Validation:** Pydantic
 
 **Infrastructure & Tooling:**
+
 - **Monorepo Management:** Turborepo
 - **Package Manager:** pnpm
 
@@ -87,6 +91,7 @@ IdeaGPT is structured as an enterprise-ready **Turborepo** monorepo, strictly se
 ## 🚀 Installation Guide
 
 ### Prerequisites
+
 - [Node.js (v18+)](https://nodejs.org/) & [pnpm (v9+)](https://pnpm.io/)
 - [Python (3.11+)](https://www.python.org/)
 - [PostgreSQL (v14+)](https://www.postgresql.org/)
@@ -94,23 +99,26 @@ IdeaGPT is structured as an enterprise-ready **Turborepo** monorepo, strictly se
 ### Step-by-Step Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/Sarvadnya07/IdeaGPT.git
    cd IdeaGPT
    ```
 
 2. **Install Workspace Dependencies**
+
    ```bash
    pnpm install
    ```
 
 3. **Backend Environment Setup**
+
    ```bash
    cd apps/api
    python -m venv venv
    # macOS/Linux: source venv/bin/activate
    # Windows: .\venv\Scripts\activate
-   
+
    pip install -r requirements.txt
    alembic upgrade head
    cd ../..
@@ -137,6 +145,7 @@ pnpm run dev
 Copy the provided example environment files and populate them with your credentials.
 
 **1. Frontend (`apps/web/.env.local`)**
+
 ```env
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
@@ -144,6 +153,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 **2. Backend (`apps/api/.env`)**
+
 ```env
 DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/ideagpt
 OPENAI_API_KEY=sk-...
@@ -199,7 +209,8 @@ The FastAPI backend is fully self-documenting. When running the API server, navi
 
 ## 🤝 Contributing Guidelines
 
-We welcome community contributions! 
+We welcome community contributions!
+
 1. Fork the project.
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).

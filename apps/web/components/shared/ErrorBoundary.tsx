@@ -32,9 +32,12 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
-          <h2 className="text-lg font-bold text-foreground mb-2">Something went wrong</h2>
+          <h2 className="text-lg font-bold text-foreground mb-2">
+            Something went wrong
+          </h2>
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
-            An unexpected error occurred in this component. Our team has been notified.
+            An unexpected error occurred in this component. Our team has been
+            notified.
           </p>
           <button
             className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"

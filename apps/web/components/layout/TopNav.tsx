@@ -50,9 +50,7 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-3">
-
-
-        <button 
+        <button
           onClick={() => toast.info("Notifications center coming soon")}
           className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
@@ -60,7 +58,7 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
         </button>
 
-        <button 
+        <button
           onClick={() => toast.info("Documentation center coming soon")}
           className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >

@@ -1,7 +1,19 @@
 import React from "react";
-import { Check, HelpCircle, Sparkles, TrendingUp, AlertTriangle } from "lucide-react";
+import {
+  Check,
+  HelpCircle,
+  Sparkles,
+  TrendingUp,
+  AlertTriangle,
+} from "lucide-react";
 
-export type EvidenceType = "FACT" | "ESTIMATE" | "INFERENCE" | "RECOMMENDATION" | "UNKNOWN" | "RISK";
+export type EvidenceType =
+  | "FACT"
+  | "ESTIMATE"
+  | "INFERENCE"
+  | "RECOMMENDATION"
+  | "UNKNOWN"
+  | "RISK";
 
 interface EvidenceBadgeProps {
   type: EvidenceType;

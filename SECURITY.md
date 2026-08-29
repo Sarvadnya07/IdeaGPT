@@ -33,6 +33,7 @@ If you discover a security vulnerability in IdeaGPT, please report it responsibl
 ### Scope
 
 The following are in scope:
+
 - Authentication and authorization bypasses
 - Injection vulnerabilities (SQL, command, template)
 - Sensitive data exposure

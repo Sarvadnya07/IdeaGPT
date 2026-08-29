@@ -9,7 +9,7 @@ export default [
       "test-results/**",
       "coverage/**",
       "dist/**",
-      "next-env.d.ts"
+      "next-env.d.ts",
     ],
   },
   {
@@ -20,13 +20,13 @@ export default [
         ecmaVersion: "latest",
         sourceType: "module",
         ecmaFeatures: {
-          jsx: true
-        }
-      }
+          jsx: true,
+        },
+      },
     },
     rules: {
       "no-unused-vars": "off",
       "no-console": "off",
-    }
-  }
+    },
+  },
 ];
