@@ -17,7 +17,7 @@ export function useApiClient() {
   const client = useMemo(() => {
     const instance = axios.create({
       baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
-      timeout: 10000,
+      timeout: 45000,
       headers: {
         "Content-Type": "application/json",
       },

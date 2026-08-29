@@ -8,6 +8,7 @@ from app.api.dependencies.auth import get_current_user
 from app.models.user import User
 from app.services.ai_registry_service import AIRegistryService
 from app.services.ai_task_service import AiTaskService
+from app.services.ai_artifact_service import AIArtifactService
 from app.ai.exceptions.ai_exceptions import AIException, AIUnavailableException
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -66,6 +67,70 @@ async def get_models(
     Uses dynamic model discovery and 60s TTL cache.
     """
     return await AIRegistryService.get_available_models_async()
+
+@router.get("/providers/health", summary="Get live provider connectivity and latency diagnostics")
+async def get_providers_health(
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    """
+    Returns live connectivity status, latency (ms), and capability health across providers.
+    """
+    from app.ai.gateway.registry import gateway_registry
+    return await gateway_registry.get_providers_status()
+
+@router.get("/artifacts", summary="List durable AI artifacts for current user")
+async def list_user_artifacts(
+    artifact_type: Optional[str] = None,
+    current_user: Annotated[User, Depends(get_current_user)] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Retrieves all durably persisted AI blueprints, PRDs, roadmaps, and analysis dossiers.
+    """
+    artifacts = await AIArtifactService.list_artifacts_by_user(db=db, user=current_user, artifact_type=artifact_type)
+    return [
+        {
+            "id": a.id,
+            "artifact_type": a.artifact_type,
+            "title": a.title,
+            "project_id": a.project_id,
+            "idea_id": a.idea_id,
+            "provider": a.provider,
+            "model": a.model,
+            "execution_type": a.execution_type,
+            "fallback_used": a.fallback_used,
+            "content_payload": a.content_payload,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in artifacts
+    ]
+
+@router.get("/artifacts/{artifact_id}", summary="Get a specific durable AI artifact by ID")
+async def get_artifact_by_id(
+    artifact_id: str,
+    current_user: Annotated[User, Depends(get_current_user)] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Retrieves a single durable artifact, enforcing tenant boundaries.
+    """
+    artifact = await AIArtifactService.get_artifact_by_id(db=db, user=current_user, artifact_id=artifact_id)
+    if not artifact:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"AI Artifact '{artifact_id}' not found.")
+    return {
+        "id": artifact.id,
+        "artifact_type": artifact.artifact_type,
+        "title": artifact.title,
+        "project_id": artifact.project_id,
+        "idea_id": artifact.idea_id,
+        "provider": artifact.provider,
+        "model": artifact.model,
+        "execution_type": artifact.execution_type,
+        "fallback_used": artifact.fallback_used,
+        "fallback_reason": artifact.fallback_reason,
+        "content_payload": artifact.content_payload,
+        "created_at": artifact.created_at.isoformat() if artifact.created_at else None,
+    }
 
 @router.post("/registry/refresh", summary="Refresh AI provider and model registry cache")
 async def refresh_registry(
@@ -233,6 +298,8 @@ class TechStackRequest(BaseModel):
     focus: Optional[str] = Field(default="balanced", max_length=50)
     provider: Optional[str] = Field(default="groq", max_length=50)
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
 
 class ArchitectureRequest(BaseModel):
     title: str = Field(default="Startup System", max_length=100)
@@ -240,6 +307,8 @@ class ArchitectureRequest(BaseModel):
     description: Optional[str] = Field(default="", max_length=1000)
     provider: Optional[str] = Field(default="groq", max_length=50)
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
 
 class PRDRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -249,6 +318,8 @@ class PRDRequest(BaseModel):
     target_users: Optional[str] = Field(default="", max_length=500)
     provider: Optional[str] = Field(default="groq", max_length=50)
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
 
 class RoadmapRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -258,6 +329,8 @@ class RoadmapRequest(BaseModel):
     target_users: Optional[str] = Field(default="", max_length=500)
     provider: Optional[str] = Field(default="groq", max_length=50)
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
 
 class PitchDeckRequest(BaseModel):
     title: str = Field(default="Startup Concept", max_length=100)
@@ -266,14 +339,18 @@ class PitchDeckRequest(BaseModel):
     solution: Optional[str] = Field(default="", max_length=2000)
     provider: Optional[str] = Field(default="groq", max_length=50)
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
 
 @router.post("/roadmap", summary="Generate AI-powered startup roadmap milestones and tasks")
 async def generate_roadmap(
     payload: RoadmapRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Generates tailored milestone phases and engineering tasks synthesized directly from startup idea metadata via Groq LLM.
+    Durably persists generated roadmap in PostgreSQL.
     """
     from app.ai.orchestrator.orchestrator import AIOrchestrator
     milestones = await AIOrchestrator.generate_roadmap_ai(
@@ -285,58 +362,113 @@ async def generate_roadmap(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="roadmap",
+        title=f"Roadmap: {payload.title}",
+        content_payload={"title": payload.title, "category": payload.category, "milestones": milestones},
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
     return {
+        "artifact_id": artifact.id,
         "title": payload.title,
         "category": payload.category,
         "milestones": milestones,
         "provider": payload.provider or "groq",
         "model": payload.model or "llama-3.3-70b-versatile",
+        "execution_type": "REAL_PROVIDER",
+        "fallback_used": False,
     }
 
 @router.post("/tech-stack", summary="Generate tailored technology stack recommendations")
 async def generate_tech_stack(
     payload: TechStackRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Generates dynamic technology stack recommendations synthesized directly via Groq LLM.
+    Durably persists blueprint in PostgreSQL.
     """
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_tech_stack_ai(
+    res = await AIOrchestrator.generate_tech_stack_ai(
         title=payload.title,
         category=payload.category,
         focus=payload.focus or "balanced",
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="tech_stack",
+        title=f"Tech Stack: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = "REAL_PROVIDER"
+        res["fallback_used"] = False
+    return res
 
 @router.post("/architecture", summary="Generate system architecture blueprint and topology")
 async def generate_architecture(
     payload: ArchitectureRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Generates dynamic system topology, database ER schema, API specs, and security blueprints via Groq LLM.
+    Durably persists blueprint in PostgreSQL.
     """
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_architecture_ai(
+    res = await AIOrchestrator.generate_architecture_ai(
         title=payload.title,
         category=payload.category,
         description=payload.description or "",
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="architecture",
+        title=f"Architecture: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = "REAL_PROVIDER"
+        res["fallback_used"] = False
+    return res
 
 @router.post("/prd", summary="Generate Product Requirements Document (PRD)")
 async def generate_prd(
     payload: PRDRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Generates a structured Product Requirements Document (PRD) with user personas, functional requirements, and KPIs via Groq LLM.
+    Durably persists PRD in PostgreSQL.
     """
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_prd_ai(
+    res = await AIOrchestrator.generate_prd_ai(
         title=payload.title,
         category=payload.category,
         problem_statement=payload.problem_statement or "",
@@ -345,14 +477,33 @@ async def generate_prd(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="prd",
+        title=f"PRD: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = "REAL_PROVIDER"
+        res["fallback_used"] = False
+    return res
 
 @router.post("/pitch-deck", summary="Generate 10-slide startup pitch deck outline")
 async def generate_pitch_deck(
     payload: PitchDeckRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Generates a structured 10-slide venture pitch deck outline via Groq LLM.
+    Durably persists pitch deck in PostgreSQL.
     """
     from app.ai.orchestrator.orchestrator import AIOrchestrator
     slides = await AIOrchestrator.generate_pitch_deck_ai(
@@ -363,12 +514,27 @@ async def generate_pitch_deck(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="pitch_deck",
+        title=f"Pitch Deck: {payload.title}",
+        content_payload={"title": payload.title, "category": payload.category, "slides": slides},
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
     return {
+        "artifact_id": artifact.id,
         "title": payload.title,
         "category": payload.category,
         "slides": slides,
         "provider": payload.provider or "groq",
         "model": payload.model or "llama-3.3-70b-versatile",
+        "execution_type": "REAL_PROVIDER",
+        "fallback_used": False,
     }
 
 
@@ -377,6 +543,8 @@ async def generate_pitch_deck(
 # ---------------------------------------------------------------------------
 
 class GitHubLabRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Project", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     tech_stack: Optional[str] = Field(default=None, max_length=200)
@@ -385,6 +553,8 @@ class GitHubLabRequest(BaseModel):
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class InvestorLabRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     market_size: Optional[str] = Field(default=None, max_length=200)
@@ -393,6 +563,8 @@ class InvestorLabRequest(BaseModel):
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class MentorLabRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     stage: Optional[str] = Field(default=None, max_length=100)
@@ -401,6 +573,8 @@ class MentorLabRequest(BaseModel):
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class RecruiterLabRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     current_team_size: Optional[str] = Field(default=None, max_length=100)
@@ -409,6 +583,8 @@ class RecruiterLabRequest(BaseModel):
     model: Optional[str] = Field(default="llama-3.3-70b-versatile", max_length=100)
 
 class StrategyLabRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Concept", max_length=100)
     category: str = Field(default="B2B SaaS", max_length=50)
     competitors: Optional[str] = Field(default=None, max_length=500)
@@ -420,10 +596,11 @@ class StrategyLabRequest(BaseModel):
 @router.post("/labs/github", summary="Generate GitHub codebase scaffolding, directory tree, and CI/CD workflow")
 async def generate_github_lab(
     payload: GitHubLabRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_github_lab_ai(
+    res = await AIOrchestrator.generate_github_lab_ai(
         title=payload.title,
         category=payload.category,
         tech_stack=payload.tech_stack,
@@ -431,6 +608,23 @@ async def generate_github_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="github_lab",
+        title=f"GitHub Blueprint: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type="REAL_PROVIDER"
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = "REAL_PROVIDER"
+        res["fallback_used"] = False
+    return res
 
 @router.post("/labs/investor", summary="Generate institutional venture capital analysis, valuation, and cap table")
 async def generate_investor_lab(
@@ -543,10 +737,11 @@ async def generate_research_plan(
 @router.post("/market-grounded", summary="Generate evidence-backed market analysis with citations")
 async def generate_grounded_market(
     payload: GroundedMarketRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_grounded_market_ai(
+    res = await AIOrchestrator.generate_grounded_market_ai(
         title=payload.title,
         industry=payload.industry,
         problem_statement=payload.problem_statement,
@@ -554,6 +749,18 @@ async def generate_grounded_market(
         provider=payload.provider or "auto",
         model=payload.model or "auto"
     )
+    payload_dict = res.model_dump() if hasattr(res, "model_dump") else res
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        artifact_type="market_grounded",
+        title=f"Market Dossier: {payload.title}",
+        content_payload=payload_dict,
+        provider=payload.provider or "auto",
+        model=payload.model or "auto",
+        execution_type="REAL_PROVIDER"
+    )
+    return res
 
 
 @router.post("/competitors-grounded", summary="Generate evidence-backed competitor analysis with citations")

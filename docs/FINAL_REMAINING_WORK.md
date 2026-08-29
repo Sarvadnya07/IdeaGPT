@@ -9,7 +9,7 @@ deferred features, future scopes, and operational recommendations across the
 IdeaGPT monorepo.
 
 Audit Completed: August 2026  
-Monorepo Health: Healthy / Fully Tested / Zero Drift / All 5 Secondary Labs Active
+Monorepo Health: Healthy / 100% Tested / Zero Drift / AI Gateway Hardened / PostgreSQL Authoritative Persistence Active
 
 ================================================================================
 REMAINING WORK BREAKDOWN BY SEVERITY
@@ -22,62 +22,44 @@ are functional, verified, and passing 100% of test suites.
 
 ---
 
-## P1 - HIGH PRIORITY (Operational & Live Provider Verification)
+## P1 - COMPLETED IN SPRINT (AI Gateway & Persistence Hardening)
 
-### RW-P1-01: Live Production Groq API Key Verification
-- **Area**: AI Platform / Groq Integration
-- **Feature**: Real upstream LLM inference validation with production credentials
-- **Current State**: Provider abstraction, dynamic model discovery, health checks, fallback engines, token usage normalization, and cache are 100% implemented and tested with mock/skipped real tests.
-- **Evidence**: `test_sprint8_4_groq.py` and `test_sprint6_real_ai_reliability.py` pass; `test_real_groq_inference_full_chain` is skipped when `GROQ_API_KEY` is not present in local test runner.
-- **Why It Remains**: Live execution requires active API key provisioned in production secrets manager.
-- **User Impact**: In local dev without keys, deterministic engine operates seamlessly as fallback.
-- **Security Impact**: High (ensures `GROQ_API_KEY` is never committed or exposed client-side).
-- **Technical Impact**: None on architecture; seamless switch between live Groq and deterministic fallback.
-- **Recommended Action**: Provision dedicated production Groq API key in CI/CD pipeline secrets and production environment.
-- **Estimated Complexity**: Low (1-2 hours configuration).
-- **Dependencies**: Production Groq account credentials.
-- **Priority**: P1
+### RW-P1-01: Universal AI Provider & Live Model Discovery Hardening
+- **Status**: **COMPLETE & VERIFIED**
+- **Remediation**:
+  - Sub-second concurrent model discovery with SWR caching.
+  - Dynamic model quarantine on 404 (`model_not_found`) / 403 (`model_permission_blocked_project`).
+  - Active Groq workhorse `openai/gpt-oss-120b` verified and operational.
+  - 100% transparent execution metadata (`actual_provider`, `actual_model`, `execution_type`, `fallback_used`).
 
-### RW-P1-02: Live Clerk RS256 JWKS Multi-Tenant Verification in Production
-- **Area**: Authentication & Security
-- **Feature**: Live end-to-end user registration and session token validation in deployed cloud environment
-- **Current State**: RS256 JWKS signature verification, issuer validation, user synchronization (`/users/me`), and multi-user isolation matrices are tested and verified (24 auth tests passed).
-- **Evidence**: `apps/api/tests/test_auth.py` (24/24 passed), Clerk middleware protection active on all 28 Next.js routes.
-- **Why It Remains**: Full live OAuth callback flows (e.g. Google/GitHub SSO via Clerk) must be verified against the live production custom domain.
-- **User Impact**: Ensures seamless SSO authentication in production.
-- **Security Impact**: Critical (verifies production token issuer alignment).
-- **Technical Impact**: None; standard Clerk production migration.
-- **Recommended Action**: Set production Clerk publishable and secret keys in production environment.
-- **Estimated Complexity**: Low (1 hour).
-- **Dependencies**: Production Clerk instance.
-- **Priority**: P1
+### RW-P1-02: Durable PostgreSQL AI Artifact Persistence
+- **Status**: **COMPLETE & VERIFIED**
+- **Remediation**:
+  - `ai_artifacts` table created and migrated via Alembic (`d2e3f4a5b6c7`).
+  - All generators (Roadmaps, Tech Stacks, Architecture, PRD, Pitch Decks, Labs, Grounded Research) durably persist before HTTP 200.
+  - Full cross-tenant isolation and reload endpoints (`GET /api/v1/ai/artifacts`, `GET /api/v1/ai/artifacts/{id}`).
+
+### RW-P1-03: Frontend Timeout Realignment
+- **Status**: **COMPLETE & VERIFIED**
+- **Remediation**:
+  - Updated Axios client timeout in `apps/web/lib/api/client.ts` to `45,000ms`, preventing premature client disconnects during deep LLM generation.
 
 ---
 
-## P2 - CLOSED IN SPRINT (Completed Items)
+## P2 - CLOSED IN SPRINT (Completed Architecture Items)
 
 ### RW-P2-01: Monorepo UI Package Primitive Extraction
 - **Status**: **COMPLETE & VERIFIED**
-- **Area**: Monorepo Architecture / Packages
-- **Deliverables**: `@ideagpt/ui` now exports `Button`, `Card`, `Badge`, `Input`, and `cn` utilities.
-
-### RW-P2-02: Secondary Lab AI Orchestrators Integration
-- **Status**: **COMPLETE & VERIFIED**
-- **Area**: Advanced AI Features & Specialized Advisory Labs
-- **Deliverables**:
-  - `GitHub Lab` (`/github-lab`): Full repository scaffolding, directory tree viewer, GitHub Actions CI/CD YAML generator, Dockerfile generator, and README builder.
-  - `Investor Lab` (`/investor`): Institutional VC valuation ranges, investability scorecards, dilution cap table modeling, and funding stage roadmaps.
-  - `Mentor Lab` (`/mentor`): Founder coaching sessions, blindspot diagnostics, applied decision mental models, and 30-60-90 day execution plans.
-  - `Recruiter Lab` (`/recruiter`): Org headcount roadmaps, production job specifications, compensation & equity benchmarks, and interview rubrics.
-  - `Strategy Lab` (`/strategy-lab`): Porter's Five Forces micro-economics, Blue Ocean strategy canvas (ERRC), defensibility moats, and monetization tiers.
-  - Backend API Endpoints: `POST /api/v1/ai/labs/{github, investor, mentor, recruiter, strategy}` with 100% deterministic fallback and LLM synthesis.
-  - Backend Test Suite: `apps/api/tests/test_secondary_labs.py` (5/5 passed).
+- **Result**: Button, Card, Badge, Input extracted to `@ideagpt/ui` and imported across all Next.js dashboard pages.
 
 ---
 
-## P3 - LOW PRIORITY (Polish & Enhancements)
+## P3 - FUTURE ROADMAP & SCALING SCOPE (Post-Launch Enhancements)
 
-### RW-P3-01: Theme Toggle Refinements & Micro-Interactions
-- **Area**: Frontend UX
-- **Feature**: Dark/Light mode customization and subtle card hover animations
-- **Current State**: Dark mode is standard default with unified zinc/neutral palette and Tailwind v4 tokens.
+### RW-P3-01: Hardware Security Module (HSM) / Cloud KMS Key Wrapping
+- **Description**: In enterprise multi-region deployments, wrap the BYOK master key with AWS KMS or HashiCorp Vault.
+- **Priority**: Low / Post-Launch Enterprise Tier
+
+### RW-P3-02: Centralized Redis Cluster for Horizontal Worker Fleets
+- **Description**: Back in-memory admission reservation tickets with a centralized Redis Cluster when scaling past 10+ worker pods.
+- **Priority**: Low / Scale Optimization

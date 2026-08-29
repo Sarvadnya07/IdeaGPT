@@ -1,15 +1,21 @@
 # IdeaGPT Production Feature Truth Matrix
 
-**Last Audit**: Phase C Deep Reasoning & Decision Intelligence Release  
+**Last Audit**: Universal AI Provider Usage, Free-Tier Coverage, Persistence & Runtime Truth Release  
 **Status**: Authoritative & Evidence-Backed  
 
 | Component / Feature | Tier / Type | Implementation State | Verification Method |
 | :--- | :--- | :--- | :--- |
-| **Universal AI Gateway v1** | Gateway Architecture | **VERIFIED & OPERATIONAL** | 20 Gateway Unit & Integration Tests |
-| **Capability Router** | Multi-factor Routing | **VERIFIED & OPERATIONAL** | Deterministic Scoring & AUTO/Explicit Routing Tests |
-| **Groq / Gemini / OpenAI / Ollama** | Provider Adapters | **VERIFIED & OPERATIONAL** | Dynamic Model Discovery & Structured Output Tests |
-| **Tavily Research Provider** | Web Research | **VERIFIED & OPERATIONAL** | Citation Extraction & Source Normalization Tests |
-| **BYOK Credential Vault** | Security & Privacy | **VERIFIED & OPERATIONAL** | AES-GCM-256 Encryption & Tenant Isolation Tests |
+| **Universal AI Gateway v1** | Gateway Architecture | **VERIFIED & OPERATIONAL** | 220 Backend Tests & Fast Discovery Benchmark |
+| **Capability Router & Allowlist** | Multi-factor Routing | **VERIFIED & OPERATIONAL** | Deterministic Allowlist & Model Capability Tests |
+| **Model Quarantine State Machine** | Resilience | **VERIFIED & OPERATIONAL** | 404/403 Instant Model Eviction Tests |
+| **Durable AI Artifact Persistence** | PostgreSQL Storage | **VERIFIED & OPERATIONAL** | `ai_artifacts` table migration & Tenant Isolation Tests |
+| **Groq LPU Provider** | Free / Dev Tier Inference | **VERIFIED & OPERATIONAL** | `openai/gpt-oss-120b` live inference & test coverage |
+| **Tavily Research Provider** | Web Research | **VERIFIED & OPERATIONAL** | Citation Extraction & SSRF Defense Tests |
+| **BYOK Credential Vault** | Security & Privacy | **VERIFIED & OPERATIONAL** | Fernet Symmetric Encryption & Tenant Isolation Tests |
+| **SSRF Defense Layer** | Security Boundary | **VERIFIED & OPERATIONAL** | Loopback, RFC1918 & Cloud Metadata Blocking Tests |
+| **FinOps Cost & Admission Control** | Budget Guardrails | **VERIFIED & OPERATIONAL** | Token-Aware Admission & Cost Ceilings Tests |
+| **Circuit Breaker & Bulkheads** | Resilience | **VERIFIED & OPERATIONAL** | Tripping, Cooldown, and Concurrency Tests |
+| **Content Sanitization** | XSS Defense | **VERIFIED & OPERATIONAL** | Markdown / HTML Tag & Event Stripping Tests |
 | **Phase B Evidence Layer** | Grounded Research | **VERIFIED & OPERATIONAL** | 12 Grounded Research & Mira Benchmark Tests |
 | **Phase C Deep Reasoning** | Decision Intelligence | **VERIFIED & OPERATIONAL** | 11 Reasoning, Contradiction & Metamorphic Tests |
 | **Assumption Priority Engine** | Decision Science | **VERIFIED & OPERATIONAL** | Discrete Normalized Formula Math Tests |
@@ -20,6 +26,5 @@
 | **Strategy Lab Workspace** (`/strategy-lab`) | Core UI | **VERIFIED & OPERATIONAL** | 5 Vitest Component Tests & Playwright E2E |
 | **Multi-Idea Compare** (`/compare`) | Core UI | **VERIFIED & OPERATIONAL** | Playwright Route & Form Testing |
 | **Clerk Authentication** | Identity | **VERIFIED & OPERATIONAL** | RS256 JWKS & Playwright Protected Route Tests |
-| **Shared Design System** (`@ideagpt/ui`) | Monorepo Packages | **VERIFIED & OPERATIONAL** | Exported Button, Card, Badge, Input Primitives |
 | **Deterministic Engine** | Core Evaluation | **VERIFIED & OPERATIONAL** | 100% Deterministic Fallback Coverage |
-| **Full Backend Regression** | Reliability | **VERIFIED & OPERATIONAL** | 191 Passed, 4 Skipped, 0 Failures |
+| **Full Backend Regression** | Reliability | **VERIFIED & OPERATIONAL** | 220 Passed, 4 Skipped, 0 Failures |

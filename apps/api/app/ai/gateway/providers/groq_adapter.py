@@ -211,9 +211,11 @@ class GroqProviderAdapter(BaseProviderAdapter):
         else:
             messages.append({"role": "user", "content": request.prompt})
 
-        target_model = request.model_override or "llama-3.3-70b-versatile"
+        from app.ai.gateway.registry import gateway_registry
+
+        target_model = request.model_override or "openai/gpt-oss-120b"
         if target_model in ("auto", "default", None):
-            target_model = "llama-3.3-70b-versatile"
+            target_model = "openai/gpt-oss-120b"
 
         kwargs: Dict[str, Any] = {
             "messages": messages,
@@ -227,15 +229,18 @@ class GroqProviderAdapter(BaseProviderAdapter):
         candidate_models = [
             target_model,
             "openai/gpt-oss-120b",
-            "qwen/qwen3.8-27b",
-            "openai/gpt-oss-20b",
+            "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
+            "openai/gpt-oss-20b",
         ]
-        # Deduplicate while preserving order
+        # Filter out quarantined models and deduplicate
         unique_candidates = []
         for c in candidate_models:
-            if c not in unique_candidates:
+            if c not in unique_candidates and not gateway_registry.is_quarantined(c):
                 unique_candidates.append(c)
+
+        if not unique_candidates:
+            unique_candidates = ["openai/gpt-oss-120b", "llama-3.1-8b-instant"]
 
         last_exc = None
         start_time = time.time()
@@ -283,6 +288,11 @@ class GroqProviderAdapter(BaseProviderAdapter):
                     raise AIAuthenticationException("Invalid Groq API key.")
                 if "rate_limit" in err_str or "429" in err_str:
                     raise AIRateLimitException("Groq rate limit exceeded.")
+
+                # Quarantine models that return 404 (not found) or 403 (blocked at project level)
+                if "model_not_found" in err_str or "404" in err_str or "model_permission_blocked_project" in err_str or "403" in err_str:
+                    gateway_registry.quarantine_model(model_name, duration_sec=300.0, reason=str(exc))
+
                 logger.warning(f"Groq candidate '{model_name}' failed: {exc}. Trying next candidate...")
 
         duration_ms = int((time.time() - start_time) * 1000)
