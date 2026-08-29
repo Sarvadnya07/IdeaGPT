@@ -16,8 +16,14 @@ import {
   Lock,
   ArrowRight,
   CheckCircle2,
+  DollarSign,
+  Boxes,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { MermaidViewer } from "@/components/execution/MermaidViewer";
+import { CloudCostEstimator } from "@/components/execution/CloudCostEstimator";
 
 interface ArchitectureBlueprintResponse {
   title: string;
@@ -48,34 +54,42 @@ export default function ArchitecturePage() {
     "llama-3.3-70b-versatile",
   );
   const [activeTab, setActiveTab] = useState<
-    "topology" | "apis" | "database" | "security"
+    "topology" | "apis" | "database" | "security" | "cloud_costs"
   >("topology");
   const [blueprint, setBlueprint] =
     useState<ArchitectureBlueprintResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [customTopologyFocus, setCustomTopologyFocus] = useState<string>("");
 
   const activeProjectId =
     selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const fetchBlueprint = async (
-    title: string,
-    category: string,
-    desc: string,
+    title?: string,
+    category?: string,
+    desc?: string,
+    customFocus?: string,
   ) => {
     setIsLoading(true);
     try {
+      const projTitle = title || activeProject?.title || "Startup Concept";
+      const projCategory = category || activeProject?.category || "B2B SaaS";
+      const baseDesc = desc || activeProject?.description || "Cloud-native scalable AI co-founder architecture.";
+      const finalDesc = customFocus ? `${baseDesc}. Focus: ${customFocus}` : baseDesc;
+
       const res = await api.post<ArchitectureBlueprintResponse>(
         "/ai/architecture",
         {
-          title: title || "Startup Concept",
-          category: category || "B2B SaaS",
-          description: desc || "",
+          title: projTitle,
+          category: projCategory,
+          description: finalDesc,
           provider: "groq",
           model: selectedModel,
         },
       );
       setBlueprint(res.data);
+      toast.success("Architecture Blueprint synthesized with AI!");
     } catch (err) {
       console.error("Failed to load blueprint:", err);
       toast.error("Failed to generate architecture blueprint.");
@@ -100,41 +114,44 @@ export default function ArchitecturePage() {
     }
   }, [activeProjectId]);
 
+  const handleRegenerate = () => {
+    fetchBlueprint(
+      activeProject?.title || "Startup Concept",
+      activeProject?.category || "B2B SaaS",
+      activeProject?.description || "",
+      customTopologyFocus,
+    );
+  };
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-10 space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-neutral-800 pb-6">
         <div>
           <div className="flex items-center gap-2 text-indigo-400 font-medium text-sm mb-1">
-            <Network className="w-4 h-4" />
-            <span>Cloud & System Blueprint Engine</span>
+            <Boxes className="w-4 h-4" />
+            <span>Blueprint Studio &amp; Systems Engineering</span>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
-            Architecture Blueprints
+            Blueprint Studio
           </h1>
           <p className="text-neutral-400 text-sm mt-1">
-            System topology, API specifications, relational entity models, and
-            security boundary designs.
+            System topology, interactive Mermaid diagrams, REST API specs, database entity schemas, and multi-cloud FinOps.
           </p>
         </div>
 
-        {/* Project Selector & AI Model */}
+        {/* Project Selector & AI Actions */}
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={selectedModel}
-            onChange={(e) => {
-              setSelectedModel(e.target.value);
-              if (activeProject)
-                fetchBlueprint(
-                  activeProject.title,
-                  activeProject.category || "B2B SaaS",
-                  activeProject.description || "",
-                );
-            }}
+            onChange={(e) => setSelectedModel(e.target.value)}
             className="bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
           >
             <option value="llama-3.3-70b-versatile">
-              Llama 3.3 70B Versatile (Groq)
+              Llama 3.3 70B (Groq Fast)
+            </option>
+            <option value="llama-3.1-8b-instant">
+              Llama 3.1 8B Instant (Ultra Fast)
             </option>
             <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Groq)</option>
             <option value="openai/gpt-oss-20b">GPT-OSS 20B (Groq)</option>
@@ -160,14 +177,56 @@ export default function ArchitecturePage() {
               </select>
             </div>
           )}
+
+          {/* AI REGENERATE BUTTON */}
+          <Button
+            onClick={handleRegenerate}
+            disabled={isLoading}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-lg shadow-indigo-950/50"
+          >
+            {isLoading ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>{isLoading ? "Regenerating..." : "Regenerate Blueprint with AI"}</span>
+          </Button>
         </div>
+      </div>
+
+      {/* Refinement Prompt Bar */}
+      <div className="bg-neutral-900/70 border border-neutral-800 rounded-xl p-3 flex flex-col sm:flex-row items-center gap-3">
+        <div className="text-xs font-medium text-neutral-400 shrink-0 flex items-center gap-1.5 pl-2">
+          <Zap className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Architecture Focus:</span>
+        </div>
+        <input
+          type="text"
+          value={customTopologyFocus}
+          onChange={(e) => setCustomTopologyFocus(e.target.value)}
+          placeholder="e.g. Microservices vs Modular Monolith, AWS ECS Fargate, pgvector embeddings..."
+          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-neutral-500 focus:outline-none focus:border-indigo-500"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleRegenerate();
+          }}
+        />
+        <Button
+          onClick={handleRegenerate}
+          disabled={isLoading}
+          size="sm"
+          variant="secondary"
+          className="shrink-0 text-xs h-8 bg-neutral-800 hover:bg-neutral-700 text-white"
+        >
+          Re-architect
+        </Button>
       </div>
 
       {/* Main Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-24 text-neutral-400 gap-3">
-          <RefreshCw className="w-5 h-5 animate-spin text-indigo-400" />
-          <span>Synthesizing system architecture blueprints...</span>
+        <div className="flex flex-col items-center justify-center py-24 text-neutral-400 gap-3">
+          <RefreshCw className="w-6 h-6 animate-spin text-indigo-400" />
+          <span className="text-sm font-medium">Synthesizing System Architecture Blueprint with AI Gateway...</span>
+          <span className="text-xs text-neutral-500">Generating Mermaid data flow, database schemas, and REST endpoints</span>
         </div>
       ) : !blueprint ? (
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-12 text-center max-w-lg mx-auto my-12 space-y-4">
@@ -176,18 +235,26 @@ export default function ArchitecturePage() {
             No Architecture Blueprint Available
           </h3>
           <p className="text-xs text-neutral-400">
-            Select a project to generate system architecture models.
+            Click &quot;Regenerate Blueprint with AI&quot; to synthesize system architecture models.
           </p>
+          <Button
+            onClick={handleRegenerate}
+            className="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white"
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-2" />
+            Synthesize Blueprint Now
+          </Button>
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-300">
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 border-b border-neutral-800 pb-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-neutral-800 pb-2">
             {[
-              { id: "topology", label: "System Topology", icon: Server },
+              { id: "topology", label: "System Topology & Diagram", icon: Server },
               { id: "apis", label: "API Endpoints", icon: Code2 },
               { id: "database", label: "Database Entities", icon: Database },
               { id: "security", label: "Security & Isolation", icon: Shield },
+              { id: "cloud_costs", label: "Cloud Cost Estimator", icon: DollarSign },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -208,34 +275,31 @@ export default function ArchitecturePage() {
             })}
           </div>
 
-          {/* TAB 1: System Topology */}
+          {/* TAB 1: System Topology & Live Mermaid Diagram */}
           {activeTab === "topology" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Object.entries(blueprint.topology).map(([layerKey, val]) => (
+              {/* Topology Layers Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(blueprint.topology || {}).map(([layerKey, val]) => (
                   <div
                     key={layerKey}
-                    className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-2"
+                    className="bg-neutral-900/80 border border-neutral-800 rounded-xl p-4 space-y-1.5"
                   >
                     <span className="text-[10px] font-mono uppercase text-indigo-400 font-bold tracking-wider">
-                      {layerKey.replace("_", " ")}
+                      {layerKey.replace(/_/g, " ")}
                     </span>
-                    <div className="font-semibold text-sm text-white">
+                    <div className="font-semibold text-xs text-white">
                       {val}
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Mermaid Diagram Container */}
-              <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4">
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider text-indigo-400">
-                  Architectural Data Flow
-                </h3>
-                <pre className="bg-neutral-950 border border-neutral-800/80 p-5 rounded-xl text-xs font-mono text-neutral-300 overflow-x-auto leading-relaxed">
-                  {blueprint.mermaid_diagram}
-                </pre>
-              </div>
+              {/* Live Interactive Mermaid Diagram Component */}
+              <MermaidViewer
+                chart={blueprint.mermaid_diagram || "graph TD; Client-->APIGateway; APIGateway-->Database;"}
+                title={`${blueprint.title || "System"} Architectural Data Flow`}
+              />
             </div>
           )}
 
@@ -255,7 +319,7 @@ export default function ArchitecturePage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800/60 font-mono">
-                  {blueprint.api_endpoints.map((ep, idx) => (
+                  {(blueprint.api_endpoints || []).map((ep, idx) => (
                     <tr key={idx} className="hover:bg-neutral-800/30">
                       <td className="py-3 px-4">
                         <span
@@ -288,7 +352,7 @@ export default function ArchitecturePage() {
           {/* TAB 3: Database Entity Models */}
           {activeTab === "database" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blueprint.database_entities.map((tbl, i) => (
+              {(blueprint.database_entities || []).map((tbl, i) => (
                 <div
                   key={i}
                   className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 space-y-3"
@@ -307,7 +371,7 @@ export default function ArchitecturePage() {
                       Columns:
                     </span>
                     <ul className="space-y-0.5 text-xs font-mono text-neutral-300">
-                      {tbl.columns.map((col, cIdx) => (
+                      {(tbl.columns || []).map((col, cIdx) => (
                         <li key={cIdx} className="text-neutral-400 text-[11px]">
                           • {col}
                         </li>
@@ -324,11 +388,11 @@ export default function ArchitecturePage() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4">
               <h3 className="text-base font-bold text-white border-b border-neutral-800 pb-3 flex items-center gap-2">
                 <Lock className="w-4 h-4 text-cyan-400" />
-                <span>Security Controls & Multi-Tenant Boundary</span>
+                <span>Security Controls &amp; Multi-Tenant Boundary</span>
               </h3>
 
               <div className="space-y-3 pt-2">
-                {blueprint.security_specifications.map((sec, i) => (
+                {(blueprint.security_specifications || []).map((sec, i) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 bg-neutral-950 border border-neutral-800/80 p-3.5 rounded-xl"
@@ -340,6 +404,13 @@ export default function ArchitecturePage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB 5: Cloud Cost Estimator */}
+          {activeTab === "cloud_costs" && (
+            <div className="space-y-6">
+              <CloudCostEstimator />
             </div>
           )}
         </div>
