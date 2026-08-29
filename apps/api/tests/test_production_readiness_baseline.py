@@ -181,3 +181,47 @@ async def test_phase51_production_configuration_safety():
     )
     # Should not raise
     prod_valid.validate_production_config()
+
+
+@pytest.mark.anyio
+async def test_database_url_normalization_matrix():
+    """Verify Phase 15 Database URL normalization matrix across async app and sync alembic."""
+    from app.core.config import Settings
+
+    # CASE A: postgresql+asyncpg:// -> preserved for app
+    s_a = Settings(DATABASE_URL="postgresql+asyncpg://user:pass@localhost:5432/db")
+    assert s_a.async_database_url.startswith("postgresql+asyncpg://")
+    assert s_a.sync_database_url.startswith("postgresql+psycopg2://")
+
+    # CASE B: plain postgresql:// -> normalized to asyncpg for app, psycopg2 for sync
+    s_b = Settings(DATABASE_URL="postgresql://user:pass@aws-0.pooler.supabase.com:5432/postgres?sslmode=require")
+    assert s_b.async_database_url.startswith("postgresql+asyncpg://")
+    assert "sslmode=require" in s_b.async_database_url
+    assert s_b.sync_database_url.startswith("postgresql+psycopg2://")
+    assert "sslmode=require" in s_b.sync_database_url
+
+    # CASE C: postgresql+psycopg2:// -> converted to asyncpg for app
+    s_c = Settings(DATABASE_URL="postgresql+psycopg2://user:pass@localhost:5432/db")
+    assert s_c.async_database_url.startswith("postgresql+asyncpg://")
+    assert s_c.sync_database_url.startswith("postgresql+psycopg2://")
+
+    # CASE D: sqlite in development -> accepted
+    s_d = Settings(APP_ENV="development", DATABASE_URL="sqlite+aiosqlite:///./ideagpt.db")
+    assert s_d.async_database_url.startswith("sqlite+aiosqlite://")
+    assert s_d.sync_database_url.startswith("sqlite://")
+
+    # CASE E: sqlite in production -> rejected by validate_production_config
+    s_e = Settings(
+        APP_ENV="production",
+        DATABASE_URL="sqlite+aiosqlite:///./ideagpt.db",
+        CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
+        CLERK_JWT_TEST_SECRET=None,
+    )
+    with pytest.raises(RuntimeError, match="SQLite DATABASE_URL cannot be used in production"):
+        s_e.validate_production_config()
+
+    # CASE F: URL with percent-encoded special characters
+    s_f = Settings(DATABASE_URL="postgresql://postgres.user:pass%40123@aws-0.supabase.com:5432/postgres")
+    assert s_f.async_database_url.startswith("postgresql+asyncpg://")
+    assert "%40" in s_f.async_database_url
+    assert s_f.sync_database_url.startswith("postgresql+psycopg2://")

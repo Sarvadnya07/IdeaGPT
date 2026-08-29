@@ -132,6 +132,41 @@ class Settings(BaseSettings):
         """Parse the comma-separated CORS_ORIGINS into a list."""
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
+    @property
+    def async_database_url(self) -> str:
+        """
+        Normalize DATABASE_URL for SQLAlchemy async engine (asyncpg or aiosqlite).
+        Standard postgresql:// or postgresql+psycopg2:// URLs are safely normalized to postgresql+asyncpg://.
+        """
+        raw = self.DATABASE_URL or "sqlite+aiosqlite:///./ideagpt.db"
+        try:
+            from sqlalchemy.engine import make_url
+            u = make_url(raw)
+            if u.drivername in ("postgresql", "postgres", "postgresql+psycopg2"):
+                u = u.set(drivername="postgresql+asyncpg")
+            elif u.drivername == "sqlite":
+                u = u.set(drivername="sqlite+aiosqlite")
+            return u.render_as_string(hide_password=False)
+        except Exception:
+            return raw
+
+    @property
+    def sync_database_url(self) -> str:
+        """
+        Normalize DATABASE_URL for synchronous tools such as Alembic (psycopg2 or sqlite).
+        """
+        raw = self.DATABASE_URL or "sqlite:///./ideagpt.db"
+        try:
+            from sqlalchemy.engine import make_url
+            u = make_url(raw)
+            if u.drivername in ("postgresql+asyncpg", "postgres", "postgresql"):
+                u = u.set(drivername="postgresql+psycopg2")
+            elif u.drivername == "sqlite+aiosqlite":
+                u = u.set(drivername="sqlite")
+            return u.render_as_string(hide_password=False)
+        except Exception:
+            return raw
+
     def validate_production_config(self):
         """
         Validates critical configuration parameters when running in production mode.
@@ -144,7 +179,7 @@ class Settings(BaseSettings):
                 raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CLERK_JWT_TEST_SECRET must NOT be set in production.")
             if "*" in self.cors_origins_list:
                 raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CORS_ORIGINS cannot contain wildcard '*' in production.")
-            if "sqlite" in (self.DATABASE_URL or ""):
+            if "sqlite" in (self.async_database_url or ""):
                 raise RuntimeError("PRODUCTION CONFIG ERROR: SQLite DATABASE_URL cannot be used in production. PostgreSQL is required.")
 
     def get_config_status(self) -> dict[str, str]:
@@ -153,6 +188,7 @@ class Settings(BaseSettings):
         """
         return {
             "APP_ENV": self.APP_ENV,
+            "DATABASE_DRIVER": "asyncpg" if "asyncpg" in self.async_database_url else ("aiosqlite" if "sqlite" in self.async_database_url else "other"),
             "CLERK_PUBLISHABLE_KEY": "configured" if self.CLERK_PUBLISHABLE_KEY else "missing",
             "CLERK_JWT_ISSUER": "explicitly_configured" if self.CLERK_JWT_ISSUER else ("derived" if self.clerk_issuer else "missing"),
             "CLERK_SECRET_KEY": "configured" if self.CLERK_SECRET_KEY else "absent",

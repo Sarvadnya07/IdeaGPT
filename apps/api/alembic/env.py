@@ -22,8 +22,10 @@ from app.core.config import settings
 # access to the values within the .ini file in use.
 config = context.config
 
-# Overwrite sqlalchemy.url with our settings URL (asyncpg -> psycopg2 for sync migrations if needed, but alembic can handle asyncpg with proper setup. We will let it use the env DB URL)
-config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL).replace("asyncpg", "psycopg2"))
+# Overwrite sqlalchemy.url with our settings URL (sync psycopg2 for migrations).
+# We escape '%' as '%%' to prevent configparser interpolation errors with percent-encoded passwords.
+raw_db_url = str(settings.sync_database_url or "").replace("%", "%%")
+config.set_main_option("sqlalchemy.url", raw_db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

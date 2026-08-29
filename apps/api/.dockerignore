@@ -1,0 +1,40 @@
+﻿# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python cache & compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Local databases & logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Node / frontend / IDE artifacts
+node_modules/
+.turbo/
+.next/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.vscode/
+.idea/
+.DS_Store

@@ -10,7 +10,9 @@ _engine_kwargs = {
     "pool_pre_ping": True,
 }
 
-if settings.DATABASE_URL and ("postgresql" in settings.DATABASE_URL or "asyncpg" in settings.DATABASE_URL):
+db_url = settings.async_database_url
+
+if "postgresql" in db_url or "asyncpg" in db_url:
     _engine_kwargs.update({
         "pool_size": 20,
         "max_overflow": 10,
@@ -19,7 +21,7 @@ if settings.DATABASE_URL and ("postgresql" in settings.DATABASE_URL or "asyncpg"
     })
 
 engine = create_async_engine(
-    settings.DATABASE_URL or "sqlite+aiosqlite:///./ideagpt.db",
+    db_url,
     **_engine_kwargs,
 )
 
