@@ -240,13 +240,13 @@ class GroqProvider(AIProvider):
             if m.get("available") and m.get("category") == "CHAT" and m.get("supports_structured_output", True)
         ]
 
-        # Prioritize production-ready versatile & fast models (favoring Llama 3.3 70B & Llama 3.1 8B)
+        # Prioritize production-ready versatile & fast models (favoring universally available Llama 3.1 8B & Llama 3.3)
         for fallback in [
-            "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile",
+            "mixtral-8x7b-32768",
             "llama-3.3-70b-specdec",
             "qwen/qwen3.8-27b",
-            "mixtral-8x7b-32768",
             "openai/gpt-oss-120b",
         ]:
             if fallback in active_chat_models and fallback not in candidate_models:
@@ -256,7 +256,7 @@ class GroqProvider(AIProvider):
                 candidate_models.append(m)
 
         # Baseline fallback candidate list in case dynamic discovery returned empty or restricted models
-        for baseline in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "qwen/qwen3.8-27b", "mixtral-8x7b-32768"]:
+        for baseline in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "qwen/qwen3.8-27b"]:
             if baseline not in candidate_models:
                 candidate_models.append(baseline)
 

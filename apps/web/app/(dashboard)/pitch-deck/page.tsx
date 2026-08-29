@@ -77,6 +77,7 @@ export default function PitchDeckPage() {
         problem: prob,
         solution:
           "Automated AI co-founder validating startup concepts and scoping architectures with deterministic unit economics.",
+        project_id: activeProjectId || undefined,
         provider: "groq",
         model: selectedModel,
       });

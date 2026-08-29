@@ -96,6 +96,7 @@ export default function PRDGeneratorPage() {
         solution_description:
           "Automated AI co-founder for technical architecture scoping, decision modeling, and execution.",
         target_users: "Startup Founders, Product Managers, Engineers, Investors",
+        project_id: activeProjectId || undefined,
         provider: "groq",
         model: selectedModel,
       });

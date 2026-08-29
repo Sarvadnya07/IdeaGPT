@@ -84,6 +84,7 @@ export default function ArchitecturePage() {
           title: projTitle,
           category: projCategory,
           description: finalDesc,
+          project_id: activeProjectId || undefined,
           provider: "groq",
           model: selectedModel,
         },

@@ -69,6 +69,7 @@ export default function TechStackPage() {
         title: projTitle || activeProject?.title || "Startup Concept",
         category: projCategory || activeProject?.category || "B2B SaaS",
         focus: focusVal || focus,
+        project_id: activeProjectId || undefined,
         provider: "groq",
         model: selectedModel,
       });
