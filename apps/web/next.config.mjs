@@ -16,6 +16,8 @@ const scriptSrc = [
   "https://challenges.cloudflare.com",
 ].join(" ");
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 const connectSrc = [
   "'self'",
   "http://localhost:8000",
@@ -29,9 +31,14 @@ const connectSrc = [
   "https://clerk-telemetry.com",
   "https://*.clerk-telemetry.com",
   "wss://*.clerk.accounts.dev",
+  "https://*.ideagpt.com",
+  "https://*.ideagpt.dev",
+  "https://*.vercel.app",
+  ...(apiUrl ? [apiUrl] : []),
 ].join(" ");
 
 const nextConfig = {
+  output: process.env.BUILD_STANDALONE === "true" || process.env.DOCKER_BUILD === "true" ? "standalone" : undefined,
   async headers() {
     return [
       {
