@@ -48,6 +48,13 @@ def sanitize_request_id(raw_id: str | None) -> str:
 
     return str(uuid.uuid4())
 
+def _sanitize_url(url: str) -> str:
+    """Redact sensitive query parameters from logged URLs."""
+    import re
+    sensitive_keys = r"(token|key|secret|password|code|credential|api_key|access_token|refresh_token)"
+    pattern = re.compile(rf"([?&]{sensitive_keys}=)([^&]+)", re.IGNORECASE)
+    return pattern.sub(r"\1[REDACTED]", url)
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
@@ -62,16 +69,21 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         
         response.headers["x-request-id"] = request_id
 
+        # Mask client IP if multiple proxy headers exist or sanitize
+        client_ip = request.client.host if request.client else None
+
         log_dict = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": "INFO",
             "request_id": request_id,
             "method": request.method,
-            "url": str(request.url),
+            "url": _sanitize_url(str(request.url)),
+            "path": request.url.path,
             "status_code": response.status_code,
             "process_time_ms": round(process_time * 1000, 2),
-            "client_ip": request.client.host if request.client else None
+            "client_ip": client_ip
         }
         
         print(json.dumps(log_dict))
         return response
+

@@ -37,10 +37,12 @@ async def lifespan(app: FastAPI):
         from app.core.database import engine
         from app.db.session import AsyncSessionLocal
         from app.evaluation.coordinator import EvaluationCoordinator
+        from app.services.ai_task_service import AiTaskService
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
         async with AsyncSessionLocal() as db:
             await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
+            await AiTaskService.cleanup_stale_tasks(db, timeout_minutes=5)
     except Exception:
         pass
     yield

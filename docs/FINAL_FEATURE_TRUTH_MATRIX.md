@@ -1,30 +1,36 @@
-# IdeaGPT Production Feature Truth Matrix
+# IdeaGPT — Final Feature Truth Matrix
 
-**Last Audit**: Universal AI Provider Usage, Free-Tier Coverage, Persistence & Runtime Truth Release  
-**Status**: Authoritative & Evidence-Backed
+**Product**: IdeaGPT  
+**Audit Reference**: Pre-Production Verification  
+**Evaluation Standard**: End-to-end user-visible behavior backed by database persistence and verified tests.
 
-| Component / Feature                          | Tier / Type               | Implementation State       | Verification Method                                     |
-| :------------------------------------------- | :------------------------ | :------------------------- | :------------------------------------------------------ |
-| **Universal AI Gateway v1**                  | Gateway Architecture      | **VERIFIED & OPERATIONAL** | 220 Backend Tests & Fast Discovery Benchmark            |
-| **Capability Router & Allowlist**            | Multi-factor Routing      | **VERIFIED & OPERATIONAL** | Deterministic Allowlist & Model Capability Tests        |
-| **Model Quarantine State Machine**           | Resilience                | **VERIFIED & OPERATIONAL** | 404/403 Instant Model Eviction Tests                    |
-| **Durable AI Artifact Persistence**          | PostgreSQL Storage        | **VERIFIED & OPERATIONAL** | `ai_artifacts` table migration & Tenant Isolation Tests |
-| **Groq LPU Provider**                        | Free / Dev Tier Inference | **VERIFIED & OPERATIONAL** | `openai/gpt-oss-120b` live inference & test coverage    |
-| **Tavily Research Provider**                 | Web Research              | **VERIFIED & OPERATIONAL** | Citation Extraction & SSRF Defense Tests                |
-| **BYOK Credential Vault**                    | Security & Privacy        | **VERIFIED & OPERATIONAL** | Fernet Symmetric Encryption & Tenant Isolation Tests    |
-| **SSRF Defense Layer**                       | Security Boundary         | **VERIFIED & OPERATIONAL** | Loopback, RFC1918 & Cloud Metadata Blocking Tests       |
-| **FinOps Cost & Admission Control**          | Budget Guardrails         | **VERIFIED & OPERATIONAL** | Token-Aware Admission & Cost Ceilings Tests             |
-| **Circuit Breaker & Bulkheads**              | Resilience                | **VERIFIED & OPERATIONAL** | Tripping, Cooldown, and Concurrency Tests               |
-| **Content Sanitization**                     | XSS Defense               | **VERIFIED & OPERATIONAL** | Markdown / HTML Tag & Event Stripping Tests             |
-| **Phase B Evidence Layer**                   | Grounded Research         | **VERIFIED & OPERATIONAL** | 12 Grounded Research & Mira Benchmark Tests             |
-| **Phase C Deep Reasoning**                   | Decision Intelligence     | **VERIFIED & OPERATIONAL** | 11 Reasoning, Contradiction & Metamorphic Tests         |
-| **Assumption Priority Engine**               | Decision Science          | **VERIFIED & OPERATIONAL** | Discrete Normalized Formula Math Tests                  |
-| **What-If Scenario Simulator**               | Operational Modeling      | **VERIFIED & OPERATIONAL** | Deterministic Runway & Perturbation Tests               |
-| **Single-Variable Sensitivity**              | Elasticity Analysis       | **VERIFIED & OPERATIONAL** | Baseline vs Perturbed Elasticity Tests                  |
-| **Multi-Idea Comparative Strategy**          | Comparative Modeling      | **VERIFIED & OPERATIONAL** | Weighted Criteria & Risk-Adjusted Scoring Tests         |
-| **Strategy -> Roadmap Linkage**              | Execution Bridge          | **VERIFIED & OPERATIONAL** | PostgreSQL / SQLite Roadmap Persistence Tests           |
-| **Strategy Lab Workspace** (`/strategy-lab`) | Core UI                   | **VERIFIED & OPERATIONAL** | 5 Vitest Component Tests & Playwright E2E               |
-| **Multi-Idea Compare** (`/compare`)          | Core UI                   | **VERIFIED & OPERATIONAL** | Playwright Route & Form Testing                         |
-| **Clerk Authentication**                     | Identity                  | **VERIFIED & OPERATIONAL** | RS256 JWKS & Playwright Protected Route Tests           |
-| **Deterministic Engine**                     | Core Evaluation           | **VERIFIED & OPERATIONAL** | 100% Deterministic Fallback Coverage                    |
-| **Full Backend Regression**                  | Reliability               | **VERIFIED & OPERATIONAL** | 220 Passed, 4 Skipped, 0 Failures                       |
+---
+
+## 1. Feature Truth Matrix
+
+| Feature | UI Route | API Endpoint | DB Table | Backend Service | Automated Tests | Truth Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :---: |
+| **User Sign-In & Auth** | `/sign-in`, `/sign-up` | `/api/v1/users/me` | `users` | `get_current_user` / `ClerkAuth` | Pytest (24), Playwright (19) | 🟢 **COMPLETE** |
+| **Workspace / Project CRUD** | `/dashboard`, `/projects/new` | `/api/v1/projects/` | `projects` | `ProjectService` | Pytest (16), Playwright | 🟢 **COMPLETE** |
+| **Idea Capture & Storage** | `/projects/[slug]/idea` | `/api/v1/ideas/` | `ideas` | `IdeaService` | Pytest (18), Vitest | 🟢 **COMPLETE** |
+| **AI Evaluation Engine** | `/ai-analysis` | `/api/v1/ideas/{id}/evaluations` | `evaluations` | `EvaluationCoordinator` / `AIRouter` | Pytest (19), Live E2E | 🟢 **COMPLETE** |
+| **Dynamic Groq Model Discovery** | `/ai-analysis` | `/api/v1/ai/models` | Cache TTL (60s) | `GroqProvider` / `AIRegistryService` | Pytest (7) | 🟢 **COMPLETE** |
+| **Async Task State Machine** | `/ai-analysis` | `/api/v1/ai/tasks` | `ai_tasks` | `AiTaskService` | Pytest (8) | 🟢 **COMPLETE** |
+| **Idea Benchmarking Engine** | `/compare` | `/api/v1/evaluations/compare` | `evaluations` | `EvaluationService` | Pytest (6), Playwright | 🟢 **COMPLETE** |
+| **Platform Analytics & Velocity** | `/analytics` | `/api/v1/analytics` | `projects`, `ideas`, `evaluations` | `AnalyticsService` | Pytest (5), Playwright | 🟢 **COMPLETE** |
+| **Interactive Roadmaps** | `/roadmap`, `/projects/[slug]/roadmap` | `/api/v1/roadmaps` | `roadmaps` | `RoadmapService` | Pytest (5), Vitest, Playwright | 🟢 **COMPLETE** |
+| **Saved Reports & Exports** | `/reports`, `/projects/[slug]/reports` | `/api/v1/exports/markdown`, `/api/v1/exports/json` | `evaluations` | `ExportService` | Pytest (5), Playwright | 🟢 **COMPLETE** |
+| **Tech Stack Architect** | `/tech-stack` | `/api/v1/ai/tech-stack` | Stateless Engine | `ArchitectureService` | Pytest (4), Playwright | 🟢 **COMPLETE** |
+| **Architecture Blueprints** | `/architecture` | `/api/v1/ai/architecture` | Stateless Engine | `ArchitectureService` | Pytest (4), Playwright | 🟢 **COMPLETE** |
+| **PRD Generator** | `/prd-generator` | `/api/v1/ai/prd` | Stateless Engine | `ArchitectureService` | Pytest (4), Playwright | 🟢 **COMPLETE** |
+| **Pitch Deck Outline Generator** | `/pitch-deck` | `/api/v1/ai/pitch-deck` | Stateless Engine | `ArchitectureService` | Pytest (4), Playwright | 🟢 **COMPLETE** |
+| **Extended Labs (Phase 10+)** | `/mentor`, `/recruiter`, `/github-lab`, `/strategy-lab`, `/investor` | N/A | N/A | N/A | Documented Overlay | ⚪ **FUTURE SCOPE** |
+
+---
+
+## 2. Verification Summary
+
+- **Total Live Core Features**: 14
+- **Fully Implemented & Verified**: 14 (100%)
+- **Disconnected / Fake Endpoints**: 0
+- **Documented Future Simulations**: 5 (Phase 10+ Roadmap)

@@ -46,14 +46,20 @@ export function useApiClient() {
         const statusCode = error.response?.status;
 
         // Standardize Error Notifications
+        const userMessage = errorData?.detail || errorData?.error;
+
         if (statusCode === 401 || statusCode === 403) {
           toast.error("Session expired or unauthorized. Please log in again.");
+        } else if (statusCode === 429) {
+          toast.error(userMessage || "Rate limit or quota exceeded. Please wait a moment.");
         } else if (statusCode === 404) {
-          toast.error("Resource not found.");
+          toast.error(userMessage || "Resource not found.");
+        } else if (statusCode === 422) {
+          toast.error(userMessage || "Validation error in submitted data.");
         } else if (statusCode && statusCode >= 500) {
           toast.error("Internal Server Error. Our team has been notified.");
-        } else if (errorData?.error) {
-          toast.error(errorData.error);
+        } else if (userMessage) {
+          toast.error(userMessage);
         } else {
           toast.error("An unexpected network error occurred.");
         }
