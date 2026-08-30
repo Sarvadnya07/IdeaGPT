@@ -21,15 +21,6 @@ importers:
         specifier: ^2.0.0
         version: 2.9.12
 
-  apps/api:
-    devDependencies:
-      husky:
-        specifier: ^9.1.7
-        version: 9.1.7
-      lint-staged:
-        specifier: ^17.0.4
-        version: 17.0.4
-
   apps/web:
     dependencies:
       '@clerk/nextjs':

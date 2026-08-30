@@ -98,3 +98,6 @@ test-results/
 blob-report/
 .vercel
 .env*
+
+.vercel
+.env*
