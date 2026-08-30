@@ -25,27 +25,26 @@
 
 Add the following environment variables in **Project Settings $\to$ Environment Variables** for **Production** (and Preview if needed):
 
-#### Frontend Variables
+#### 1. Server-Side Secrets (Never Exposed to Browser)
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_PASSWORD@db.YOUR_SUPABASE_ID.supabase.co:5432/postgres
 CLERK_SECRET_KEY=sk_live_...
-NEXT_PUBLIC_API_URL=/api/v1
+GROQ_API_KEY=gsk_...
 ```
 
-#### Backend & Database Variables
+#### 2. Server-Side Configuration
 ```env
 APP_ENV=production
-DATABASE_URL=postgresql+asyncpg://postgres:YOUR_PASSWORD@db.YOUR_SUPABASE_ID.supabase.co:5432/postgres
 CLERK_PUBLISHABLE_KEY=pk_live_...
-CLERK_SECRET_KEY=sk_live_...
 CORS_ORIGINS=https://your-domain.vercel.app
-```
-
-#### AI Provider Variables
-```env
-GROQ_API_KEY=gsk_...
 ENABLE_GROQ=true
 GROQ_DEFAULT_MODEL=llama-3.3-70b-versatile
+```
+
+#### 3. Client-Side Public Configuration (`NEXT_PUBLIC_*`)
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
+NEXT_PUBLIC_API_URL=/api/v1
 ```
 
 ---
