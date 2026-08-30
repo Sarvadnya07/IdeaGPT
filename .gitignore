@@ -96,3 +96,5 @@ $RECYCLE.BIN/
 playwright-report/
 test-results/
 blob-report/
+.vercel
+.env*
