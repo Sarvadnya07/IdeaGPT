@@ -69,8 +69,9 @@ export function useAITaskStream(taskId: string | null) {
 
     try {
       const token = await getToken();
-      const baseUrl =
+      const rawBaseUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const baseUrl = rawBaseUrl.replace(/\/+$/, "");
       const response = await fetch(`${baseUrl}/ai/tasks/${taskId}/stream`, {
         headers: {
           Authorization: token ? `Bearer ${token}` : "",
