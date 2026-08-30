@@ -5,24 +5,32 @@ updates:
     directory: "/apps/api"
     schedule:
       interval: "weekly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
     reviewers:
       - "Sarvadnya07"
     labels:
       - "dependencies"
       - "security"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
 
   # JavaScript/Node dependencies (pnpm/npm)
   - package-ecosystem: "npm"
     directory: "/apps/web"
     schedule:
       interval: "weekly"
+    groups:
+      web-dependencies:
+        patterns:
+          - "*"
     reviewers:
       - "Sarvadnya07"
     labels:
       - "dependencies"
       - "security"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
