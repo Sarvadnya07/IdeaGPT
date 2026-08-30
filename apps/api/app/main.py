@@ -103,7 +103,9 @@ app.include_router(credential_routes.router, prefix="/api/v1", tags=["credential
 app.include_router(analytics_routes.router, prefix="/api/v1/analytics", tags=["analytics"])
 
 @app.get("/")
+@app.get("/api")
 @app.get("/health")
+@app.get("/api/health")
 async def health_check():
     return {
         "status": "healthy",
@@ -111,11 +113,13 @@ async def health_check():
     }
 
 @app.get("/health/live", summary="Liveness endpoint")
+@app.get("/api/health/live", summary="Liveness endpoint (prefixed)")
 async def health_live():
     """Fast process liveness check (no DB or vendor dependencies)."""
     return {"status": "live", "service": "IdeaGPT API"}
 
 @app.get("/health/ready", summary="Readiness endpoint")
+@app.get("/api/health/ready", summary="Readiness endpoint (prefixed)")
 async def health_ready(response: Response, db: AsyncSession = Depends(get_db)):
     """Database connectivity readiness check."""
     try:
@@ -134,6 +138,7 @@ async def health_ready(response: Response, db: AsyncSession = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @app.get("/health/config")
+@app.get("/api/health/config")
 async def health_config(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
@@ -141,6 +146,7 @@ async def health_config(
     return settings.get_config_status()
 
 @app.get("/health/ai")
+@app.get("/api/health/ai")
 async def health_ai(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
@@ -156,6 +162,7 @@ async def health_ai(
     }
 
 @app.get("/health/providers")
+@app.get("/api/health/providers")
 async def health_providers(
     current_user: Annotated[User, Depends(get_current_user)]
 ):
@@ -191,6 +198,7 @@ async def health_providers(
     return status_dict
 
 @app.get("/metrics", summary="Operational Metrics")
+@app.get("/api/metrics", summary="Operational Metrics (prefixed)")
 async def get_metrics(
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
