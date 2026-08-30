@@ -1,0 +1,85 @@
+# ==============================================================================
+# Vercel Deployment Ignore Rules
+# Excludes local caches, heavy dependencies, test artifacts & non-production files
+# ==============================================================================
+
+# Git & GitHub
+.git/
+.github/
+
+# Package managers & local dependencies (Vercel builds its own)
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Turborepo cache (Local cache can grow to tens of gigabytes)
+.turbo/
+
+# Next.js build cache & outputs
+.next/
+apps/*/.next/
+out/
+dist/
+build/
+.swc/
+*.tsbuildinfo
+
+# Python virtual environments & bytecode (Vercel builds its own via pip)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+apps/api/venv/
+apps/api/.venv/
+temp_*
+test_*
+.pytest_cache/
+apps/api/.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Test & E2E artifacts
+playwright-report/
+test-results/
+blob-report/
+coverage/
+apps/*/coverage/
+.nyc_output/
+
+# IDE & Editor metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Documentation & ADRs (Not required in runtime Lambdas)
+docs/
+
+# Local Environment Variables & Secrets
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.local
+
+# Whitelist safe configuration templates
+!.env.example
+!apps/api/.env.example
+!apps/web/.env.example
+
+# Vercel local state
+.vercel/

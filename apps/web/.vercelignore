@@ -1,0 +1,21 @@
+# ==============================================================================
+# Vercel Deployment Ignore Rules for apps/web
+# ==============================================================================
+
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+.vercel/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+tests/
+
+# Environment files
+.env
+.env.*
+!.env.example
