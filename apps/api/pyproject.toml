@@ -50,5 +50,3 @@ dependencies = [
   "aiosqlite==0.21.0"
 ]
 
-[tool.vercel]
-entrypoint = "index.py"
