@@ -1,6 +1,12 @@
+from pathlib import Path
 import base64
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
+
+# Locate apps/api/.env dynamically if present on local disk for development
+_API_DIR = Path(__file__).resolve().parent.parent.parent
+_LOCAL_ENV_FILE = _API_DIR / ".env"
+_ENV_FILE_PATH = str(_LOCAL_ENV_FILE) if _LOCAL_ENV_FILE.exists() else None
 
 
 def _derive_clerk_issuer(publishable_key: str) -> Optional[str]:
@@ -37,7 +43,7 @@ def _derive_clerk_issuer(publishable_key: str) -> Optional[str]:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE_PATH,
         extra="ignore"
     )
 
@@ -60,6 +66,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None
     ANTHROPIC_API_KEY: Optional[str] = None
+    TAVILY_API_KEY: Optional[str] = None
 
     DEFAULT_PROVIDER: str = "mock"
     ENABLE_OPENAI: bool = False

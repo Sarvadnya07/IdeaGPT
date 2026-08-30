@@ -32,22 +32,31 @@ from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Fail fast if production configuration is insecure or missing
-    settings.validate_production_config()
+    import os
+    import logging
+    logger = logging.getLogger("uvicorn.error")
 
-    # Pre-warm database connection pool & recover stale jobs
+    # Startup: Safely validate production configuration and log diagnostics
     try:
-        from app.core.database import engine
-        from app.db.session import AsyncSessionLocal
-        from app.evaluation.coordinator import EvaluationCoordinator
-        from app.services.ai_task_service import AiTaskService
-        async with engine.begin() as conn:
-            await conn.execute(text("SELECT 1"))
-        async with AsyncSessionLocal() as db:
-            await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
-            await AiTaskService.cleanup_stale_tasks(db, timeout_minutes=5)
-    except Exception:
-        pass
+        settings.validate_production_config()
+    except RuntimeError as err:
+        logger.error("PRODUCTION CONFIGURATION WARNING: %s", err)
+
+    # Pre-warm database connection pool on non-serverless dedicated instances
+    is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+    if not is_serverless:
+        try:
+            from app.core.database import engine
+            from app.db.session import AsyncSessionLocal
+            from app.evaluation.coordinator import EvaluationCoordinator
+            from app.services.ai_task_service import AiTaskService
+            async with engine.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+            async with AsyncSessionLocal() as db:
+                await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
+                await AiTaskService.cleanup_stale_tasks(db, timeout_minutes=5)
+        except Exception as exc:
+            logger.warning("Dedicated server pre-warm warning: %s", exc)
     yield
     # Shutdown: Dispose engine gracefully
     try:
