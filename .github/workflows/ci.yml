@@ -42,7 +42,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r apps/api/requirements.txt
+          pip install -r apps/api/requirements-dev.txt
 
       - name: Alembic Migration Drift Check
         env:
