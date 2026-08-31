@@ -1,6 +1,6 @@
-﻿"""
+"""
 Vercel Serverless Function Entrypoint for IdeaGPT FastAPI Backend.
-Exports canonical 'app' instance from apps/api/app.main.
+Exports canonical 'app' and 'handler' instance from apps/api/app.main.
 """
 import sys
 from pathlib import Path
@@ -19,4 +19,6 @@ try:
 except ImportError:
     from app.main import app  # noqa: E402
 
-__all__ = ["app"]
+handler = app
+__all__ = ["app", "handler"]
+
