@@ -1,10 +1,22 @@
-﻿import sys
+﻿import os
+import sys
 from pathlib import Path
 
-# Ensure apps/api is in sys.path so internal app.* modules resolve
-_apps_api_dir = str(Path(__file__).resolve().parent.parent / "apps" / "api")
-if _apps_api_dir not in sys.path:
-    sys.path.insert(0, _apps_api_dir)
+# Robust sys.path resolution for all Vercel execution contexts
+_here = Path(__file__).resolve().parent
+_candidates = [
+    _here,
+    _here.parent,
+    _here.parent / "apps" / "api",
+    Path.cwd(),
+    Path("/var/task"),
+    Path("/var/task/apps/api"),
+]
+
+for _p in _candidates:
+    _p_str = str(_p)
+    if _p_str not in sys.path:
+        sys.path.insert(0, _p_str)
 
 from app.main import app
 

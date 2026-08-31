@@ -1,15 +1,23 @@
-"""
-Vercel Serverless Function Entrypoint for IdeaGPT FastAPI Backend.
-Exports 'app' instance from app.main.
-"""
+﻿import os
 import sys
 from pathlib import Path
 
-# Ensure apps/api directory is on sys.path so 'app.*' imports resolve cleanly
-CURRENT_DIR = Path(__file__).resolve().parent
-if str(CURRENT_DIR) not in sys.path:
-    sys.path.insert(0, str(CURRENT_DIR))
+# Robust sys.path resolution for all Vercel execution contexts
+_here = Path(__file__).resolve().parent
+_candidates = [
+    _here,
+    _here.parent,
+    _here.parent / "apps" / "api",
+    Path.cwd(),
+    Path("/var/task"),
+    Path("/var/task/apps/api"),
+]
 
-from app.main import app  # noqa: E402
+for _p in _candidates:
+    _p_str = str(_p)
+    if _p_str not in sys.path:
+        sys.path.insert(0, _p_str)
+
+from app.main import app
 
 __all__ = ["app"]
