@@ -4,16 +4,19 @@ venv/
 env/
 ENV/
 
-# Python cache & compiled files
+# Python cache & test artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+tests/
 .pytest_cache/
 .coverage
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+test_*
+temp_*
 
 # Local databases & logs
 *.db
@@ -21,12 +24,12 @@ htmlcov/
 *.sqlite3
 *.log
 
-# Environment variables & secrets
+# Environment files
 .env
 .env.*
 !.env.example
 
-# Node / frontend / IDE artifacts
+# Monorepo, Node & IDE
 node_modules/
 .turbo/
 .next/
@@ -38,3 +41,5 @@ test-results/
 .vscode/
 .idea/
 .DS_Store
+.git/
+.github/
