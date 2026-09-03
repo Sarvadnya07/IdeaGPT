@@ -103,7 +103,7 @@ class GatewayProviderRegistry:
     def __init__(self):
         self._providers: Dict[str, BaseProviderAdapter] = {}
         self._cached_models: List[ModelDescriptor] = list(STATIC_BASELINE_MODELS)
-        self._last_models_fetch: float = 0.0
+        self._last_models_fetch: float = time.time()
         self._cached_health: Dict[str, ProviderDescriptor] = {}
         self._last_health_fetch: float = 0.0
         self._CACHE_TTL_SEC: float = 60.0
