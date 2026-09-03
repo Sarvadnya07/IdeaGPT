@@ -62,10 +62,11 @@ export default function NewProjectPage() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Project creation error:", err);
-      const detail = err?.response?.data?.detail || "Failed to create project.";
-      toast.error(
-        typeof detail === "string" ? detail : "Failed to create project.",
-      );
+      // The API client interceptor in client.ts already triggers formatted toast notifications.
+      // Only display fallback if not an Axios error:
+      if (!err?.isAxiosError && err?.message) {
+        toast.error(err.message);
+      }
     }
   };
 

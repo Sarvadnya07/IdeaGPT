@@ -42,11 +42,20 @@ export function useApiClient() {
     instance.interceptors.response.use(
       (response) => response,
       (error: AxiosError<ApiErrorResponse>) => {
-        const errorData = error.response?.data;
+        const errorData: any = error.response?.data;
         const statusCode = error.response?.status;
 
         // Standardize Error Notifications
-        const userMessage = errorData?.detail || errorData?.error;
+        let userMessage: string | undefined;
+        if (typeof errorData?.detail === "string") {
+          userMessage = errorData.detail;
+        } else if (Array.isArray(errorData?.detail)) {
+          userMessage = errorData.detail
+            .map((d: any) => d.msg || (typeof d === "string" ? d : JSON.stringify(d)))
+            .join(", ");
+        } else if (typeof errorData?.error === "string") {
+          userMessage = errorData.error;
+        }
 
         if (statusCode === 401 || statusCode === 403) {
           toast.error("Session expired or unauthorized. Please log in again.");
@@ -57,9 +66,11 @@ export function useApiClient() {
         } else if (statusCode === 422) {
           toast.error(userMessage || "Validation error in submitted data.");
         } else if (statusCode && statusCode >= 500) {
-          toast.error("Internal Server Error. Our team has been notified.");
+          toast.error(userMessage || "Internal Server Error. Our team has been notified.");
         } else if (userMessage) {
           toast.error(userMessage);
+        } else if (!error.response) {
+          toast.error("Cannot connect to API server at http://localhost:8000. Please ensure the backend is running.");
         } else {
           toast.error("An unexpected network error occurred.");
         }

@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     # Comma-separated list of allowed origins.
     # Example: CORS_ORIGINS=http://localhost:3000,https://ideagpt.dev
     # ---------------------------------------------------------------------------
-    CORS_ORIGINS: str = "http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
 
     @property
     def clerk_issuer(self) -> Optional[str]:
