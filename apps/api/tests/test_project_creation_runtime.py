@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,7 @@ async def test_01_normal_authenticated_project_creation():
                 "/api/v1/projects/",
                 json={"title": "Runtime Test Project", "description": "Testing runtime creation", "category": "B2B SaaS"}
             )
-            assert response.status_code == 200
+            assert response.status_code == 201
             data = response.json()
             assert data["title"] == "Runtime Test Project"
             assert data["user_id"] == user.id
@@ -55,7 +55,7 @@ async def test_02_exact_browser_payload_execution():
         app.dependency_overrides[get_current_user] = lambda: user
         try:
             response = client.post("/api/v1/projects/", json=browser_payload)
-            assert response.status_code == 200
+            assert response.status_code == 201
             data = response.json()
             assert data["title"] == browser_payload["title"]
             assert data["description"] == browser_payload["description"]
@@ -78,9 +78,9 @@ async def test_03_duplicate_title_and_slug_isolation():
             resp2 = client.post("/api/v1/projects/", json={"title": "Duplicate Title Project"})
             resp3 = client.post("/api/v1/projects/", json={"title": "Duplicate Title Project"})
 
-            assert resp1.status_code == 200
-            assert resp2.status_code == 200
-            assert resp3.status_code == 200
+            assert resp1.status_code == 201
+            assert resp2.status_code == 201
+            assert resp3.status_code == 201
 
             slug1 = resp1.json()["slug"]
             slug2 = resp2.json()["slug"]
@@ -117,7 +117,7 @@ async def test_06_project_persistence_in_database():
         app.dependency_overrides[get_current_user] = lambda: user
         try:
             res = client.post("/api/v1/projects/", json={"title": "Persisted Project", "category": "Fintech"})
-            assert res.status_code == 200
+            assert res.status_code == 201
             project_id = res.json()["id"]
 
             db_res = await db.execute(select(Project).where(Project.id == project_id))
@@ -141,7 +141,7 @@ async def test_07_groq_independence_for_crud():
         try:
             with patch.object(settings, "GROQ_API_KEY", None), patch.object(settings, "ENABLE_GROQ", False):
                 response = client.post("/api/v1/projects/", json={"title": "No AI Project", "category": "Healthtech"})
-                assert response.status_code == 200
+                assert response.status_code == 201
                 assert response.json()["title"] == "No AI Project"
         finally:
             app.dependency_overrides.clear()

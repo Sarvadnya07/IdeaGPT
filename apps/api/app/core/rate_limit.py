@@ -63,7 +63,9 @@ def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded)
         exc.detail,
     )
 
-    headers = {}
+    request_id = getattr(request.state, "request_id", "") or ""
+
+    headers = {"x-request-id": request_id}
     retry_after = getattr(exc, "retry_after", None)
     if retry_after is not None:
         headers["Retry-After"] = str(int(retry_after))
@@ -74,8 +76,13 @@ def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded)
         status_code=429,
         headers=headers,
         content={
+            "type": "https://httpstatuses.com/429",
+            "title": "Too Many Requests",
+            "status": 429,
+            "detail": str(exc.detail) if exc.detail else "Too many requests",
+            "request_id": request_id,
+            # Backward-compatible fields
             "error": "Rate limit exceeded. Please wait before retrying.",
             "code": "RATE_LIMIT_EXCEEDED",
-            "detail": str(exc.detail) if exc.detail else "Too many requests",
         },
     )

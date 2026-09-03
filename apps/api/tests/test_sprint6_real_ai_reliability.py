@@ -84,7 +84,7 @@ async def test_zero_ai_core_independence():
             json={"title": "Zero AI Project", "slug": "zero-ai-proj"},
             headers=headers
         )
-        assert p_res.status_code == 200
+        assert p_res.status_code == 201
         p_id = p_res.json()["id"]
 
         # Create Idea
@@ -98,7 +98,7 @@ async def test_zero_ai_core_independence():
             },
             headers=headers
         )
-        assert i_res.status_code == 200
+        assert i_res.status_code == 201
         i_id = i_res.json()["id"]
 
         # Trigger Deterministic Evaluation
@@ -107,7 +107,7 @@ async def test_zero_ai_core_independence():
             json={"evaluation_type": "full"},
             headers=headers
         )
-        assert e_res.status_code == 200
+        assert e_res.status_code == 201
         eval_data = e_res.json()
         assert eval_data["status"] == "COMPLETED"
         assert "score" in eval_data["result_payload"]

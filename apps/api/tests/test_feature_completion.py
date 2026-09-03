@@ -228,7 +228,7 @@ async def test_critical_path_and_custom_tasks_endpoints():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         # Create Project
         p_res = await client.post("/api/v1/projects/", json={"title": "Roadmap Test Proj", "slug": "road-test-proj"}, headers=headers)
-        assert p_res.status_code == 200
+        assert p_res.status_code == 201
         p_id = p_res.json()["id"]
 
         # Create Roadmap
@@ -237,7 +237,7 @@ async def test_critical_path_and_custom_tasks_endpoints():
             json={"status": "active", "milestones": [{"title": "Phase 1", "objective": "Validate MVP", "tasks": []}]},
             headers=headers
         )
-        assert r_res.status_code == 200
+        assert r_res.status_code == 201
         r_id = r_res.json()["id"]
 
         # Add Custom Task

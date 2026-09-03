@@ -31,7 +31,7 @@ async def test_compare_2_ideas_success():
             json={"title": "Compare Proj A", "slug": "compare-proj-a"},
             headers=headers
         )
-        assert p_res.status_code == 200
+        assert p_res.status_code == 201
         proj_id = p_res.json()["id"]
 
         i1_res = await client.post(
@@ -48,7 +48,7 @@ async def test_compare_2_ideas_success():
             },
             headers=headers
         )
-        assert i1_res.status_code == 200
+        assert i1_res.status_code == 201
         idea1_id = i1_res.json()["id"]
 
         i2_res = await client.post(
@@ -61,7 +61,7 @@ async def test_compare_2_ideas_success():
             },
             headers=headers
         )
-        assert i2_res.status_code == 200
+        assert i2_res.status_code == 201
         idea2_id = i2_res.json()["id"]
 
         e1_res = await client.post(
@@ -69,7 +69,7 @@ async def test_compare_2_ideas_success():
             json={"evaluation_type": "full"},
             headers=headers
         )
-        assert e1_res.status_code == 200
+        assert e1_res.status_code == 201
 
         comp_res = await client.post(
             "/api/v1/evaluations/compare",
@@ -102,7 +102,7 @@ async def test_compare_validation_rejections():
             json={"title": "Idea Rej", "problem_statement": "Problem statement long enough", "solution_description": "Solution description long enough"},
             headers=headers
         )
-        assert i_res.status_code == 200
+        assert i_res.status_code == 201
         idea_id = i_res.json()["id"]
 
         res_less = await client.post("/api/v1/evaluations/compare", json={"idea_ids": [idea_id]}, headers=headers)
@@ -147,7 +147,7 @@ async def test_list_project_evaluations_endpoint_and_security():
             headers=headers_a
         )).json()["id"]
         ea = await client.post(f"/api/v1/ideas/{ia}/evaluations", json={"evaluation_type": "full"}, headers=headers_a)
-        assert ea.status_code == 200
+        assert ea.status_code == 201
 
         res_a = await client.get(f"/api/v1/projects/{pa}/evaluations", headers=headers_a)
         assert res_a.status_code == 200

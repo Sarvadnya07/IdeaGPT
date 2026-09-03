@@ -235,7 +235,7 @@ async def test_cross_tenant_project_isolation():
             json={"title": "Confidential IP Project", "category": "DeepTech"},
             headers={"Authorization": f"Bearer {token_a}"}
         )
-        assert res_create.status_code == 200
+        assert res_create.status_code == 201
         project_id = res_create.json()["id"]
 
         # User B attempts to access

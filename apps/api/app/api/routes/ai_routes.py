@@ -2,6 +2,7 @@ from typing import Optional, Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Header, Request, Body
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
 
 from app.db.session import get_db
 from app.api.dependencies.auth import get_current_user
@@ -42,6 +43,27 @@ class TaskResponse(BaseModel):
     started_at: Optional[str]
     completed_at: Optional[str]
 
+
+class AIArtifactResponse(BaseModel):
+    """Typed schema for artifact list items."""
+    id: str
+    artifact_type: str
+    title: Optional[str] = None
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    execution_type: Optional[str] = None
+    fallback_used: bool = False
+    content_payload: Optional[Dict[str, Any]] = None
+    created_at: Optional[str] = None
+
+
+class AIArtifactDetailResponse(AIArtifactResponse):
+    """Typed schema for single artifact detail (superset of list view)."""
+    fallback_reason: Optional[str] = None
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -78,7 +100,7 @@ async def get_providers_health(
     from app.ai.gateway.registry import gateway_registry
     return await gateway_registry.get_providers_status()
 
-@router.get("/artifacts", summary="List durable AI artifacts for current user")
+@router.get("/artifacts", response_model=List[AIArtifactResponse], summary="List durable AI artifacts for current user")
 async def list_user_artifacts(
     current_user: Annotated[User, Depends(get_current_user)],
     artifact_type: Optional[str] = None,
@@ -89,26 +111,26 @@ async def list_user_artifacts(
     """
     artifacts = await AIArtifactService.list_artifacts_by_user(db=db, user=current_user, artifact_type=artifact_type)
     return [
-        {
-            "id": a.id,
-            "artifact_type": a.artifact_type,
-            "title": a.title,
-            "project_id": a.project_id,
-            "idea_id": a.idea_id,
-            "provider": a.provider,
-            "model": a.model,
-            "execution_type": a.execution_type,
-            "fallback_used": a.fallback_used,
-            "content_payload": a.content_payload,
-            "created_at": a.created_at.isoformat() if a.created_at else None,
-        }
+        AIArtifactResponse(
+            id=str(a.id),
+            artifact_type=a.artifact_type,
+            title=a.title,
+            project_id=str(a.project_id) if a.project_id else None,
+            idea_id=str(a.idea_id) if a.idea_id else None,
+            provider=a.provider,
+            model=a.model,
+            execution_type=a.execution_type,
+            fallback_used=bool(a.fallback_used),
+            content_payload=a.content_payload,
+            created_at=a.created_at.isoformat() if a.created_at else None,
+        )
         for a in artifacts
     ]
 
-@router.get("/artifacts/{artifact_id}", summary="Get a specific durable AI artifact by ID")
+@router.get("/artifacts/{artifact_id}", response_model=AIArtifactDetailResponse, summary="Get a specific durable AI artifact by ID")
 async def get_artifact_by_id(
     artifact_id: str,
-    current_user: Annotated[User, Depends(get_current_user)] = None,
+    current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -117,20 +139,20 @@ async def get_artifact_by_id(
     artifact = await AIArtifactService.get_artifact_by_id(db=db, user=current_user, artifact_id=artifact_id)
     if not artifact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"AI Artifact '{artifact_id}' not found.")
-    return {
-        "id": artifact.id,
-        "artifact_type": artifact.artifact_type,
-        "title": artifact.title,
-        "project_id": artifact.project_id,
-        "idea_id": artifact.idea_id,
-        "provider": artifact.provider,
-        "model": artifact.model,
-        "execution_type": artifact.execution_type,
-        "fallback_used": artifact.fallback_used,
-        "fallback_reason": artifact.fallback_reason,
-        "content_payload": artifact.content_payload,
-        "created_at": artifact.created_at.isoformat() if artifact.created_at else None,
-    }
+    return AIArtifactDetailResponse(
+        id=str(artifact.id),
+        artifact_type=artifact.artifact_type,
+        title=artifact.title,
+        project_id=str(artifact.project_id) if artifact.project_id else None,
+        idea_id=str(artifact.idea_id) if artifact.idea_id else None,
+        provider=artifact.provider,
+        model=artifact.model,
+        execution_type=artifact.execution_type,
+        fallback_used=bool(artifact.fallback_used),
+        fallback_reason=artifact.fallback_reason,
+        content_payload=artifact.content_payload,
+        created_at=artifact.created_at.isoformat() if artifact.created_at else None,
+    )
 
 @router.post("/registry/refresh", summary="Refresh AI provider and model registry cache")
 async def refresh_registry(
@@ -269,6 +291,10 @@ async def stream_ai_task(
                 if task.status in ("COMPLETED", "FAILED", "CANCELLED"):
                     yield f"event: done\ndata: {json.dumps({'status': task.status})}\n\n"
                     break
+
+                # Emit standard SSE keepalive heartbeat comment every 15s (30 polls * 0.5s)
+                if (_ + 1) % 30 == 0:
+                    yield ": ping\n\n"
 
                 await asyncio.sleep(0.5)
             except Exception as e:

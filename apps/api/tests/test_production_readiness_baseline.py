@@ -47,7 +47,7 @@ async def test_phase4_multi_tenant_isolation():
             json={"title": "Project Alpha", "category": "Fintech"},
             headers={"Authorization": f"Bearer {token_a}"}
         )
-        assert res_create.status_code == 200
+        assert res_create.status_code == 201
         project_a_id = res_create.json()["id"]
 
         # User B attempts to GET User A's project -> 404

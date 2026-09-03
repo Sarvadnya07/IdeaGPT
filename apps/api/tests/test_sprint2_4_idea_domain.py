@@ -105,7 +105,7 @@ async def test_idea_pydantic_validation_edge_cases():
         )
         assert r5.status_code == 422
 
-        # 6. Valid complete idea payload -> 200
+        # 6. Valid complete idea payload -> 201
         valid_payload = {
             "title": "Complete Multi-Agent IDE",
             "problem_statement": "Developers spend hours orchestrating AI tools manually across terminals.",
@@ -119,7 +119,7 @@ async def test_idea_pydantic_validation_edge_cases():
             "is_draft": True
         }
         r_valid = await ac.post(f"/api/v1/projects/{proj_id}/ideas", json=valid_payload, headers=headers)
-        assert r_valid.status_code == 200
+        assert r_valid.status_code == 201
         assert r_valid.json()["target_users"] == "Full-Stack Developers"
 
 
@@ -148,7 +148,7 @@ async def test_idea_draft_workflow_and_immutability():
             },
             headers=headers
         )
-        assert res_c.status_code == 200
+        assert res_c.status_code == 201
         idea_data = res_c.json()
         idea_id = idea_data["id"]
         assert idea_data["is_draft"] is True
@@ -218,7 +218,7 @@ async def test_idea_duplication_contract():
 
         # Duplicate the idea
         res_dup = await ac.post(f"/api/v1/ideas/{orig_id}/duplicate", headers=headers)
-        assert res_dup.status_code == 200
+        assert res_dup.status_code == 201
         dup = res_dup.json()
 
         # Contract assertions
@@ -405,7 +405,7 @@ async def test_idea_cq01_structured_metadata_persistence_and_evaluation_context(
             },
             headers=headers
         )
-        assert res_create.status_code == 200
+        assert res_create.status_code == 201
         created_data = res_create.json()
         idea_id = created_data["id"]
 
@@ -446,7 +446,7 @@ async def test_idea_cq01_structured_metadata_persistence_and_evaluation_context(
 
         # 4. Duplicate Idea
         res_dup = await ac.post(f"/api/v1/ideas/{idea_id}/duplicate", headers=headers)
-        assert res_dup.status_code == 200
+        assert res_dup.status_code == 201
         dup_data = res_dup.json()
         assert dup_data["id"] != idea_id
         assert dup_data["title"] == "Autonomous DevOps Agent (Copy)"

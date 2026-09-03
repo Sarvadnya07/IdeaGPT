@@ -243,7 +243,7 @@ async def test_strategy_action_roadmap_linkage():
             json={"title": "Strategy Link Project", "slug": "strat-link-proj"},
             headers=headers
         )
-        assert proj_res.status_code == 200
+        assert proj_res.status_code == 201
         project_id = proj_res.json()["id"]
 
         # Link Strategy Experiment to Roadmap

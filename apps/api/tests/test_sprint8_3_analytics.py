@@ -82,7 +82,7 @@ async def test_analytics_populated_reconciliation():
             json={"evaluation_type": "full"},
             headers=headers
         )
-        assert e1.status_code == 200
+        assert e1.status_code == 201
 
         # Query Analytics
         res = await client.get("/api/v1/analytics", headers=headers)

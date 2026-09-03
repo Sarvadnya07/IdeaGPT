@@ -26,7 +26,7 @@ class TaskStatusUpdateRequest(BaseModel):
     status: str = Field(pattern="^(PENDING|IN_PROGRESS|COMPLETED)$")
 
 
-@router.post("/projects/{project_id}/roadmaps", response_model=RoadmapResponse)
+@router.post("/projects/{project_id}/roadmaps", response_model=RoadmapResponse, status_code=201)
 async def create_roadmap(
     project_id: str,
     roadmap_in: RoadmapCreate,

@@ -21,9 +21,17 @@ STATUS_TITLES = {
     504: "Gateway Timeout"
 }
 
+
+def _get_request_id(request: Request) -> str:
+    """Safely read the correlation ID set by RequestLoggingMiddleware."""
+    return getattr(request.state, "request_id", "") or ""
+
+
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     title = STATUS_TITLES.get(exc.status_code, "HTTP Error")
-    headers = getattr(exc, "headers", None) or {}
+    request_id = _get_request_id(request)
+    headers = dict(getattr(exc, "headers", None) or {})
+    headers["x-request-id"] = request_id
 
     return JSONResponse(
         status_code=exc.status_code,
@@ -34,6 +42,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
             "status": exc.status_code,
             "detail": exc.detail,
             "instance": request.url.path,
+            "request_id": request_id,
             # Backward-compatible fields
             "error": exc.detail,
             "code": str(exc.status_code),
@@ -55,14 +64,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "type": err.get("type", "")
         })
 
+    request_id = _get_request_id(request)
+
     return JSONResponse(
         status_code=422,
+        headers={"x-request-id": request_id},
         content={
             "type": "https://httpstatuses.com/422",
             "title": "Unprocessable Entity",
             "status": 422,
             "detail": error_msg,
             "instance": request.url.path,
+            "request_id": request_id,
             # Backward-compatible fields
             "error": error_msg,
             "code": "422_VALIDATION_ERROR",
@@ -73,14 +86,17 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.error("Unhandled exception during %s %s", request.method, request.url.path, exc_info=exc)
+    request_id = _get_request_id(request)
     return JSONResponse(
         status_code=500,
+        headers={"x-request-id": request_id},
         content={
             "type": "https://httpstatuses.com/500",
             "title": "Internal Server Error",
             "status": 500,
             "detail": "An unexpected error occurred processing your request.",
             "instance": request.url.path,
+            "request_id": request_id,
             # Backward-compatible fields
             "error": "Internal Server Error",
             "code": "500_INTERNAL_ERROR"

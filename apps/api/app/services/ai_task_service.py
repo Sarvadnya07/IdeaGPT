@@ -59,6 +59,13 @@ class AiTaskService:
             res = await db.execute(stmt)
             existing_task = res.scalars().first()
             if existing_task:
+                # API-03 Idempotency Validation: Same Idempotency-Key + Different Payload -> Reject (409 Conflict)
+                if existing_task.task_type != task_type or (existing_task.input_payload or {}) != (input_payload or {}):
+                    raise AIException(
+                        code="IDEMPOTENCY_CONFLICT",
+                        message=f"Idempotency key '{idempotency_key}' was previously used with a different payload.",
+                        status_code=409
+                    )
                 logger.info(f"Idempotency hit: Returning existing AiTask {existing_task.id} for key {idempotency_key}")
                 return existing_task
 

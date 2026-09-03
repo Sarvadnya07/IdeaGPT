@@ -112,7 +112,7 @@ async def test_project_full_lifecycle():
             "icon": "code"
         }
         res_create = await ac.post("/api/v1/projects/", json=create_payload, headers=headers)
-        assert res_create.status_code == 200, f"Create project failed: {res_create.text}"
+        assert res_create.status_code == 201, f"Create project failed: {res_create.text}"
         proj = res_create.json()
         proj_id = proj["id"]
         assert proj["title"] == "Autonomous AI Builder"
@@ -136,7 +136,7 @@ async def test_project_full_lifecycle():
             "is_draft": False
         }
         res_idea = await ac.post(f"/api/v1/projects/{proj_id}/ideas", json=idea_payload, headers=headers)
-        assert res_idea.status_code == 200
+        assert res_idea.status_code == 201
         idea_id = res_idea.json()["id"]
 
         # 3. GET PROJECT
@@ -173,7 +173,7 @@ async def test_project_full_lifecycle():
 
         # 6. DUPLICATE PROJECT (Must duplicate project metadata + clone active ideas)
         res_dup = await ac.post(f"/api/v1/projects/{proj_id}/duplicate", headers=headers)
-        assert res_dup.status_code == 200
+        assert res_dup.status_code == 201
         dup_proj = res_dup.json()
         dup_proj_id = dup_proj["id"]
         assert dup_proj_id != proj_id
@@ -246,7 +246,7 @@ async def test_idea_full_lifecycle():
             "is_draft": True
         }
         res_c = await ac.post(f"/api/v1/projects/{proj_id}/ideas", json=idea_in, headers=headers)
-        assert res_c.status_code == 200
+        assert res_c.status_code == 201
         idea = res_c.json()
         idea_id = idea["id"]
         assert idea["title"] == "Quantum Idea Analytics"
@@ -281,7 +281,7 @@ async def test_idea_full_lifecycle():
 
         # 5. DUPLICATE IDEA
         res_dup = await ac.post(f"/api/v1/ideas/{idea_id}/duplicate", headers=headers)
-        assert res_dup.status_code == 200
+        assert res_dup.status_code == 201
         dup_idea = res_dup.json()
         dup_idea_id = dup_idea["id"]
         assert dup_idea_id != idea_id

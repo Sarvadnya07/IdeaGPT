@@ -48,7 +48,7 @@ async def test_workspace_project_and_idea_lifecycle():
         # 1. Create project
         proj_payload = {"title": "Test Startup", "description": "A testing project", "category": "SaaS"}
         res = await ac.post("/api/v1/projects/", json=proj_payload)
-        assert res.status_code == 200
+        assert res.status_code == 201
         proj_data = res.json()
         assert "id" in proj_data
         proj_id = proj_data["id"]
@@ -67,7 +67,7 @@ async def test_workspace_project_and_idea_lifecycle():
             "is_draft": True
         }
         res_idea = await ac.post(f"/api/v1/projects/{proj_id}/ideas", json=idea_payload)
-        assert res_idea.status_code == 200
+        assert res_idea.status_code == 201
         idea_data = res_idea.json()
         assert "id" in idea_data
         idea_id = idea_data["id"]
@@ -80,7 +80,7 @@ async def test_workspace_project_and_idea_lifecycle():
 
         # 5. Trigger evaluation (should start as QUEUED)
         res_eval = await ac.post(f"/api/v1/ideas/{idea_id}/evaluations", json={"evaluation_type": "startup_evaluation"})
-        assert res_eval.status_code == 200
+        assert res_eval.status_code == 201
         eval_data = res_eval.json()
         assert eval_data["status"] in ["PENDING", "QUEUED", "RUNNING", "COMPLETED"]
         eval_id = eval_data["id"]

@@ -10,7 +10,7 @@ from app.services.idea_service import idea_service
 
 router = APIRouter()
 
-@router.post("/projects/{project_id}/ideas", response_model=IdeaResponse)
+@router.post("/projects/{project_id}/ideas", response_model=IdeaResponse, status_code=201)
 async def create_idea(
     project_id: str,
     payload: IdeaCreate,
@@ -52,7 +52,7 @@ async def delete_idea(
 ):
     return await idea_service.delete_idea(db, idea_id, current_user.id)
 
-@router.post("/ideas/{idea_id}/duplicate", response_model=IdeaResponse)
+@router.post("/ideas/{idea_id}/duplicate", response_model=IdeaResponse, status_code=201)
 async def duplicate_idea(
     idea_id: str,
     current_user: Annotated[User, Depends(get_current_user)],

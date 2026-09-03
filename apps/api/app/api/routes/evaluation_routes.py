@@ -28,7 +28,7 @@ from app.core.config import settings
 router = APIRouter()
 
 
-@router.post("/ideas/{idea_id}/evaluations", response_model=EvaluationResponse)
+@router.post("/ideas/{idea_id}/evaluations", response_model=EvaluationResponse, status_code=201)
 @limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def trigger_evaluation(
     request: Request,

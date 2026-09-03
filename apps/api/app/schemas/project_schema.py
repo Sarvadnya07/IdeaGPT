@@ -48,4 +48,6 @@ from typing import List
 class PaginatedProjectResponse(BaseModel):
     items: List[ProjectResponse]
     total: int
-
+    limit: int
+    offset: int
+    has_more: bool

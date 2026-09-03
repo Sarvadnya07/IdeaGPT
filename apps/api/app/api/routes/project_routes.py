@@ -10,7 +10,7 @@ from app.services.project_service import project_service
 
 router = APIRouter()
 
-@router.post("/", response_model=ProjectResponse)
+@router.post("/", response_model=ProjectResponse, status_code=201)
 async def create_project(
     payload: ProjectCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -32,7 +32,7 @@ async def get_projects(
 ):
     return await project_service.get_user_projects(db, current_user.id, limit, offset, search, category, is_archived, is_pinned, sort_by)
 
-@router.post("/{project_id}/duplicate", response_model=ProjectResponse)
+@router.post("/{project_id}/duplicate", response_model=ProjectResponse, status_code=201)
 async def duplicate_project(
     project_id: str,
     current_user: Annotated[User, Depends(get_current_user)],

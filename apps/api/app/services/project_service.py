@@ -51,7 +51,7 @@ class ProjectService:
         result = await db.execute(query)
         items = result.scalars().all()
         
-        return {"items": items, "total": total}
+        return {"items": items, "total": total, "limit": limit, "offset": offset, "has_more": (offset + limit) < total}
 
     async def get_project(self, db: AsyncSession, project_id: str, user_id: int):
         result = await db.execute(
