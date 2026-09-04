@@ -329,9 +329,10 @@ class AnalyticsService:
             risk = 35.0
             gate = "VALIDATE_FIRST"
             if ev and ev.result_payload:
-                score = float(ev.result_payload.get("score", 75.0))
-                risk = float(ev.result_payload.get("risk_score", 35.0))
-                gate = ev.result_payload.get("decision_gate", "VALIDATE_FIRST")
+                rp = ev.result_payload
+                score = float(rp["score"]) if "score" in rp else score
+                risk = float(rp["risk_score"]) if "risk_score" in rp else risk
+                gate = rp.get("decision_gate", gate)
 
             points.append({
                 "idea_id": idea.id,

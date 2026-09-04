@@ -84,7 +84,14 @@ def test_format_evidence_prompt_context():
     )
     context_str = EvidenceAwareResearchPipeline.format_evidence_prompt_context(res)
     assert "EXTERNAL VERIFIED SOURCES" in context_str
-    assert "https://crm.example.com" in context_str
+    # Verify the exact source URL appears as a discrete reference line,
+    # not as a substring of a larger URL (CWE-20 / CodeQL: incomplete URL sanitization).
+    expected_url = "https://crm.example.com"
+    context_lines = context_str.splitlines()
+    assert any(
+        line.strip() == expected_url or line.strip().endswith(expected_url)
+        for line in context_lines
+    ), f"Expected exact URL reference '{expected_url}' in evidence context"
 
 
 def test_cosine_similarity():

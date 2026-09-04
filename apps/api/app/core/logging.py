@@ -50,7 +50,6 @@ def sanitize_request_id(raw_id: str | None) -> str:
 
 def _sanitize_url(url: str) -> str:
     """Redact sensitive query parameters from logged URLs."""
-    import re
     sensitive_keys = r"(token|key|secret|password|code|credential|api_key|access_token|refresh_token)"
     pattern = re.compile(rf"([?&]{sensitive_keys}=)([^&]+)", re.IGNORECASE)
     return pattern.sub(r"\1[REDACTED]", url)

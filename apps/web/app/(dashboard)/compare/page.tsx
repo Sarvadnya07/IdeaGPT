@@ -233,7 +233,7 @@ export default function ComparePage() {
             comparison.
           </p>
           <Link
-            href={`/projects/${selectedProjectId}/idea`}
+            href={`/projects/${encodeURIComponent(selectedProjectId)}/idea`}
             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />

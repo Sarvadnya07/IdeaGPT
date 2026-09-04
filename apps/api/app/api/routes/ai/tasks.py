@@ -187,7 +187,11 @@ async def stream_ai_task(
                 break
             except Exception as e:
                 import logging
-                logging.getLogger("ideagpt.sse").error(f"SSE stream error for task {task_id}: {e}", exc_info=True)
+                # Sanitize task_id to prevent log injection (CWE-117)
+                safe_task_id = str(task_id).replace("\n", "").replace("\r", "")
+                logging.getLogger("ideagpt.sse").error(
+                    "SSE stream error for task %s: %s", safe_task_id, type(e).__name__, exc_info=True
+                )
                 yield f"event: error\ndata: {json.dumps({'error': 'An internal error occurred while streaming task updates.'})}\n\n"
                 break
 
