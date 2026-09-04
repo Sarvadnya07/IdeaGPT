@@ -109,6 +109,9 @@ async def generate_github_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type = res.get("_execution_type", "REAL_PROVIDER") if isinstance(res, dict) else "REAL_PROVIDER"
+    fb_used = res.get("_fallback_used", False) if isinstance(res, dict) else False
+
     artifact = await AIArtifactService.save_artifact(
         db=db,
         user_id=current_user.id,
@@ -119,12 +122,13 @@ async def generate_github_lab(
         content_payload=res,
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type=exec_type,
+        fallback_used=fb_used
     )
     if isinstance(res, dict):
         res["artifact_id"] = artifact.id
-        res["execution_type"] = "REAL_PROVIDER"
-        res["fallback_used"] = False
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
     return res
 
 

@@ -2,6 +2,7 @@
 AI Operations Sub-Router: Provider diagnostics, benchmarks, and startup blueprints (Roadmap, PRD, Tech Stack, Architecture, Pitch Deck).
 """
 
+import os
 from typing import Optional, Any, Dict, List, Annotated
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -153,8 +154,10 @@ async def generate_roadmap(
         content_payload={"title": payload.title, "category": payload.category, "milestones": milestones},
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type="REAL_PROVIDER" if os.getenv("GROQ_E2E") == "true" else "DETERMINISTIC_ENGINE",
+        fallback_used=os.getenv("GROQ_E2E") != "true"
     )
+    is_real = os.getenv("GROQ_E2E") == "true"
     return {
         "artifact_id": artifact.id,
         "title": payload.title,
@@ -162,8 +165,8 @@ async def generate_roadmap(
         "milestones": milestones,
         "provider": payload.provider or "groq",
         "model": payload.model or "llama-3.3-70b-versatile",
-        "execution_type": "REAL_PROVIDER",
-        "fallback_used": False,
+        "execution_type": "REAL_PROVIDER" if is_real else "DETERMINISTIC_ENGINE",
+        "fallback_used": not is_real,
     }
 
 
@@ -181,6 +184,9 @@ async def generate_tech_stack(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type = res.get("_execution_type", "REAL_PROVIDER") if isinstance(res, dict) else "REAL_PROVIDER"
+    fb_used = res.get("_fallback_used", False) if isinstance(res, dict) else False
+
     artifact = await AIArtifactService.save_artifact(
         db=db,
         user_id=current_user.id,
@@ -191,12 +197,13 @@ async def generate_tech_stack(
         content_payload=res,
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type=exec_type,
+        fallback_used=fb_used
     )
     if isinstance(res, dict):
         res["artifact_id"] = artifact.id
-        res["execution_type"] = "REAL_PROVIDER"
-        res["fallback_used"] = False
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
     return res
 
 
@@ -214,6 +221,9 @@ async def generate_architecture(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type = res.get("_execution_type", "REAL_PROVIDER") if isinstance(res, dict) else "REAL_PROVIDER"
+    fb_used = res.get("_fallback_used", False) if isinstance(res, dict) else False
+
     artifact = await AIArtifactService.save_artifact(
         db=db,
         user_id=current_user.id,
@@ -224,12 +234,13 @@ async def generate_architecture(
         content_payload=res,
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type=exec_type,
+        fallback_used=fb_used
     )
     if isinstance(res, dict):
         res["artifact_id"] = artifact.id
-        res["execution_type"] = "REAL_PROVIDER"
-        res["fallback_used"] = False
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
     return res
 
 
@@ -249,6 +260,9 @@ async def generate_prd(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type = res.get("_execution_type", "REAL_PROVIDER") if isinstance(res, dict) else "REAL_PROVIDER"
+    fb_used = res.get("_fallback_used", False) if isinstance(res, dict) else False
+
     artifact = await AIArtifactService.save_artifact(
         db=db,
         user_id=current_user.id,
@@ -259,12 +273,13 @@ async def generate_prd(
         content_payload=res,
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type=exec_type,
+        fallback_used=fb_used
     )
     if isinstance(res, dict):
         res["artifact_id"] = artifact.id
-        res["execution_type"] = "REAL_PROVIDER"
-        res["fallback_used"] = False
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
     return res
 
 
@@ -283,6 +298,10 @@ async def generate_pitch_deck(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    is_real = os.getenv("GROQ_E2E") == "true"
+    exec_type = "REAL_PROVIDER" if is_real else "DETERMINISTIC_ENGINE"
+    fb_used = not is_real
+
     artifact = await AIArtifactService.save_artifact(
         db=db,
         user_id=current_user.id,
@@ -293,7 +312,8 @@ async def generate_pitch_deck(
         content_payload={"title": payload.title, "category": payload.category, "slides": slides},
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile",
-        execution_type="REAL_PROVIDER"
+        execution_type=exec_type,
+        fallback_used=fb_used
     )
     return {
         "artifact_id": artifact.id,
@@ -302,8 +322,8 @@ async def generate_pitch_deck(
         "slides": slides,
         "provider": payload.provider or "groq",
         "model": payload.model or "llama-3.3-70b-versatile",
-        "execution_type": "REAL_PROVIDER",
-        "fallback_used": False,
+        "execution_type": exec_type,
+        "fallback_used": fb_used,
     }
 
 

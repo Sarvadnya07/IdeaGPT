@@ -176,7 +176,11 @@ class AIOrchestrator:
         # In test mode without opt-in GROQ_E2E, immediately engage fast deterministic fallback to prevent external API calls and token consumption
         if settings.APP_ENV == "test" and os.getenv("GROQ_E2E") != "true":
             if fallback_fn:
-                return fallback_fn()
+                fb = fallback_fn()
+                if isinstance(fb, dict):
+                    fb["_execution_type"] = "DETERMINISTIC_ENGINE"
+                    fb["_fallback_used"] = True
+                return fb
 
         p_name = provider or "groq"
         m_name = model or "llama-3.3-70b-versatile"
@@ -190,6 +194,8 @@ class AIOrchestrator:
         )
         if cached:
             cached["_cached"] = True
+            cached["_execution_type"] = "CACHED_RESULT"
+            cached["_fallback_used"] = False
             return cached
 
         try:
@@ -207,6 +213,8 @@ class AIOrchestrator:
             if isinstance(parsed, dict):
                 parsed["_provider"] = p_name
                 parsed["_model"] = m_name
+                parsed["_execution_type"] = "REAL_PROVIDER"
+                parsed["_fallback_used"] = False
                 evaluation_cache.set(
                     idea_text=user_prompt,
                     prompt_version=f"tool_{tool_name}",
@@ -219,8 +227,12 @@ class AIOrchestrator:
             logger.warning(f"Dynamic LLM generation failed for {tool_name} with {p_name}/{m_name}: {e}. Engaging fallback...")
 
         if fallback_fn:
-            return fallback_fn()
-        return {}
+            fb = fallback_fn()
+            if isinstance(fb, dict):
+                fb["_execution_type"] = "DETERMINISTIC_ENGINE"
+                fb["_fallback_used"] = True
+            return fb
+        return {"_execution_type": "DETERMINISTIC_ENGINE", "_fallback_used": True}
 
     @classmethod
     async def generate_roadmap_ai(
