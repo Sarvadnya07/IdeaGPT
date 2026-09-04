@@ -6,8 +6,8 @@
 -r requirements.txt
 
 # Test Runner & Async Testing
-pytest>=8.0.0
-pytest-asyncio>=0.23.0
+pytest>=9.1.1
+pytest-asyncio>=1.4.0
 
 # Linting & Code Quality
-flake8>=7.0.0
+flake8>=7.3.0
