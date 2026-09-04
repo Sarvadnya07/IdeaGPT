@@ -488,11 +488,12 @@ export default function ComparePage() {
                 <table className="w-full text-left text-sm text-neutral-300">
                   <thead>
                     <tr className="border-b border-neutral-800 text-xs font-mono uppercase text-neutral-400">
-                      <th className="py-3 px-4 min-w-[180px]">Dimension</th>
+                      <th className="py-3 px-4 min-w-45">Dimension</th>
                       {comparisonResult.ideas.map((item) => (
                         <th
                           key={item.idea_id}
-                          className="py-3 px-4 min-w-[160px]"
+                
+                          className="py-3 px-4 min-w-40"
                         >
                           {item.title}
                         </th>
