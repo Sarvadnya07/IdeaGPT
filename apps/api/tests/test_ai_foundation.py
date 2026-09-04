@@ -3,6 +3,7 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.ai.orchestrator.registry import registry
 from app.ai.orchestrator.factory import ProviderFactory
+from app.ai.providers.base import AIProvider
 from app.ai.orchestrator.router import AIRouter
 from app.ai.orchestrator.orchestrator import orchestrator
 from app.core.config import settings
@@ -25,7 +26,9 @@ async def test_registry_has_providers():
 @pytest.mark.anyio
 async def test_factory_creates_instances():
     mock_prov = ProviderFactory.create_provider("mock")
-    assert mock_prov.__class__.__name__ == "MockProvider"
+    assert isinstance(mock_prov, AIProvider)
+    assert mock_prov.provider_id == "mock"
+    assert mock_prov.__class__.__name__ in ("GatewayAIProviderAdapter", "MockProvider")
 
 @pytest.mark.anyio
 async def test_router_fallbacks_to_mock_by_default():

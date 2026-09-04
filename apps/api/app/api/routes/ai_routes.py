@@ -1,4 +1,4 @@
-﻿"""
+"""
 Backward-compatibility bridge for AI routes.
 Re-exports the modular router from app.api.routes.ai.
 """

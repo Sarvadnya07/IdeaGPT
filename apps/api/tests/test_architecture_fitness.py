@@ -47,11 +47,11 @@ def test_dependency_direction_core_and_models_do_not_import_routes():
     from outer application/controller layers (app.api.routes).
     """
     forbidden_import_targets = ["app.api.routes", "app.api.dependencies"]
-    checked_folders = ["core", "models", "schemas", "db"]
+    checked_folders = ["core", "models", "schemas", "db", "services"]
 
     for folder in checked_folders:
         for filepath in _get_python_files(folder):
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, "r", encoding="utf-8-sig") as f:
                 content = f.read()
                 tree = ast.parse(content, filename=filepath)
 
@@ -286,4 +286,82 @@ def test_bounded_state_and_truthful_telemetry():
 
     health = AnalyticsService.get_system_health()
     assert "uptime_pct" not in health or health.get("provenance") == "LIVE_SYSTEM_TELEMETRY"
+
+
+# ===========================================================================
+# 10. Canonical Provider Gateway Authority & Deprecated Shim Protection
+# ===========================================================================
+def test_provider_factory_authoritative_gateway_delegation():
+    """
+    Fitness Rule: ProviderFactory.create_provider() must prioritize the canonical
+    BaseProviderAdapter in gateway_registry, ensuring all calls execute through
+    the Gateway architecture.
+    """
+    from app.ai.orchestrator.factory import ProviderFactory
+    from app.ai.orchestrator.gateway_adapter import GatewayAIProviderAdapter
+    from app.ai.gateway.providers.base_adapter import BaseProviderAdapter
+
+    for prov_name in ["groq", "gemini", "openai", "ollama", "mock"]:
+        instance = ProviderFactory.create_provider(prov_name)
+        assert isinstance(instance, GatewayAIProviderAdapter), (
+            f"Provider '{prov_name}' must be wrapped in GatewayAIProviderAdapter"
+        )
+        assert isinstance(instance.adapter, BaseProviderAdapter), (
+            f"Provider '{prov_name}' adapter must inherit from BaseProviderAdapter"
+        )
+        assert instance.provider_id == prov_name
+
+
+def test_legacy_provider_imports_forbidden_in_services_and_routes():
+    """
+    Fitness Rule: Production service and route controllers must NOT directly
+    import legacy app.ai.providers.* classes.
+    """
+    checked_folders = ["services", "api/routes", "workers"]
+
+    for folder in checked_folders:
+        for filepath in _get_python_files(folder):
+            with open(filepath, "r", encoding="utf-8-sig") as f:
+                content = f.read()
+                tree = ast.parse(content, filename=filepath)
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        assert not alias.name.startswith("app.ai.providers"), (
+                            f"Architecture Violation in {filepath}: directly imports legacy {alias.name}"
+                        )
+                elif isinstance(node, ast.ImportFrom):
+                    module = node.module or ""
+                    assert not module.startswith("app.ai.providers"), (
+                        f"Architecture Violation in {filepath}: directly imports from legacy {module}"
+                    )
+
+
+# ===========================================================================
+# 11. Production Credential Encryption Fail-Closed
+# ===========================================================================
+def test_production_credential_encryption_key_enforcement():
+    """
+    Fitness Rule: In production, missing or blank CREDENTIAL_ENCRYPTION_KEY
+    must fail-closed with RuntimeError.
+    """
+    from app.services.credential_vault_service import _get_encryption_cipher
+    from app.core.config import settings
+
+    old_env = settings.APP_ENV
+    old_key = settings.CREDENTIAL_ENCRYPTION_KEY
+
+    try:
+        settings.APP_ENV = "production"
+        settings.CREDENTIAL_ENCRYPTION_KEY = None
+        with pytest.raises(RuntimeError, match="CREDENTIAL_ENCRYPTION_KEY must be configured in production"):
+            _get_encryption_cipher()
+
+        settings.CREDENTIAL_ENCRYPTION_KEY = "   "
+        with pytest.raises(RuntimeError, match="CREDENTIAL_ENCRYPTION_KEY must be configured in production"):
+            _get_encryption_cipher()
+    finally:
+        settings.APP_ENV = old_env
+        settings.CREDENTIAL_ENCRYPTION_KEY = old_key
 
