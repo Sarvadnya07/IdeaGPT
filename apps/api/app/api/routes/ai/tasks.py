@@ -148,7 +148,7 @@ async def stream_ai_task(
 
         try:
             async with AsyncSessionLocal() as session:
-                task = await AiTaskService.get_task_by_id(session, current_user, task_id)
+                await AiTaskService.get_task_by_id(session, current_user, task_id)
         except KeyError:
             yield f"event: error\ndata: {json.dumps({'error': 'AI task not found or access denied.'})}\n\n"
             return

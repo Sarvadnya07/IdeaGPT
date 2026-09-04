@@ -334,6 +334,11 @@ class AnalyticsService:
                 risk = float(rp["risk_score"]) if "risk_score" in rp else risk
                 gate = rp.get("decision_gate", gate)
 
+            if score >= 70:
+                quadrant = "High Value / Low Risk" if risk <= 40 else "High Value / High Risk"
+            else:
+                quadrant = "Low Value / Low Risk" if risk <= 40 else "High Risk / Low Reward"
+
             points.append({
                 "idea_id": idea.id,
                 "idea_title": idea.title,
@@ -341,11 +346,7 @@ class AnalyticsService:
                 "x_attractiveness_score": score,
                 "y_execution_risk_score": risk,
                 "decision_gate": gate,
-                "quadrant": "High Value / Low Risk" if score >= 70 and risk <= 40 else (
-                    "High Value / High Risk" if score >= 70 and risk > 40 else (
-                        "Low Value / Low Risk" if score < 70 and risk <= 40 else "High Risk / Low Reward"
-                    )
-                ),
+                "quadrant": quadrant,
                 "provenance": "DETERMINISTIC_CALCULATION"
             })
 
