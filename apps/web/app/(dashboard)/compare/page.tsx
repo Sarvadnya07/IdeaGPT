@@ -286,7 +286,7 @@ export default function ComparePage() {
                       )}
                     </div>
                     <div
-                      className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                      className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 mt-0.5 ${
                         isSelected
                           ? "bg-indigo-600 border-indigo-600 text-white"
                           : "border-neutral-700 bg-neutral-900"
@@ -302,7 +302,7 @@ export default function ComparePage() {
             {/* Error / Validation Banner */}
             {errorMsg && (
               <div className="bg-red-950/50 border border-red-800/80 rounded-lg p-3 flex items-center gap-2 text-red-300 text-sm">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -344,7 +344,7 @@ export default function ComparePage() {
             <div className="space-y-8 animate-in fade-in duration-300">
               {/* Winner Banner */}
               {highestScoreIdea && (
-                <div className="bg-gradient-to-r from-indigo-950/80 via-neutral-900 to-neutral-900 border border-indigo-800/60 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+                <div className="bg-linear-to-r from-indigo-950/80 via-neutral-900 to-neutral-900 border border-indigo-800/60 rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
                       <Award className="w-6 h-6" />
