@@ -81,6 +81,9 @@ class Settings(BaseSettings):
     ENABLE_GROQ: Optional[bool] = None
     GROQ_DEFAULT_MODEL: str = "auto"
 
+    # BYOK Credential Vault Encryption Key
+    CREDENTIAL_ENCRYPTION_KEY: Optional[str] = None
+
     # ---------------------------------------------------------------------------
     # Clerk Authentication
     #
@@ -188,6 +191,8 @@ class Settings(BaseSettings):
                 raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CORS_ORIGINS cannot contain wildcard '*' in production.")
             if "sqlite" in (self.async_database_url or ""):
                 raise RuntimeError("PRODUCTION CONFIG ERROR: SQLite DATABASE_URL cannot be used in production. PostgreSQL is required.")
+            if not self.CREDENTIAL_ENCRYPTION_KEY:
+                raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CREDENTIAL_ENCRYPTION_KEY must be configured in production for BYOK vault security.")
 
     def get_config_status(self) -> dict[str, str]:
         """

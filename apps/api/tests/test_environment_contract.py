@@ -128,6 +128,21 @@ def test_production_rejects_test_jwt_secret():
         s.validate_production_config()
 
 
+def test_production_rejects_missing_credential_encryption_key():
+    """Verify production fails fast if CREDENTIAL_ENCRYPTION_KEY is missing."""
+    s = Settings(
+        APP_ENV="production",
+        DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/db",
+        CLERK_PUBLISHABLE_KEY="pk_test_c21hcnQtZHVja2xpbmctNzAuY2xlcmsuYWNjb3VudHMuZGV2JA",
+        CLERK_JWT_TEST_SECRET=None,
+        CORS_ORIGINS="https://app.ideagpt.dev",
+        CREDENTIAL_ENCRYPTION_KEY=None,
+        _env_file=None
+    )
+    with pytest.raises(RuntimeError, match="CREDENTIAL_ENCRYPTION_KEY must be configured in production"):
+        s.validate_production_config()
+
+
 def test_production_accepts_valid_configuration():
     """Verify production passes validation when all production settings are properly set."""
     s = Settings(
@@ -136,6 +151,7 @@ def test_production_accepts_valid_configuration():
         CLERK_PUBLISHABLE_KEY="pk_test_c21hcnQtZHVja2xpbmctNzAuY2xlcmsuYWNjb3VudHMuZGV2JA",
         CLERK_JWT_TEST_SECRET=None,
         CORS_ORIGINS="https://app.ideagpt.dev,https://ideagpt.dev",
+        CREDENTIAL_ENCRYPTION_KEY="production-super-secret-key-configured-properly",
         _env_file=None
     )
     # Should not raise any exception

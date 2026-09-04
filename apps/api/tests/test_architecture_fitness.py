@@ -214,3 +214,76 @@ async def test_sse_streaming_endpoint_contract():
         assert "text/event-stream" in res.headers.get("content-type", "")
         # Should yield error event for non-existent task
         assert "event: error" in res.text or "event: task_update" in res.text
+
+
+# ===========================================================================
+# 7. Route Controller Size Limit (Rule A: < 400 LOC)
+# ===========================================================================
+def test_route_controller_size_limit():
+    """
+    Fitness Rule A: No route controller should exceed 400 lines of code.
+    Ensures that routers remain thin HTTP delegation layers.
+    """
+    routes_dir = os.path.join(APP_DIR, "api", "routes")
+    max_lines = 400
+
+    for root, _, files in os.walk(routes_dir):
+        for f in files:
+            if f.endswith(".py") and not f.startswith("__"):
+                filepath = os.path.join(root, f)
+                with open(filepath, "r", encoding="utf-8") as file:
+                    lines = [line for line in file if line.strip() and not line.strip().startswith("#")]
+                assert len(lines) <= max_lines, (
+                    f"Architecture Violation: Route file {filepath} has {len(lines)} non-comment LOC (limit: {max_lines})"
+                )
+
+
+# ===========================================================================
+# 8. Canonical AI Gateway Provider Architecture (Rule D & Rule I)
+# ===========================================================================
+def test_canonical_ai_gateway_provider_adapters():
+    """
+    Fitness Rule D & I: Canonical providers must implement BaseProviderAdapter
+    and all registered providers in gateway_registry must be healthy subclasses.
+    """
+    from app.ai.gateway.registry import gateway_registry
+    from app.ai.gateway.providers.base_adapter import BaseProviderAdapter
+
+    adapters = gateway_registry.list_adapters()
+    assert len(adapters) >= 4, "Gateway must have at least 4 active registered adapters"
+
+    for adapter in adapters:
+        assert isinstance(adapter, BaseProviderAdapter), (
+            f"Provider adapter {adapter} must inherit from BaseProviderAdapter"
+        )
+        assert hasattr(adapter, "provider_id") and adapter.provider_id
+        assert hasattr(adapter, "execute") and callable(adapter.execute)
+        assert hasattr(adapter, "health") and callable(adapter.health)
+
+
+# ===========================================================================
+# 9. Bounded State & Telemetry Fitness (Rule H & Rule K)
+# ===========================================================================
+def test_bounded_state_and_truthful_telemetry():
+    """
+    Fitness Rule H & K:
+    - AdmissionController must have explicit MAX_RESERVATIONS and TICKET_TTL_SECONDS.
+    - ResearchCacheService must have MAX_LOCAL_ENTRIES and DEFAULT_TTL_SEC.
+    - Telemetry must not claim unmeasured static uptime numbers.
+    """
+    from app.ai.gateway.security.admission_control import AdmissionController
+    from app.ai.gateway.evidence.cache import ResearchCacheService
+    from app.services.analytics_service import AnalyticsService
+
+    assert hasattr(AdmissionController, "MAX_RESERVATIONS")
+    assert AdmissionController.MAX_RESERVATIONS <= 10000
+    assert hasattr(AdmissionController, "TICKET_TTL_SECONDS")
+    assert AdmissionController.TICKET_TTL_SECONDS <= 600.0
+
+    assert hasattr(ResearchCacheService, "MAX_LOCAL_ENTRIES")
+    assert ResearchCacheService.MAX_LOCAL_ENTRIES <= 5000
+    assert hasattr(ResearchCacheService, "DEFAULT_TTL_SEC")
+
+    health = AnalyticsService.get_system_health()
+    assert "uptime_pct" not in health or health.get("provenance") == "LIVE_SYSTEM_TELEMETRY"
+

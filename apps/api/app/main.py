@@ -58,10 +58,15 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("Dedicated server pre-warm warning: %s", exc)
     yield
-    # Shutdown: Dispose engine gracefully
+    # Shutdown: Dispose engine and redis pool gracefully
     try:
         from app.core.database import engine
         await engine.dispose()
+    except Exception:
+        pass
+    try:
+        from app.core.redis import close_redis_pool
+        await close_redis_pool()
     except Exception:
         pass
 

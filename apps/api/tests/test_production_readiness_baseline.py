@@ -178,6 +178,7 @@ async def test_phase51_production_configuration_safety():
         CORS_ORIGINS="https://ideagpt.dev,https://app.ideagpt.dev",
         CLERK_JWT_ISSUER="https://clerk.ideagpt.dev",
         CLERK_JWT_TEST_SECRET=None,
+        CREDENTIAL_ENCRYPTION_KEY="prod-valid-encryption-key-32-chars!",
     )
     # Should not raise
     prod_valid.validate_production_config()

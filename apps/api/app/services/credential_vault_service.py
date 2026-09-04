@@ -25,8 +25,17 @@ logger = logging.getLogger(__name__)
 def _get_encryption_cipher() -> Fernet:
     """
     Derive a 32-byte urlsafe base64 key from configuration or deterministic development fallback.
+    In production mode, CREDENTIAL_ENCRYPTION_KEY must be explicitly configured and non-blank.
     """
-    raw_key = getattr(settings, "CREDENTIAL_ENCRYPTION_KEY", None) or "ideagpt-development-master-encryption-key-32-bytes!"
+    raw_key = getattr(settings, "CREDENTIAL_ENCRYPTION_KEY", None)
+    if settings.APP_ENV == "production":
+        if not raw_key or not raw_key.strip():
+            raise RuntimeError(
+                "PRODUCTION SECURITY ERROR: CREDENTIAL_ENCRYPTION_KEY must be configured in production for BYOK vault security."
+            )
+    else:
+        raw_key = raw_key or "ideagpt-development-master-encryption-key-32-bytes!"
+
     # Ensure key is 32 url-safe base64 bytes for Fernet
     digest = hashlib.sha256(raw_key.encode("utf-8")).digest()
     fernet_key = base64.urlsafe_b64encode(digest)
