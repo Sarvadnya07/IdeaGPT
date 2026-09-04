@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { GitCompare, ArrowRight, TrendingUp, TrendingDown, Plus, Minus } from "lucide-react";
+import { GitCompare, TrendingUp, TrendingDown, Plus, Minus } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export interface VersionDiffData {
   version_a: {

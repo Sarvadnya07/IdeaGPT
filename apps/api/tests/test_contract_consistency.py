@@ -13,7 +13,6 @@ import time
 import jwt
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.core.config import settings
 
 TEST_SECRET = "test-secret-for-unit-tests-only-never-production"
 

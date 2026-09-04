@@ -3,7 +3,6 @@
 import React from "react";
 import { GitCommit, ArrowRight, ShieldAlert, CheckCircle2, Clock } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export interface CriticalPathData {
   total_tasks_count: number;

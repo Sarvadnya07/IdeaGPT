@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ArrowRight,
   Star,
-  Compass,
   GitFork,
   Layers,
   FileCheck,

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Body
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Annotated, Dict, Any, Optional
+from typing import List, Annotated, Optional
 from pydantic import BaseModel, Field
 
 from app.db.session import get_db

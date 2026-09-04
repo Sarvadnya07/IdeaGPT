@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { Gauge, Zap, DollarSign, Activity, HelpCircle } from "lucide-react";
+import { Gauge, HelpCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export interface AIUsageGaugeData {
   total_requests: number;

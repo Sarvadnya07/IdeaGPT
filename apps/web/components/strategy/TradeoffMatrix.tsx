@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Scale,
-  ArrowRightLeft,
-  ShieldAlert,
-  Sparkles,
-  CheckCircle2,
-} from "lucide-react";
+import { Scale } from "lucide-react";
 import { ProvenanceBadge } from "./ProvenanceBadge";
 
 export interface TradeoffItemUI {

@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 import uuid
 
-from app.models.roadmap import Roadmap, RoadmapStatus
+from app.models.roadmap import Roadmap
 from app.models.project import Project
 from app.schemas.roadmap_schema import RoadmapCreate, RoadmapUpdate
 

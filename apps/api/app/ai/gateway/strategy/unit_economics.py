@@ -4,8 +4,6 @@ Provides mathematical calculations for CAC, LTV, LTV/CAC Ratio, Gross Margin,
 ARPU, Payback Period, Monthly Burn, Runway, and Break-Even Volume.
 Enforces strict provenance: USER_INPUT vs ASSUMPTION vs DETERMINISTIC_CALCULATION.
 """
-
-from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, ConfigDict
 
 

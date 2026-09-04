@@ -4,13 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  Sparkles,
   Lightbulb,
   Search,
   FileCheck2,
   GitBranch,
   ShieldCheck,
-  CheckCircle2,
   Compass,
 } from "lucide-react";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Activity, Zap, Cpu, Server, HardDrive, CheckCircle } from "lucide-react";
+import { Activity, HardDrive } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 

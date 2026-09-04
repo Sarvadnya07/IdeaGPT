@@ -17,7 +17,6 @@ import jwt
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app
-from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.models.project import Project

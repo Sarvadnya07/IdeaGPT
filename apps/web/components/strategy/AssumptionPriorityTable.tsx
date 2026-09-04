@@ -2,12 +2,8 @@
 
 import React from "react";
 import {
-  AlertCircle,
   ArrowUpRight,
   Flame,
-  ShieldAlert,
-  Sparkles,
-  CheckCircle2,
 } from "lucide-react";
 import { ProvenanceBadge } from "./ProvenanceBadge";
 

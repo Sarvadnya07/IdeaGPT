@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Calculator, TrendingUp, DollarSign, Clock, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Calculator, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const UnitEconomicsCalculator: React.FC = () => {

@@ -3,9 +3,6 @@
 import React, { useState } from "react";
 import {
   Sliders,
-  RefreshCw,
-  AlertTriangle,
-  ShieldCheck,
   DollarSign,
   Clock,
   Zap,

@@ -5,7 +5,6 @@ secret masking in health/status endpoints, and process-only environment loading.
 """
 
 import pytest
-from pydantic_settings import SettingsConfigDict
 from app.core.config import Settings, _derive_clerk_issuer
 
 

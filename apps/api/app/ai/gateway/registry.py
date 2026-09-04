@@ -9,8 +9,6 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Set
 from datetime import datetime, timezone
-
-from app.core.config import settings
 from app.ai.gateway.providers.base_adapter import BaseProviderAdapter
 from app.ai.gateway.providers.groq_adapter import GroqProviderAdapter
 from app.ai.gateway.providers.gemini_adapter import GeminiProviderAdapter

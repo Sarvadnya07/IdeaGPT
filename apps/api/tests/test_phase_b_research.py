@@ -22,7 +22,6 @@ import jwt
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app
-from app.core.config import settings
 from app.ai.gateway.evidence.models import (
     SourceType,
     EvidenceClassification,

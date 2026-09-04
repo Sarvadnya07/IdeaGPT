@@ -4,7 +4,6 @@ import pytest
 import jwt
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.core.config import settings
 from app.ai.exceptions.ai_exceptions import AIQuotaExceededException, AIInvalidInputException
 from app.services.ai_quota_service import AIQuotaService
 from app.services.ai_task_service import AiTaskService

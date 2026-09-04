@@ -5,7 +5,6 @@ import jwt
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.config import settings
-from app.db.session import AsyncSessionLocal
 from app.ai.orchestrator.orchestrator import AIOrchestrator
 from app.ai.orchestrator.router import AIRouter
 from app.ai.exceptions.ai_exceptions import AIInvalidModelException

@@ -3,15 +3,6 @@
 import React, { useEffect, useState } from "react";
 
 export function HeroIntelligenceCard() {
-  const [pulse, setPulse] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPulse((prev) => (prev + 1) % 100);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="relative rounded-2xl bg-[#0D0D10] border border-zinc-800/80 shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col justify-between h-full group hover:border-zinc-700/80 transition-all">
       {/* Subtle background gradient glow */}

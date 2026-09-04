@@ -1,5 +1,4 @@
 import React from "react";
-import { Layers, Database, Cpu, Lock, Sparkles, Server } from "lucide-react";
 
 export function LandingTechStack() {
   const technologies = [

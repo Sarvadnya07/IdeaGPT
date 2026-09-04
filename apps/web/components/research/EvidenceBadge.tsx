@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { Badge } from "@ideagpt/ui";
 import {
   CheckCircle2,
   Calculator,

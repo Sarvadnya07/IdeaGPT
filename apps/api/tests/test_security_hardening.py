@@ -6,7 +6,6 @@ from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.core.config import settings
 from app.core.logging import sanitize_request_id
-from app.db.session import AsyncSessionLocal
 from app.models.user import User
 from app.models.project import Project
 from app.models.idea import Idea

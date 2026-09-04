@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Server, Cloud, Cpu, Database, HardDrive, DollarSign } from "lucide-react";
+import { Cloud } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
@@ -16,7 +16,6 @@ export const CloudCostEstimator: React.FC = () => {
   const vercelCost = (20 + (reqs * 0.00005 * 0.15)).toFixed(2);
   const supaCost = (25 + Math.max(0, (dbGb - 8) * 0.125)).toFixed(2);
   const awsCost = (40 + Math.max(35, dbGb * 1.5) + 32).toFixed(2);
-  const cfCost = (5 + 0.15).toFixed(2);
 
   const recommendedTotal = (parseFloat(vercelCost) + parseFloat(supaCost) + parseFloat(aiCost)).toFixed(2);
 

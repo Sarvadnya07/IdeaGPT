@@ -16,9 +16,7 @@ from app.ai.gateway.strategy.decision_engines import (
     RegulatoryRadarEngine,
     MoatAssessorEngine,
     ResourceComparisonEngine,
-    ExecutiveSummaryEngine,
     TamSamSomEngine,
-    ElevatorPitchEngine
 )
 from app.ai.gateway.execution.cloud_costs import CloudCostEngine, CloudCostInput
 from app.ai.gateway.execution.build_tools import (
