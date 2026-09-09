@@ -333,3 +333,4 @@ class GroqProvider(AIProvider):
 
         if last_exc:
             raise AIInvalidModelException(f"All Groq model candidates failed: {last_exc}")
+        raise AIInvalidModelException("No Groq model candidates available to execute request.")

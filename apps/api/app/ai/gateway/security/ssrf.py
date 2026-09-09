@@ -139,8 +139,9 @@ class SSRFGuard:
             addr_info = socket.getaddrinfo(hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
             for item in addr_info:
                 sockaddr = item[4]
-                ip_str = sockaddr[0]
+                ip_str = str(sockaddr[0])
                 ip_obj = ipaddress.ip_address(ip_str)
+
                 if cls.is_ip_blocked(ip_obj):
                     raise SSRFSecurityException(
                         f"Domain '{hostname}' resolves to prohibited IP address '{ip_str}'."

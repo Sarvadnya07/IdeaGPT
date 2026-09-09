@@ -22,7 +22,7 @@ class EvaluationService:
         result = await db.execute(
             select(Evaluation).where(Evaluation.idea_id == idea_id).order_by(Evaluation.created_at.desc())
         )
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def list_project_evaluations(self, db: AsyncSession, project_id: str, user_id: int) -> List[Evaluation]:
         return await EvaluationCoordinator.list_project_evaluations(db, project_id, user_id)

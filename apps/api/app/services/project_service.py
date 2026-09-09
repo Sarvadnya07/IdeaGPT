@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from fastapi import HTTPException
+from typing import Optional
 import uuid
 import re
 import logging
@@ -20,7 +21,7 @@ def _generate_slug(title: str) -> str:
     return f"{slug}-{random_suffix}"
 
 class ProjectService:
-    async def get_user_projects(self, db: AsyncSession, user_id: int, limit: int = 50, offset: int = 0, search: str = None, category: str = None, is_archived: bool = False, is_pinned: bool = None, sort_by: str = "newest"):
+    async def get_user_projects(self, db: AsyncSession, user_id: int, limit: int = 50, offset: int = 0, search: Optional[str] = None, category: Optional[str] = None, is_archived: bool = False, is_pinned: Optional[bool] = None, sort_by: str = "newest"):
         query = select(Project).where(Project.user_id == user_id, Project.deleted_at.is_(None))
         
         if search:

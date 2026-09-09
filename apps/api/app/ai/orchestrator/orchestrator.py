@@ -14,15 +14,16 @@ logger = logging.getLogger(__name__)
 class AIOrchestrator:
     @staticmethod
     async def analyze_startup_idea(
-        prompt: str = None,  # first argument for backward-compatibility
-        db: AsyncSession = None,
-        idea_id: str = None,
+        prompt: Optional[str] = None,  # first argument for backward-compatibility
+        db: Optional[AsyncSession] = None,
+        idea_id: Optional[str] = None,
         prompt_version: str = "1.0",
         force_fresh: bool = False,
-        preferred_provider: str = None,
-        requested_model: str = None,
+        preferred_provider: Optional[str] = None,
+        requested_model: Optional[str] = None,
         strategy: str = "auto"
     ) -> dict:
+
         """
         AI Evaluation Pipeline:
         Context -> Prompt Resolver -> Cache Check -> LLM invocation -> Output Validator/Repair -> Cache Save.
@@ -60,7 +61,7 @@ class AIOrchestrator:
         decision = AIRouter.route_task(
             task_type="idea_evaluation",
             requested_provider=preferred_provider or strategy,
-            requested_model=requested_model
+            requested_model=requested_model or "auto"
         )
         provider_name = decision["actual_provider"]
         target_model = decision["actual_model"]

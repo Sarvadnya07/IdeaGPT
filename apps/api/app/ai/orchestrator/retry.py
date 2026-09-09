@@ -2,7 +2,7 @@ import asyncio
 import logging
 import random
 import time
-from typing import Callable, Any, TypeVar
+from typing import Callable, Any, TypeVar, Optional
 from app.ai.exceptions.ai_exceptions import (
     AIException,
     AIRateLimitException,
@@ -24,13 +24,18 @@ class AIRetryPolicy:
     BACKOFF_FACTOR: float = 2.0
 
     @classmethod
-    async def execute_with_retry(cls, func: Callable[..., Any], *args, **kwargs) -> Any:
+    async def execute_with_retry(
+        cls,
+        func: Callable[..., Any],
+        *args: Any,
+        **kwargs: Any
+    ) -> Any:
         """
-        Executes an async function with bounded exponential backoff retries for transient errors.
+        Executes an asynchronous AI function with exponential backoff and jitter.
         Fails fast on permanent non-retryable errors (401, 400, invalid keys/prompts).
         """
         attempt = 0
-        last_exception = None
+        last_exception: Optional[AIException] = None
 
         while attempt < cls.MAX_ATTEMPTS:
             attempt += 1

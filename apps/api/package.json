@@ -7,6 +7,6 @@
     "start": "node run-python.js -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
     "test": "node run-python.js -m pytest tests",
     "lint": "node run-python.js -m flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics",
-    "typecheck": "node run-python.js -c \"import fastapi, pydantic, sqlalchemy; print('FastAPI, Pydantic, and SQLAlchemy schema validation active')\""
+    "typecheck": "node run-python.js -m mypy app/core app/models app/schemas app/evaluation app/services app/ai/gateway"
   }
 }

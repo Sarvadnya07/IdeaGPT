@@ -75,7 +75,7 @@ class AnalyticsService:
             ideas_rows: List[Idea] = []
         else:
             idea_stmt = select(Idea).where(Idea.project_id.in_(user_project_ids))
-            ideas_rows = (await db.execute(idea_stmt)).scalars().all()
+            ideas_rows = list((await db.execute(idea_stmt)).scalars().all())
 
         filtered_ideas = [
             i for i in ideas_rows
@@ -100,7 +100,7 @@ class AnalyticsService:
             eval_rows: List[Evaluation] = []
         else:
             eval_stmt = select(Evaluation).where(Evaluation.idea_id.in_(user_idea_ids))
-            eval_rows = (await db.execute(eval_stmt)).scalars().all()
+            eval_rows = list((await db.execute(eval_stmt)).scalars().all())
 
         filtered_evals = [
             e for e in eval_rows

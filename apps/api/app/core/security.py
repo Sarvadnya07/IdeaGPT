@@ -23,7 +23,8 @@ Fail-closed rules:
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
+
 
 import jwt
 from fastapi import HTTPException, status
@@ -134,13 +135,15 @@ class ClerkAuth:
                 options["require"].append("iss")
 
             payload = jwt.decode(
+
                 token,
                 settings.CLERK_JWT_TEST_SECRET,
                 algorithms=["HS256"],
-                options=options,
+                options=cast(Any, options),
                 issuer=issuer,
             )
             return payload
+
 
         except jwt.ExpiredSignatureError:
             logger.info("Test token rejected: expired")
@@ -253,9 +256,10 @@ class ClerkAuth:
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
-                options=decode_options,
+                options=cast(Any, decode_options),
                 issuer=issuer,
             )
+
         except jwt.ExpiredSignatureError:
             logger.info("Token rejected: expired")
             raise HTTPException(

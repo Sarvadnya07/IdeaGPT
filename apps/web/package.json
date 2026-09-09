@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next node_modules",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

@@ -189,7 +189,8 @@ class GroqProviderAdapter(BaseProviderAdapter):
                         capability_confidence=meta["confidence"],
                         context_window=ctx,
                         supports_structured_output=meta["structured_output"],
-                        status=ModelStatus.ACTIVE if is_active else ModelStatus.INACTIVE,
+                        status=ModelStatus.ACTIVE if is_active else ModelStatus.UNAVAILABLE,
+
                         configured=True,
                         available=is_active,
                         last_seen=datetime.now(timezone.utc),

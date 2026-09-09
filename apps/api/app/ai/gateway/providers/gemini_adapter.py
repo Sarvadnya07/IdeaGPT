@@ -38,7 +38,7 @@ from app.ai.exceptions.ai_exceptions import (
 
 logger = logging.getLogger(__name__)
 
-GEMINI_STATIC_MODELS = [
+GEMINI_STATIC_MODELS: List[Dict[str, Any]] = [
     {
         "id": "gemini-2.0-flash",
         "name": "Gemini 2.0 Flash",
@@ -193,18 +193,19 @@ class GeminiProviderAdapter(BaseProviderAdapter):
             descriptors.append(
                 ModelDescriptor(
                     provider=self.provider_id,
-                    model_id=m["id"],
-                    display_name=m["name"],
+                    model_id=str(m["id"]),
+                    display_name=str(m["name"]),
                     category=m["category"],
-                    capabilities=m["capabilities"],
+                    capabilities=list(m["capabilities"]),
                     capability_confidence=CapabilityConfidence.VERIFIED,
                     input_modalities=["text", "image", "document"] if m.get("vision") else ["text"],
                     output_modalities=["text"],
-                    context_window=m["context_window"],
+                    context_window=int(m["context_window"]),
                     supports_structured_output=True,
-                    supports_vision=m.get("vision", False),
-                    supports_documents=m.get("docs", False),
+                    supports_vision=bool(m.get("vision", False)),
+                    supports_documents=bool(m.get("docs", False)),
                     status=ModelStatus.ACTIVE,
+
                     configured=bool(key),
                     available=bool(key),
                     last_seen=datetime.now(timezone.utc),

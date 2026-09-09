@@ -128,11 +128,11 @@ class ComparisonService:
         comparison_items = []
         for idea in ordered_ideas:
             i_id = str(idea.id)
-            ev = latest_eval_map.get(i_id)
+            eval_item = latest_eval_map.get(i_id)
             completeness = self._calculate_completeness(idea)
 
-            if ev and ev.result_payload:
-                payload = ev.result_payload
+            if eval_item and eval_item.result_payload:
+                payload = eval_item.result_payload
                 dims = payload.get("dimensions", {})
                 score = payload.get("score")
                 ranking_info = score_rankings.get(i_id, {})
@@ -151,7 +151,7 @@ class ComparisonService:
                         tags=idea.tags,
                         completeness_score=completeness,
                         evaluation_status="evaluated",
-                        evaluation_id=str(ev.id),
+                        evaluation_id=str(eval_item.id),
                         overall_score=score,
                         score_delta=ranking_info.get("delta"),
                         rank=ranking_info.get("rank"),

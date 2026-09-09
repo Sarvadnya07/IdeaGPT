@@ -1,12 +1,12 @@
 import os
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from typing import Any
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from app.core.config import settings
 
 
 # Resilient engine options based on backend dialect
-_engine_kwargs = {
+_engine_kwargs: dict[str, Any] = {
     "echo": (settings.APP_ENV == "development"),
     "pool_pre_ping": True,
 }
@@ -30,9 +30,10 @@ engine = create_async_engine(
     **_engine_kwargs,
 )
 
-AsyncSessionLocal = sessionmaker(
+AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
 

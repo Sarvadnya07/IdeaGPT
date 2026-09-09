@@ -59,7 +59,7 @@ class OpenAICompatibleProvider(AIProvider):
         messages.append({"role": "user", "content": prompt})
 
         target_model = model_override or "custom-model"
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             "model": target_model,
             "messages": messages,
         }

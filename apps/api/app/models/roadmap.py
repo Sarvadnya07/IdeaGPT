@@ -1,8 +1,9 @@
-from sqlalchemy import Column, String, DateTime, JSON, ForeignKey, Enum
-from sqlalchemy.orm import relationship
+from sqlalchemy import String, DateTime, JSON, ForeignKey, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 import enum
 from datetime import datetime, timezone
 import uuid
+from typing import Any
 
 from app.db.base import Base
 
@@ -14,16 +15,17 @@ class RoadmapStatus(str, enum.Enum):
 class Roadmap(Base):
     __tablename__ = "roadmaps"
 
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    project_id = Column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id: Mapped[str] = mapped_column(String, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     
     # JSONB blob representing the explicit Roadmap milestone structure
-    milestones = Column(JSON, nullable=False, default=list)
+    milestones: Mapped[Any] = mapped_column(JSON, nullable=False, default=list)
     
-    status = Column(Enum(RoadmapStatus), default=RoadmapStatus.draft, nullable=False)
+    status: Mapped[RoadmapStatus] = mapped_column(Enum(RoadmapStatus), default=RoadmapStatus.draft, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
 
     # Relationships
-    project = relationship("Project", backref="roadmaps")
+    project = relationship("Project", backref=backref("roadmaps", passive_deletes=True), passive_deletes=True)

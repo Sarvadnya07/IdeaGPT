@@ -303,12 +303,13 @@ class StrategyReasoningEngine:
                 AssumptionItem(
                     id=f"assump-{idx}",
                     claim=ra["claim"],
-                    classification=ra["classification"],
-                    impact=ra["impact"],
-                    uncertainty=ra["uncertainty"],
-                    validation_ease=ra["validation_ease"],
+                    classification=AssumptionClass(ra["classification"]) if isinstance(ra["classification"], str) else ra["classification"],
+                    impact=SeverityLevel(ra["impact"]) if isinstance(ra["impact"], str) else ra["impact"],
+                    uncertainty=SeverityLevel(ra["uncertainty"]) if isinstance(ra["uncertainty"], str) else ra["uncertainty"],
+                    validation_ease=ValidationEase(ra["validation_ease"]) if isinstance(ra["validation_ease"], str) else ra["validation_ease"],
                     priority_score=p_score,
                     priority_tier=p_tier,
+
                     recommended_experiment=ra["experiment"],
                     provenance=DataProvenance.MODEL_INFERENCE
                 )

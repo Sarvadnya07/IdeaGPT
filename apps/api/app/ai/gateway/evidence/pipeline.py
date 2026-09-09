@@ -26,6 +26,7 @@ from app.ai.gateway.evidence.models import (
     GroundedCompetitorAnalysis,
     GroundedRiskAnalysis,
 )
+from app.ai.gateway.providers.tavily_adapter import TavilyResearchProviderAdapter
 from app.ai.gateway.evidence.planner import ResearchPlanner
 from app.ai.gateway.evidence.normalizer import SourceNormalizer
 from app.ai.gateway.evidence.taxonomy import EvidenceValidator
@@ -52,7 +53,7 @@ class EvidenceAwareResearchPipeline:
         Executes web search via Tavily and normalizes results into verified evidence sources.
         """
         tavily_adapter = gateway_registry.get_adapter("tavily")
-        if not tavily_adapter:
+        if not isinstance(tavily_adapter, TavilyResearchProviderAdapter):
             return ResearchResult(query=query, sources=[], evidence_items=[])
 
         req = ResearchRequest(query=query, max_results=5, user_id=user_id)

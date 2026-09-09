@@ -64,7 +64,7 @@ class OpenAIProvider(AIProvider):
         messages.append({"role": "user", "content": prompt})
 
         target_model = model_override or "gpt-4o-mini"
-        kwargs = {
+        kwargs: Dict[str, Any] = {
             "model": target_model,
             "messages": messages,
         }

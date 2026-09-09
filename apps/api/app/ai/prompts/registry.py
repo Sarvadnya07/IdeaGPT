@@ -3,13 +3,14 @@ import json
 from typing import Dict, List, Optional
 
 class PromptRegistry:
-    def __init__(self, prompts_dir: str = None):
+    def __init__(self, prompts_dir: Optional[str] = None):
         if prompts_dir is None:
             # Resolve default directory: app/ai/prompts/
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            self.prompts_dir = current_dir
+            self.prompts_dir: str = current_dir
         else:
             self.prompts_dir = prompts_dir
+
             
         self.prompts: Dict[str, Dict[str, dict]] = {}  # {prompt_id: {version: prompt_dict}}
         self.load_prompts()

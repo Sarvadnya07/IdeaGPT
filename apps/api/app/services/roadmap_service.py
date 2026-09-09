@@ -5,7 +5,7 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 import uuid
 
-from app.models.roadmap import Roadmap
+from app.models.roadmap import Roadmap, RoadmapStatus
 from app.models.project import Project
 from app.schemas.roadmap_schema import RoadmapCreate, RoadmapUpdate
 
@@ -34,7 +34,7 @@ class RoadmapService:
         result = await db.execute(
             select(Roadmap).where(Roadmap.project_id == project_id).order_by(Roadmap.created_at.desc())
         )
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_roadmap(self, db: AsyncSession, roadmap_id: str, user_id: int):
         return await self._verify_roadmap_ownership(db, roadmap_id, user_id)
@@ -47,7 +47,7 @@ class RoadmapService:
         db_roadmap = Roadmap(
             id=str(uuid.uuid4()),
             project_id=project_id,
-            status=roadmap_in.status,
+            status=RoadmapStatus(roadmap_in.status) if roadmap_in.status else RoadmapStatus.draft,
             milestones=milestones_data
         )
         db.add(db_roadmap)
@@ -61,7 +61,7 @@ class RoadmapService:
         if roadmap_in.milestones is not None:
             db_roadmap.milestones = [m.model_dump() for m in roadmap_in.milestones]
         if roadmap_in.status is not None:
-            db_roadmap.status = roadmap_in.status
+            db_roadmap.status = RoadmapStatus(roadmap_in.status)
             
         db.add(db_roadmap)
         await db.commit()

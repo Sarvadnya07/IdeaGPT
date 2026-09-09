@@ -37,7 +37,7 @@ from app.ai.exceptions.ai_exceptions import (
 
 logger = logging.getLogger(__name__)
 
-OPENAI_STATIC_MODELS = [
+OPENAI_STATIC_MODELS: List[Dict[str, Any]] = [
     {
         "id": "gpt-4o",
         "name": "GPT-4o",
@@ -171,16 +171,17 @@ class OpenAIProviderAdapter(BaseProviderAdapter):
             descriptors.append(
                 ModelDescriptor(
                     provider=self.provider_id,
-                    model_id=m["id"],
-                    display_name=m["name"],
+                    model_id=str(m["id"]),
+                    display_name=str(m["name"]),
                     category=m["category"],
-                    capabilities=m["capabilities"],
+                    capabilities=list(m["capabilities"]),
                     capability_confidence=CapabilityConfidence.VERIFIED,
-                    input_modalities=["text", "image"] if AICapability.VISION in m["capabilities"] else ["text"],
+                    input_modalities=["text", "image"] if AICapability.VISION in list(m["capabilities"]) else ["text"],
                     output_modalities=["text"],
-                    context_window=m["context_window"],
+                    context_window=int(m["context_window"]),
                     supports_structured_output=True,
                     status=ModelStatus.ACTIVE,
+
                     configured=bool(key),
                     available=bool(key),
                     last_seen=datetime.now(timezone.utc),

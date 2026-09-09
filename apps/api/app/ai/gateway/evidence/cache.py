@@ -37,7 +37,7 @@ class ResearchCacheService:
         return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
 
     @classmethod
-    def get(cls, task_type: str, query: str, provider: str = "tavily") -> Optional[Dict[str, Any]]:
+    def get(cls, task_type: str, query: str, provider: str = "tavily") -> Optional[Any]:
         cls._telemetry_lookups += 1
         key = cls.generate_cache_key(task_type, query, provider)
 
@@ -76,7 +76,7 @@ class ResearchCacheService:
         cls,
         task_type: str,
         query: str,
-        data: Dict[str, Any],
+        data: Any,
         provider: str = "tavily",
         ttl_sec: Optional[int] = None
     ) -> None:

@@ -147,13 +147,17 @@ class EvaluationExecutor:
             logger.error(f"Execution failed for evaluation '{evaluation_id}': {str(exc)}", exc_info=True)
             # Resilient fallback to deterministic engine
             try:
-                result_payload = DeterministicEvaluationEngine.evaluate(idea)
+                if idea is not None:
+                    result_payload = DeterministicEvaluationEngine.evaluate(idea)
+                else:
+                    raise exc
                 duration_ms = int((time.time() - start_time) * 1000)
                 if "metadata" not in result_payload:
                     result_payload["metadata"] = {}
                 result_payload["metadata"]["duration_ms"] = duration_ms
                 result_payload["metadata"]["fallback_reason"] = str(exc)[:200]
             except Exception as fallback_exc:
+
                 return await cls._handle_execution_failure(
                     evaluation_id=evaluation_id,
                     error_message=str(fallback_exc),

@@ -50,13 +50,14 @@ class CostGuardrails:
     ) -> float:
         """Estimates cost in USD for a given token allocation."""
         m_id = model_id.lower()
-        pricing = MODEL_PRICING_USD.get("default")
+        pricing = MODEL_PRICING_USD.get("default", (0.001, 0.002))
         for key, price in MODEL_PRICING_USD.items():
             if key in m_id:
                 pricing = price
                 break
 
-        in_price_1k, out_price_1k = pricing
+        in_price_1k, out_price_1k = pricing or (0.001, 0.002)
+
         cost = (input_tokens / 1000.0) * in_price_1k + (estimated_output_tokens / 1000.0) * out_price_1k
         return round(cost, 6)
 

@@ -204,7 +204,8 @@ class CapabilityRouter:
             if not matched_key and req_prov != "mock":
                 raise AIInvalidModelException(f"Model '{requested_model}' is not in the allowlist for provider '{requested_provider}'.")
 
-            model_meta = allowed_models.get(matched_key, {})
+            model_meta = allowed_models.get(matched_key, {}) if matched_key else {}
+
             if model_meta.get("status") == ModelStatus.UNAVAILABLE:
                 raise AIInvalidModelException(f"Model '{requested_model}' is currently retired or unavailable.")
 
@@ -349,3 +350,20 @@ class CapabilityRouter:
             "fallback_reason": f"Routed via capability scoring (score: {best_score:.1f})",
             "capability": required_cap,
         }
+
+    @classmethod
+    def execute_request(cls, req: AIRequest) -> Tuple[Any, str]:
+        decision = cls.route_request(
+            task_type=req.task_type,
+            requested_provider=req.provider_override,
+            requested_model=req.model_override,
+            has_byok=bool(req.byok_api_key),
+        )
+        provider = decision["actual_provider"]
+        model = decision["actual_model"]
+        adapter = gateway_registry.get_adapter(provider)
+        if not adapter:
+            raise AIUnavailableException(f"Provider '{provider}' is not available.")
+        req.provider_override = provider
+        req.model_override = model
+        return adapter, model

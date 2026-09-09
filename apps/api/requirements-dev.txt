@@ -11,3 +11,5 @@ pytest-asyncio>=1.4.0
 
 # Linting & Code Quality
 flake8>=7.3.0
+mypy>=1.15.0
+

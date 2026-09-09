@@ -27,6 +27,7 @@ from app.ai.gateway.evidence.planner import ResearchPlanner
 from app.ai.gateway.evidence.normalizer import SourceNormalizer
 from app.ai.gateway.evidence.taxonomy import EvidenceValidator
 from app.ai.gateway.evidence.cache import ResearchCacheService
+from app.ai.gateway.providers.tavily_adapter import TavilyResearchProviderAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -64,11 +65,14 @@ class GroundedResearchService:
             if not force_refresh:
                 cached = ResearchCacheService.get(task_type, query)
                 if cached:
-                    all_raw_sources.extend(cached)
+                    if isinstance(cached, list):
+                        all_raw_sources.extend(cached)
+                    elif isinstance(cached, dict):
+                        all_raw_sources.append(cached)
                     continue
 
             # 2. Query Tavily if configured
-            if tavily_adapter and (tavily_adapter.is_configured or byok_tavily_key):
+            if isinstance(tavily_adapter, TavilyResearchProviderAdapter) and (tavily_adapter.is_configured or byok_tavily_key):
                 try:
                     from app.ai.gateway.models import ResearchRequest
                     res = await tavily_adapter.search(
@@ -179,8 +183,8 @@ class GroundedMarketAnalyzer:
             capability=AICapability.STRUCTURED_OUTPUT,
             prompt=user_prompt,
             system_prompt=system_prompt,
-            preferred_provider=provider,
-            preferred_model=model,
+            provider_override=provider,
+            model_override=model,
             byok_api_key=byok_key,
         )
 
@@ -282,8 +286,8 @@ class GroundedCompetitorAnalyzer:
             capability=AICapability.STRUCTURED_OUTPUT,
             prompt=user_prompt,
             system_prompt=system_prompt,
-            preferred_provider=provider,
-            preferred_model=model,
+            provider_override=provider,
+            model_override=model,
             byok_api_key=byok_key,
         )
 
@@ -399,8 +403,8 @@ class GroundedRiskAnalyzer:
             capability=AICapability.STRUCTURED_OUTPUT,
             prompt=user_prompt,
             system_prompt=system_prompt,
-            preferred_provider=provider,
-            preferred_model=model,
+            provider_override=provider,
+            model_override=model,
             byok_api_key=byok_key,
         )
 

@@ -7,7 +7,7 @@ import base64
 import hashlib
 import logging
 import time
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, cast
 from datetime import datetime, timezone
 from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -231,4 +231,4 @@ class CredentialVaultService:
         )
         res = await db.execute(stmt)
         await db.commit()
-        return res.rowcount > 0
+        return bool(cast(Any, res).rowcount > 0)
