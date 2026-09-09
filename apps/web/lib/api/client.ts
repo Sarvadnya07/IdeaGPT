@@ -27,7 +27,18 @@ export function useApiClient() {
     instance.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
         try {
-          const token = await getToken();
+          let token = await getToken();
+          if (!token && typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
+            const testToken =
+              window.localStorage.getItem("ideagpt_test_token") ||
+              document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("ideagpt_test_token=") || row.startsWith("ideagpt_test_session="))
+                ?.split("=")[1];
+            if (testToken) {
+              token = testToken;
+            }
+          }
           if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
           }

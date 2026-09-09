@@ -51,16 +51,17 @@ limiter = Limiter(
 )
 
 
-def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
+def custom_rate_limit_exceeded_handler(request: Request, exc: Exception) -> Response:
     """
     Standardized FastAPI HTTP 429 response handler.
     Matches IdeaGPT error schema and attaches a Retry-After header.
     """
+    detail = getattr(exc, "detail", "Rate limit exceeded")
     logger.warning(
         "Rate limit exceeded: path=%s ip=%s limit=%s",
         request.url.path,
         get_remote_address(request),
-        exc.detail,
+        detail,
     )
 
     request_id = getattr(request.state, "request_id", "") or ""
@@ -79,7 +80,7 @@ def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded)
             "type": "https://httpstatuses.com/429",
             "title": "Too Many Requests",
             "status": 429,
-            "detail": str(exc.detail) if exc.detail else "Too many requests",
+            "detail": str(detail) if detail else "Too many requests",
             "request_id": request_id,
             # Backward-compatible fields
             "error": "Rate limit exceeded. Please wait before retrying.",

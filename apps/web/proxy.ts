@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -7,7 +8,25 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks(.*)",
 ]);
 
+/**
+ * IdeaGPT Production Authentication Middleware (Clerk RS256 Guard)
+ *
+ * Security Invariant:
+ * In production (NODE_ENV === "production"), EVERY non-public route strictly invokes `await auth.protect()`.
+ * In non-production environments (test/development), an authenticated test session cookie
+ * ("ideagpt_test_session") or header ("x-playwright-test-user") allows headless Playwright E2E
+ * workers to execute authenticated browser workflows without calling external third-party Clerk servers.
+ */
 export default clerkMiddleware(async (auth, req) => {
+  if (process.env.NODE_ENV !== "production") {
+    const testSession =
+      req.cookies.get("ideagpt_test_session")?.value ||
+      req.headers.get("x-playwright-test-user");
+    if (testSession) {
+      return NextResponse.next();
+    }
+  }
+
   if (!isPublicRoute(req)) {
     await auth.protect();
   }

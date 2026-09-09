@@ -8,6 +8,6 @@
     "test": "node run-python.js -m pytest tests",
     "test:integration": "node run-python.js -m pytest tests/integration -v",
     "lint": "node run-python.js -m flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics",
-    "typecheck": "node run-python.js -m mypy app/core app/models app/schemas app/evaluation app/services app/ai/gateway"
+    "typecheck": "node run-python.js -m mypy app"
   }
 }

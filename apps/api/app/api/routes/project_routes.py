@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Annotated
+from typing import List, Annotated, Optional
 
 from app.db.session import get_db
 from app.models.user import User
@@ -24,10 +24,10 @@ async def get_projects(
     db: AsyncSession = Depends(get_db),
     limit: int = Query(50, ge=1, le=100, description="Page size limit (1-100)"),
     offset: int = Query(0, ge=0, description="Page offset"),
-    search: str = None,
-    category: str = None,
+    search: Optional[str] = None,
+    category: Optional[str] = None,
     is_archived: bool = False,
-    is_pinned: bool = None,
+    is_pinned: Optional[bool] = None,
     sort_by: str = "newest"
 ):
     return await project_service.get_user_projects(db, current_user.id, limit, offset, search, category, is_archived, is_pinned, sort_by)

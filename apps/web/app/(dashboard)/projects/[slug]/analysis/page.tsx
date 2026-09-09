@@ -91,7 +91,8 @@ export default function AnalysisPage({
     enabled: !!project?.id,
   });
 
-  const existingEvaluations = projectEvaluationsQuery.data || [];
+  const rawData: any = projectEvaluationsQuery.data;
+  const existingEvaluations: any[] = Array.isArray(rawData) ? rawData : (rawData?.items || []);
   const latestCompletedEval =
     existingEvaluations.find((e) => e.status === "COMPLETED") ||
     existingEvaluations[0];

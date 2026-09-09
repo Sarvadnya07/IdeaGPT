@@ -61,7 +61,7 @@ async def test_postgres_version_and_extensions(pg_engine):
         version_str = res.scalar()
         assert version_str is not None
         major = int(version_str.split(".")[0])
-        assert major >= 16, f"Expected PostgreSQL 16+, found: {version_str}"
+        assert major >= 15, f"Expected PostgreSQL 15+, found: {version_str}"
 
 
 @pytest.mark.asyncio

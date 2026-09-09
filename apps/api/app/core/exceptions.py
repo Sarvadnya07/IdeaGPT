@@ -27,30 +27,32 @@ def _get_request_id(request: Request) -> str:
     return getattr(request.state, "request_id", "") or ""
 
 
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    title = STATUS_TITLES.get(exc.status_code, "HTTP Error")
+async def http_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    status_code = getattr(exc, "status_code", 500)
+    detail = getattr(exc, "detail", str(exc))
+    title = STATUS_TITLES.get(status_code, "HTTP Error")
     request_id = _get_request_id(request)
     headers = dict(getattr(exc, "headers", None) or {})
     headers["x-request-id"] = request_id
 
     return JSONResponse(
-        status_code=exc.status_code,
+        status_code=status_code,
         headers=headers,
         content={
-            "type": f"https://httpstatuses.com/{exc.status_code}",
+            "type": f"https://httpstatuses.com/{status_code}",
             "title": title,
-            "status": exc.status_code,
-            "detail": exc.detail,
+            "status": status_code,
+            "detail": detail,
             "instance": request.url.path,
             "request_id": request_id,
             # Backward-compatible fields
-            "error": exc.detail,
-            "code": str(exc.status_code),
+            "error": detail,
+            "code": str(status_code),
         }
     )
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    errors = exc.errors()
+async def validation_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    errors = exc.errors() if isinstance(exc, RequestValidationError) else []
     error_msg = "Validation Error"
     if errors:
         error_msg = f"{errors[0]['loc'][-1]}: {errors[0]['msg']}"
