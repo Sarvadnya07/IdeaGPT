@@ -124,7 +124,9 @@ pnpm dev
 | `pnpm setup` | Bootstrap environment, virtualenv, dependencies & `.env` files |
 | `pnpm dev` | Start full-stack development servers with Turborepo concurrency |
 | `pnpm test` | Run complete unified test suite (Frontend Vitest + Backend Pytest) |
-| `pnpm typecheck` | Run static type checking across web and backend |
+| `pnpm test:integration` | Run native PostgreSQL 18 integration tests (schema, cascade, jsonb) |
+| `pnpm test:e2e` | Run Playwright browser automation suite (auth & route protection) |
+| `pnpm typecheck` | Run static type checking across web (TypeScript) and backend (Mypy) |
 | `pnpm lint` | Run ESLint and Flake8 linters |
 | `pnpm build` | Compile Next.js production build and validate all routes |
 | `pnpm clean` | Safely remove build artifacts and test caches |

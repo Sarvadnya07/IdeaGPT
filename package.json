@@ -7,6 +7,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
+    "test:integration": "node scripts/test-integration.js",
+    "test:e2e": "pnpm --filter web test:e2e",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "format": "prettier --write .",

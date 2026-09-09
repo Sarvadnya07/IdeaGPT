@@ -30,28 +30,50 @@ pnpm --filter web test -- --watch
 # Run only backend Pytest tests
 pnpm --filter api test
 
+# Run PostgreSQL Integration Test Suite (real PostgreSQL 18.x)
+pnpm test:integration
+
+# Run Playwright End-to-End Browser Tests
+pnpm test:e2e
+
 # Run a specific backend test module
 pnpm --filter api test -- tests/test_health.py -v
 ```
 
 ---
 
-## ⚖️ Database Parity: SQLite vs PostgreSQL
+## 🐘 Tier 2: Real Database Integration Tests (`pnpm test:integration`)
 
-IdeaGPT utilizes a two-tier database testing strategy:
+The PostgreSQL integration suite (`apps/api/tests/integration/test_postgres_lifecycle.py`) verifies real PostgreSQL-specific behavior against PostgreSQL 18.4:
 
-### Tier 1: Fast In-Process Unit Tests (SQLite)
-* **Configuration:** `conftest.py` sets `DATABASE_URL = sqlite+aiosqlite:///./test.db`.
-* **Purpose:** Enables rapid local developer feedback loops (250+ backend tests run in under 25 seconds).
-* **Isolation:** Automatic table creation and teardown per test via async session fixtures.
+1. **Port & Connectivity Health Check:** Automatically verifies PostgreSQL 18 on port 5432.
+2. **Alembic Migration Freshness:** Runs `alembic upgrade head` before test execution.
+3. **Native PostgreSQL Constraints & Features:**
+   * **Foreign Key `ON DELETE CASCADE`:** Project deletion cascades cleanly to child ideas and roadmaps without ORM nullification conflicts.
+   * **Compound Unique Indexes:** Enforces `(user_id, provider)` unique constraint on `provider_credentials`.
+   * **JSONB Milestone & Evaluation Persistence:** Validates complex structured JSON storage, retrieval, and schema integrity.
+   * **Transaction Isolation & Rollback:** Verifies that uncommitted sessions leave PostgreSQL tables unmodified.
 
-### Tier 2: Real Database Integration Tests (PostgreSQL 15 / 18.4)
-* **Configuration:** Used in GitHub Actions CI (`.github/workflows/ci.yml`) and local PostgreSQL validation scripts (`scratch/verify_pg_sprint2_3.py`, `scratch/verify_pg_sprint2_4.py`).
-* **Critical Areas Tested Against PostgreSQL:**
-  1. **Foreign Key `ON DELETE CASCADE`:** Tested to ensure deleting projects cascades to ideas in PostgreSQL.
-  2. **JSONB & Complex Serialization:** Payload validation for AI evaluation results.
-  3. **Case-Insensitive Searching (`ILIKE` / `func.lower`):** Global search queries across titles and tags.
-  4. **Alembic Schema Drift:** `alembic check` runs against PostgreSQL service in CI to guarantee 100% migration parity.
+Execution:
+```bash
+pnpm test:integration
+```
+
+---
+
+## 🎭 Tier 3: Playwright End-to-End Browser Automation (`pnpm test:e2e`)
+
+Playwright runs deterministic, real browser automation against the Next.js frontend across 19 critical route and authentication scenarios:
+
+* Public landing page accessibility
+* Clerk `/sign-in` interface rendering
+* Route protection & automatic redirection on unauthorized access (`/dashboard`, `/analytics`, `/compare`, `/roadmap`, `/settings`, `/tech-stack`, etc.)
+* Automated Next.js dev server lifecycle orchestration
+
+Execution:
+```bash
+pnpm test:e2e
+```
 
 ---
 

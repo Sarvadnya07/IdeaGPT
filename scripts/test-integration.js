@@ -18,11 +18,11 @@ console.log('🐘 IdeaGPT — PostgreSQL Integration Verification Pipeline');
 console.log('===============================================================\n');
 
 function runCmd(cmd, args, options = {}) {
-  return spawnSync(cmd, args, {
+  return spawnSync(cmd === 'node' ? process.execPath : cmd, args, {
     cwd: options.cwd || rootDir,
     stdio: options.stdio || 'inherit',
     encoding: 'utf-8',
-    shell: options.shell !== undefined ? options.shell : process.platform === 'win32',
+    shell: false,
     ...options,
   });
 }
