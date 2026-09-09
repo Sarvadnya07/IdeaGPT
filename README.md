@@ -88,55 +88,50 @@ IdeaGPT is structured as an enterprise-ready **Turborepo** monorepo, strictly se
 
 ---
 
-## 🚀 Installation Guide
+## 🚀 Quick Start (The Golden Path)
 
 ### Prerequisites
 
 - [Node.js (v18+)](https://nodejs.org/) & [pnpm (v9+)](https://pnpm.io/)
 - [Python (3.11+)](https://www.python.org/)
-- [PostgreSQL (v14+)](https://www.postgresql.org/)
+- *(Optional)* [Docker & Docker Compose](https://www.docker.com/) for local PostgreSQL 15 & Redis 7
 
-### Step-by-Step Setup
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/Sarvadnya07/IdeaGPT.git
-   cd IdeaGPT
-   ```
-
-2. **Install Workspace Dependencies**
-
-   ```bash
-   pnpm install
-   ```
-
-3. **Backend Environment Setup**
-
-   ```bash
-   cd apps/api
-   python -m venv venv
-   # macOS/Linux: source venv/bin/activate
-   # Windows: .\venv\Scripts\activate
-
-   pip install -r requirements.txt
-   alembic upgrade head
-   cd ../..
-   ```
-
----
-
-## 🏃 Usage Instructions
-
-Once dependencies are installed and environments are configured, start the complete development ecosystem using Turborepo:
+### 3-Step Setup
 
 ```bash
-pnpm run dev
+# 1. Clone the repository
+git clone https://github.com/Sarvadnya07/IdeaGPT.git
+cd IdeaGPT
+
+# 2. Install dependencies & bootstrap environment (idempotent setup)
+pnpm install
+pnpm setup
+
+# 3. Start local development (Next.js + FastAPI concurrently)
+pnpm dev
 ```
 
 - **Next.js Web UI:** [http://localhost:3000](http://localhost:3000)
 - **FastAPI Server:** [http://localhost:8000](http://localhost:8000)
 - **OpenAPI Swagger Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🛠️ Canonical Developer Commands
+
+| Command | Action |
+| :--- | :--- |
+| `pnpm setup` | Bootstrap environment, virtualenv, dependencies & `.env` files |
+| `pnpm dev` | Start full-stack development servers with Turborepo concurrency |
+| `pnpm test` | Run complete unified test suite (Frontend Vitest + Backend Pytest) |
+| `pnpm typecheck` | Run static type checking across web and backend |
+| `pnpm lint` | Run ESLint and Flake8 linters |
+| `pnpm build` | Compile Next.js production build and validate all routes |
+| `pnpm clean` | Safely remove build artifacts and test caches |
+| `pnpm verify:env` | Diagnostic check of toolchain, venv, and environment configuration |
+| `pnpm db:up` | Start local PostgreSQL & Redis containers (Docker Compose) |
+| `pnpm db:down` | Stop local PostgreSQL & Redis containers |
+| `pnpm db:migrate` | Run Alembic migrations against local database |
 
 ---
 

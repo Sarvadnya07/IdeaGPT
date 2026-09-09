@@ -3,10 +3,19 @@
   "private": true,
   "packageManager": "pnpm@11.1.1",
   "scripts": {
+    "setup": "node scripts/setup.js",
     "dev": "turbo dev",
     "build": "turbo build",
+    "test": "turbo test",
+    "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "format": "prettier --write .",
+    "clean": "node scripts/clean.js",
+    "clean:deep": "node scripts/clean.js --deep",
+    "verify:env": "node scripts/verify-env.js",
+    "db:up": "docker compose up -d db redis",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter api exec node run-python.js -m alembic upgrade head",
     "prepare": "husky"
   },
   "devDependencies": {

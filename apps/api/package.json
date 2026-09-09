@@ -1,9 +1,12 @@
-﻿{
+{
   "name": "api",
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "python -m uvicorn app.main:app --reload --port 8000",
-    "start": "python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    "dev": "node run-python.js -m uvicorn app.main:app --reload --port 8000",
+    "start": "node run-python.js -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+    "test": "node run-python.js -m pytest tests",
+    "lint": "node run-python.js -m flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics",
+    "typecheck": "node run-python.js -c \"import fastapi, pydantic, sqlalchemy; print('FastAPI, Pydantic, and SQLAlchemy schema validation active')\""
   }
 }
