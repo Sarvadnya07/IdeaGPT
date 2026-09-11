@@ -59,7 +59,7 @@ class ArchitectureService:
             "category": category,
             "focus": requirements_focus,
             "frontend": {
-                "framework": "Next.js 15+ (React 19, App Router, RSC)",
+                "framework": "Next.js 16+ (React 19, App Router, RSC)",
                 "styling": "TailwindCSS v4 & Lucide Icons",
                 "state_management": "TanStack React Query v5 & Zustand",
                 "component_library": "Radix UI / Headless UI with Framer Motion",

@@ -101,6 +101,7 @@ async def generate_github_lab(
     db: AsyncSession = Depends(get_db)
 ):
     from app.ai.orchestrator.orchestrator import AIOrchestrator
+    from app.ai.orchestrator.generation_pipeline import read_execution_provenance
     res = await AIOrchestrator.generate_github_lab_ai(
         title=payload.title,
         category=payload.category,
@@ -109,8 +110,7 @@ async def generate_github_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
-    exec_type = res.get("_execution_type", "REAL_PROVIDER") if isinstance(res, dict) else "REAL_PROVIDER"
-    fb_used = res.get("_fallback_used", False) if isinstance(res, dict) else False
+    exec_type, fb_used = read_execution_provenance(res)
 
     artifact = await AIArtifactService.save_artifact(
         db=db,

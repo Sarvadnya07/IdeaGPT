@@ -1,8 +1,18 @@
 import time
 import logging
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.orchestrator.factory import ProviderFactory
+from app.ai.orchestrator.generation_pipeline import (
+    DeterministicFallback,
+    EXECUTION_TYPE_CACHED,
+    EXECUTION_TYPE_DETERMINISTIC,
+    EXECUTION_TYPE_REAL_PROVIDER,
+    is_deterministic_provider,
+    parse_provider_json,
+    read_execution_provenance,
+    tag_execution,
+)
 from app.ai.orchestrator.router import AIRouter
 from app.ai.prompts.registry import prompt_registry
 from app.ai.validators.output_validator import OutputValidator
@@ -10,6 +20,11 @@ from app.ai.pipelines.context import ContextBuilder
 from app.services.cache_service import evaluation_cache
 
 logger = logging.getLogger(__name__)
+
+# Re-exported for callers that want to distinguish deterministic runs without
+# importing the whole orchestrator module.
+__all__ = ["AIOrchestrator", "orchestrator", "is_deterministic_provider"]
+
 
 class AIOrchestrator:
     @staticmethod
@@ -136,26 +151,13 @@ class AIOrchestrator:
         except Exception as exc:
             logger.warning(f"Upstream AI provider '{provider_name}' failed ({exc}). Engaging deterministic fallback engine...")
 
-        # Fallback Execution via DeterministicEvaluationEngine
-        from app.evaluation.engine import DeterministicEvaluationEngine
-        if idea_obj:
-            fallback_payload = DeterministicEvaluationEngine.evaluate(idea_obj)
-        else:
-            dummy_idea = type("IdeaObj", (), {
-                "title": (prompt or "Startup Idea")[:50],
-                "problem_statement": user_prompt,
-                "solution_description": user_prompt,
-                "target_users": "Founders, Developers",
-                "industry": "Technology",
-                "business_model": "B2B SaaS",
-                "stage": "Prototype",
-                "tags": "ai, tech, saas",
-                "notes": ""
-            })()
-            fallback_payload = DeterministicEvaluationEngine.evaluate(dummy_idea)
-
-        fallback_payload["metadata"]["fallback_reason"] = f"Provider {provider_name} fallback"
-        return fallback_payload
+        # Fallback Execution via the shared deterministic fallback policy.
+        fallback_payload = DeterministicFallback.build(
+            idea=idea_obj, prompt=user_prompt or prompt or ""
+        )
+        return DeterministicFallback.with_reason(
+            fallback_payload, f"Provider {provider_name} fallback"
+        )
 
     @classmethod
     async def generate_dynamic_tool(
@@ -170,18 +172,12 @@ class AIOrchestrator:
         """
         Generic dynamic LLM generator for deep tool synthesis across Roadmap, PRD, Pitch Deck, Tech Stack, Architecture.
         """
-        import json
         import os
         from app.core.config import settings
 
         # In test mode without opt-in GROQ_E2E, immediately engage fast deterministic fallback to prevent external API calls and token consumption
         if settings.APP_ENV == "test" and os.getenv("GROQ_E2E") != "true":
-            if fallback_fn:
-                fb = fallback_fn()
-                if isinstance(fb, dict):
-                    fb["_execution_type"] = "DETERMINISTIC_ENGINE"
-                    fb["_fallback_used"] = True
-                return fb
+            return cls._build_fallback(fallback_fn)
 
         p_name = provider or "groq"
         m_name = model or "llama-3.3-70b-versatile"
@@ -195,9 +191,9 @@ class AIOrchestrator:
         )
         if cached:
             cached["_cached"] = True
-            cached["_execution_type"] = "CACHED_RESULT"
-            cached["_fallback_used"] = False
-            return cached
+            return tag_execution(
+                cached, EXECUTION_TYPE_CACHED, provider=p_name, model=m_name
+            )
 
         try:
             prov = ProviderFactory.create_provider(p_name)
@@ -208,14 +204,11 @@ class AIOrchestrator:
                 model_override=m_name
             )
 
-            cleaned_text = OutputValidator.clean_json_string(raw if isinstance(raw, str) else json.dumps(raw))
-            parsed = json.loads(cleaned_text)
-
-            if isinstance(parsed, dict):
-                parsed["_provider"] = p_name
-                parsed["_model"] = m_name
-                parsed["_execution_type"] = "REAL_PROVIDER"
-                parsed["_fallback_used"] = False
+            parsed = parse_provider_json(raw)
+            if parsed is not None:
+                tag_execution(
+                    parsed, EXECUTION_TYPE_REAL_PROVIDER, provider=p_name, model=m_name
+                )
                 evaluation_cache.set(
                     idea_text=user_prompt,
                     prompt_version=f"tool_{tool_name}",
@@ -227,16 +220,25 @@ class AIOrchestrator:
         except Exception as e:
             logger.warning(f"Dynamic LLM generation failed for {tool_name} with {p_name}/{m_name}: {e}. Engaging fallback...")
 
+        return cls._build_fallback(fallback_fn)
+
+    @staticmethod
+    def _build_fallback(fallback_fn) -> dict:
+        """
+        Produce a deterministic fallback payload, tagged with provenance.
+
+        Shared by every generation tool so the deterministic branch has one
+        consistent shape and marker set.
+        """
         if fallback_fn:
             fb = fallback_fn()
             if isinstance(fb, dict):
-                fb["_execution_type"] = "DETERMINISTIC_ENGINE"
-                fb["_fallback_used"] = True
-            return fb
-        return {"_execution_type": "DETERMINISTIC_ENGINE", "_fallback_used": True}
+                return tag_execution(fb, EXECUTION_TYPE_DETERMINISTIC)
+            return {"_execution_type": EXECUTION_TYPE_DETERMINISTIC, "_fallback_used": True}
+        return {"_execution_type": EXECUTION_TYPE_DETERMINISTIC, "_fallback_used": True}
 
     @classmethod
-    async def generate_roadmap_ai(
+    async def generate_roadmap_ai_with_provenance(
         cls,
         title: str,
         category: str,
@@ -245,7 +247,15 @@ class AIOrchestrator:
         target_users: str,
         provider: str = "groq",
         model: str = "llama-3.3-70b-versatile"
-    ) -> list:
+    ) -> tuple[list, str, bool]:
+        """
+        Generate roadmap milestones plus the true execution provenance.
+
+        Callers that persist an artifact need to know whether a real provider
+        or the deterministic engine produced the payload. Deriving that from an
+        environment flag (as the route previously did) misreports a silent
+        fallback as REAL_PROVIDER, so provenance travels with the result.
+        """
         user_prompt = (
             f"Generate a customized, domain-specific execution roadmap for this startup:\n"
             f"Title: {title}\n"
@@ -276,7 +286,32 @@ class AIOrchestrator:
             model=model,
             fallback_fn=lambda: {"milestones": fallback_fn()}
         )
-        return result.get("milestones") or fallback_fn()
+        milestones = result.get("milestones") or fallback_fn()
+        execution_type, fallback_used = read_execution_provenance(result)
+        return milestones, execution_type, fallback_used
+
+    @classmethod
+    async def generate_roadmap_ai(
+        cls,
+        title: str,
+        category: str,
+        problem_statement: str,
+        solution_description: str,
+        target_users: str,
+        provider: str = "groq",
+        model: str = "llama-3.3-70b-versatile"
+    ) -> list:
+        """Backward-compatible roadmap generation returning only milestones."""
+        milestones, _, _ = await cls.generate_roadmap_ai_with_provenance(
+            title=title,
+            category=category,
+            problem_statement=problem_statement,
+            solution_description=solution_description,
+            target_users=target_users,
+            provider=provider,
+            model=model,
+        )
+        return milestones
 
     @classmethod
     async def generate_tech_stack_ai(
@@ -390,7 +425,7 @@ class AIOrchestrator:
         return res_dict
 
     @classmethod
-    async def generate_pitch_deck_ai(
+    async def generate_pitch_deck_ai_with_provenance(
         cls,
         title: str,
         category: str,
@@ -398,7 +433,8 @@ class AIOrchestrator:
         solution: str,
         provider: str = "groq",
         model: str = "llama-3.3-70b-versatile"
-    ) -> list:
+    ) -> tuple[list, str, bool]:
+        """Generate pitch-deck slides plus the true execution provenance."""
         user_prompt = (
             f"Create a high-converting 10-slide venture pitch deck outline for this startup:\n"
             f"Title: {title}\nCategory: {category}\nProblem: {problem}\nSolution: {solution}\n\n"
@@ -419,7 +455,30 @@ class AIOrchestrator:
             model=model,
             fallback_fn=lambda: {"slides": fallback_fn()}
         )
-        return result.get("slides") or fallback_fn()
+        slides = result.get("slides") or fallback_fn()
+        execution_type, fallback_used = read_execution_provenance(result)
+        return slides, execution_type, fallback_used
+
+    @classmethod
+    async def generate_pitch_deck_ai(
+        cls,
+        title: str,
+        category: str,
+        problem: str,
+        solution: str,
+        provider: str = "groq",
+        model: str = "llama-3.3-70b-versatile"
+    ) -> list:
+        """Backward-compatible pitch-deck generation returning only slides."""
+        slides, _, _ = await cls.generate_pitch_deck_ai_with_provenance(
+            title=title,
+            category=category,
+            problem=problem,
+            solution=solution,
+            provider=provider,
+            model=model,
+        )
+        return slides
 
     @classmethod
     async def generate_github_lab_ai(
