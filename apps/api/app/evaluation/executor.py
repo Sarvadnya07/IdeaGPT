@@ -15,7 +15,10 @@ from app.evaluation.state import (
     validate_transition,
     EvaluationConcurrencyConflictError,
 )
-from app.evaluation.engine import DeterministicEvaluationEngine
+from app.ai.orchestrator.generation_pipeline import (
+    DeterministicFallback,
+    is_deterministic_provider,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +113,7 @@ class EvaluationExecutor:
         # ---------------------------------------------------------------------
         # COMPUTATION STAGE: Fetch Idea & Run AI Pipeline / Engine (Outside DB Tx)
         # ---------------------------------------------------------------------
+        idea = None
         try:
             async with AsyncSessionLocal() as db:
                 idea_result = await db.execute(select(Idea).where(Idea.id == idea_id))
@@ -123,8 +127,8 @@ class EvaluationExecutor:
                 requested_model = eval_obj.model if eval_obj else None
 
             # If user explicitly requested deterministic engine:
-            if requested_provider in ("deterministic", "rule-based", "deterministic-engine-v2.6"):
-                result_payload = DeterministicEvaluationEngine.evaluate(idea)
+            if is_deterministic_provider(requested_provider):
+                result_payload = DeterministicFallback.from_idea(idea)
             else:
                 # Execute via AI Orchestrator (Groq / OpenAI) with fallback
                 from app.ai.orchestrator.orchestrator import orchestrator
@@ -145,17 +149,17 @@ class EvaluationExecutor:
 
         except Exception as exc:
             logger.error(f"Execution failed for evaluation '{evaluation_id}': {str(exc)}", exc_info=True)
-            # Resilient fallback to deterministic engine
+            # Resilient fallback to the deterministic engine via the shared policy
             try:
                 if idea is not None:
-                    result_payload = DeterministicEvaluationEngine.evaluate(idea)
+                    result_payload = DeterministicFallback.from_idea(idea)
                 else:
                     raise exc
                 duration_ms = int((time.time() - start_time) * 1000)
                 if "metadata" not in result_payload:
                     result_payload["metadata"] = {}
                 result_payload["metadata"]["duration_ms"] = duration_ms
-                result_payload["metadata"]["fallback_reason"] = str(exc)[:200]
+                DeterministicFallback.with_reason(result_payload, str(exc))
             except Exception as fallback_exc:
 
                 return await cls._handle_execution_failure(

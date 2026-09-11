@@ -8,7 +8,7 @@ This document outlines the strategic roadmap for **IdeaGPT**. It serves as a liv
 
 - **Interactive Visual Roadmaps:** Replace static text-based timelines with interactive Gantt charts and Kanban boards.
 - **Enhanced AI Context:** Implement RAG (Retrieval-Augmented Generation) allowing users to attach PDFs, pitch decks, and GitHub repos to their idea context.
-- **Authentication Refactor:** Fully migrate from Clerk's deprecated `createRouteMatcher` middleware to resource-based and layout-level auth checks in Next.js 14.
+- **Authentication Refactor:** Fully migrate from Clerk's deprecated `createRouteMatcher` middleware to resource-based and layout-level auth checks in Next.js 16.
 - **Mobile Responsiveness Polish:** Ensure 100% feature parity and UI/UX fluidity on mobile browsers.
 
 ---

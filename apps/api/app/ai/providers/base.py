@@ -1,7 +1,26 @@
+"""
+DEPRECATED LEGACY PROVIDER INTERFACE.
+
+This module is retained only as a compatibility shim for the AI Gateway
+transition. The canonical provider contract is
+``app.ai.gateway.providers.base_adapter.BaseProviderAdapter``.
+
+Do NOT add new providers here, and do NOT import this module from services,
+routes, or workers. ``ProviderFactory.create_provider()`` wraps every
+canonical adapter in ``GatewayAIProviderAdapter``, so all production execution
+already flows through the gateway. This rule is enforced by
+``tests/test_architecture_fitness.py``.
+"""
+
 from typing import Any, Dict, List, Optional
 
+
 class AIProvider:
-    """Base interface for all AI Providers."""
+    """
+    Deprecated base interface for AI Providers.
+
+    Superseded by ``BaseProviderAdapter``; see the module docstring.
+    """
 
     async def generate(
         self,

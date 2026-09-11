@@ -63,7 +63,7 @@ class MockProvider(AIProvider):
                 "execution_complexity": 70,
                 "competitive_differentiation": 80
             },
-            "architecture_breakdown": "### Test Evaluation Blueprint\n\n- **Frontend**: Next.js 14+ with local React state\n- **Backend**: FastAPI with async route dependencies\n- **Database**: PostgreSQL 18.x with SQLAlchemy async."
+            "architecture_breakdown": "### Test Evaluation Blueprint\n\n- **Frontend**: Next.js 16+ with local React state\n- **Backend**: FastAPI with async route dependencies\n- **Database**: PostgreSQL 18.x with SQLAlchemy async."
         }
         if response_format == "json":
             return mock_response

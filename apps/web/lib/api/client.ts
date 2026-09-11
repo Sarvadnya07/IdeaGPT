@@ -5,11 +5,10 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
-export interface ApiErrorResponse {
-  error: string;
-  code: string;
-  detail?: string;
-}
+import { ApiErrorPayload, normalizeApiError } from "./errors";
+import { readDevTestToken } from "./dev-token";
+
+export type { ApiErrorPayload };
 
 export function useApiClient() {
   const { getToken } = useAuth();
@@ -28,16 +27,9 @@ export function useApiClient() {
       async (config: InternalAxiosRequestConfig) => {
         try {
           let token = await getToken();
-          if (!token && typeof window !== "undefined" && process.env.NODE_ENV !== "production") {
-            const testToken =
-              window.localStorage.getItem("ideagpt_test_token") ||
-              document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("ideagpt_test_token=") || row.startsWith("ideagpt_test_session="))
-                ?.split("=")[1];
-            if (testToken) {
-              token = testToken;
-            }
+          if (!token) {
+            // Development/E2E only — hard-disabled in production builds.
+            token = readDevTestToken();
           }
           if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -52,40 +44,8 @@ export function useApiClient() {
 
     instance.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<ApiErrorResponse>) => {
-        const errorData: any = error.response?.data;
-        const statusCode = error.response?.status;
-
-        // Standardize Error Notifications
-        let userMessage: string | undefined;
-        if (typeof errorData?.detail === "string") {
-          userMessage = errorData.detail;
-        } else if (Array.isArray(errorData?.detail)) {
-          userMessage = errorData.detail
-            .map((d: any) => d.msg || (typeof d === "string" ? d : JSON.stringify(d)))
-            .join(", ");
-        } else if (typeof errorData?.error === "string") {
-          userMessage = errorData.error;
-        }
-
-        if (statusCode === 401 || statusCode === 403) {
-          toast.error("Session expired or unauthorized. Please log in again.");
-        } else if (statusCode === 429) {
-          toast.error(userMessage || "Rate limit or quota exceeded. Please wait a moment.");
-        } else if (statusCode === 404) {
-          toast.error(userMessage || "Resource not found.");
-        } else if (statusCode === 422) {
-          toast.error(userMessage || "Validation error in submitted data.");
-        } else if (statusCode && statusCode >= 500) {
-          toast.error(userMessage || "Internal Server Error. Our team has been notified.");
-        } else if (userMessage) {
-          toast.error(userMessage);
-        } else if (!error.response) {
-          toast.error("Cannot connect to API server at http://localhost:8000. Please ensure the backend is running.");
-        } else {
-          toast.error("An unexpected network error occurred.");
-        }
-
+      (error: AxiosError<ApiErrorPayload>) => {
+        toast.error(normalizeApiError(error).message);
         return Promise.reject(error);
       },
     );
