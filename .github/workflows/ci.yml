@@ -76,7 +76,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v4
         with:
-          node-version: 20
+          # pnpm 11.x requires Node >= 22.13 (uses node:sqlite).
+          node-version: 22
           cache: "pnpm"
 
       - name: Install Monorepo Dependencies
