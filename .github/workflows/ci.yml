@@ -53,6 +53,10 @@ jobs:
           python -m alembic check
 
       - name: Run Backend Pytest Suite
+        env:
+          # Integration tests (tests/integration) connect to the service
+          # container via DATABASE_URL; alembic check uses the same URL.
+          DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
         run: |
           cd apps/api
           python -m pytest -v
@@ -76,7 +80,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v4
         with:
-          node-version: 20
+          # pnpm 11.x requires Node >= 22.13 (uses node:sqlite).
+          node-version: 22
           cache: "pnpm"
 
       - name: Install Monorepo Dependencies

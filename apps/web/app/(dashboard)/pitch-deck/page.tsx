@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+
 import { useProjects } from "@/hooks/useProjects";
 import { useApiClient } from "@/lib/api/client";
 import {
@@ -15,11 +15,11 @@ import {
   Copy,
   Check,
   CheckCircle2,
-  TrendingUp,
+  
   DollarSign,
-  Users,
-  Target,
-  Zap,
+  
+  
+  
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

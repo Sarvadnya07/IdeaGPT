@@ -6,7 +6,7 @@ import { useApiClient } from "@/lib/api/client";
 import { toast } from "sonner";
 import {
   GraduationCap,
-  Sparkles,
+  
   Compass,
   AlertOctagon,
   Calendar,
@@ -76,7 +76,7 @@ export default function MentorLabPage() {
       });
       setResult(res.data);
       toast.success("Founder Mentoring Session synthesized successfully!");
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Failed to generate mentoring session");
     } finally {
       setIsGenerating(false);

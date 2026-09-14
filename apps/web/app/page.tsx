@@ -24,8 +24,6 @@ import {
   Presentation,
   FileCheck,
   GitCompare,
-  ChevronDown,
-  Sparkles,
 } from "lucide-react";
 import { Show } from "@clerk/nextjs";
 import { IdeaGPTLogo } from "../components/brand/IdeaGPTLogo";

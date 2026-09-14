@@ -1,6 +1,7 @@
 import tsParser from "@typescript-eslint/parser";
+import tseslint from "typescript-eslint";
 
-export default [
+export default tseslint.config(
   {
     ignores: [
       ".next/**",
@@ -24,9 +25,23 @@ export default [
         },
       },
     },
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
     rules: {
-      "no-unused-vars": "off",
+      // High-signal core rules. Kept deliberately small to avoid noise; this
+      // replaces the previous config where both rules were fully disabled.
       "no-console": "off",
+      "no-unused-vars": "off", // handled by the TS-aware rule below
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
-];
+);

@@ -28,6 +28,35 @@ from app.core.config import settings
 router = APIRouter()
 
 
+def _export_payload(evaluation, fmt: str) -> dict:
+    """
+    Shared export encoding for JSON / Markdown / PDF-HTML.
+
+    Single source of truth for the GET /evaluations/{id}/export and
+    POST /exports/{format} routes so filename and format logic cannot drift.
+    """
+    payload = evaluation.result_payload or {}
+    evaluation_id = evaluation.id
+
+    if fmt in ("markdown", "md"):
+        return {
+            "filename": f"evaluation_{evaluation_id}.md",
+            "format": "markdown",
+            "content": export_service.to_markdown(payload),
+        }
+    if fmt in ("pdf", "html"):
+        return {
+            "filename": f"evaluation_{evaluation_id}.pdf.html",
+            "format": "pdf",
+            "content": export_service.to_pdf_html(payload, project_title=f"Evaluation {evaluation_id[:8]}"),
+        }
+    return {
+        "filename": f"evaluation_{evaluation_id}.json",
+        "format": "json",
+        "content": export_service.to_json(payload),
+    }
+
+
 @router.post("/ideas/{idea_id}/evaluations", response_model=EvaluationResponse, status_code=201)
 @limiter.limit(settings.AI_EVALUATION_RATE_LIMIT)
 async def trigger_evaluation(
@@ -203,25 +232,7 @@ async def get_evaluation_export(
     RESTful GET export for evaluation payload as JSON, Markdown, or PDF Printable HTML.
     """
     evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
-    payload = evaluation.result_payload or {}
-
-    if format in ("markdown", "md"):
-        return {
-            "filename": f"evaluation_{evaluation_id}.md",
-            "format": "markdown",
-            "content": export_service.to_markdown(payload),
-        }
-    elif format in ("pdf", "html"):
-        return {
-            "filename": f"evaluation_{evaluation_id}.pdf.html",
-            "format": "pdf",
-            "content": export_service.to_pdf_html(payload, project_title=f"Evaluation {evaluation_id[:8]}"),
-        }
-    return {
-        "filename": f"evaluation_{evaluation_id}.json",
-        "format": "json",
-        "content": export_service.to_json(payload),
-    }
+    return _export_payload(evaluation, format)
 
 
 class EvaluationDiffRequest(BaseModel):
@@ -254,10 +265,10 @@ async def export_evaluation_json(
     Exports evaluation payload as raw JSON.
     """
     evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
-    return {
-        "filename": f"evaluation_{evaluation_id}.json",
-        "content": export_service.to_json(evaluation.result_payload or {}),
-    }
+    result = _export_payload(evaluation, "json")
+    # Legacy POST shape did not include the "format" discriminator.
+    result.pop("format", None)
+    return result
 
 @router.post("/exports/markdown")
 @limiter.limit("20/minute")
@@ -271,10 +282,10 @@ async def export_evaluation_markdown(
     Exports evaluation payload as Markdown.
     """
     evaluation = await evaluation_service.get_evaluation(db, evaluation_id, current_user.id)
-    return {
-        "filename": f"evaluation_{evaluation_id}.md",
-        "content": export_service.to_markdown(evaluation.result_payload or {}),
-    }
+    result = _export_payload(evaluation, "markdown")
+    # Legacy POST shape did not include the "format" discriminator.
+    result.pop("format", None)
+    return result
 
 @router.get("/evaluations/{evaluation_id}/charts")
 async def get_evaluation_charts(

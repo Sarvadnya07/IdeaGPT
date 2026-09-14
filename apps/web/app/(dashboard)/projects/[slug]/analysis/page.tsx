@@ -8,7 +8,7 @@ import { useInsights } from "../../../../../hooks/useInsights";
 import {
   BrainCircuit,
   Loader2,
-  ArrowRight,
+  
   CheckCircle2,
   ChevronRight,
   AlertTriangle,
@@ -273,7 +273,7 @@ export default function AnalysisPage({
           link.href = url;
           link.download = data.filename;
           link.click();
-        } catch (err) {
+        } catch (_err) {
           alert("Export failed.");
         }
       };

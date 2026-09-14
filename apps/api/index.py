@@ -1,3 +1,8 @@
+# Vercel serverless entry point.
+# NOTE: apps/api/api/index.py is a byte-identical twin of this file. Vercel's
+# build output has historically resolved entry modules from different roots
+# depending on configuration; keep both until deployment is confirmed stable,
+# then delete one. Do not edit one without the other.
 import sys
 from pathlib import Path
 
