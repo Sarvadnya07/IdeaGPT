@@ -53,6 +53,10 @@ jobs:
           python -m alembic check
 
       - name: Run Backend Pytest Suite
+        env:
+          # Integration tests (tests/integration) connect to the service
+          # container via DATABASE_URL; alembic check uses the same URL.
+          DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
         run: |
           cd apps/api
           python -m pytest -v

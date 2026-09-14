@@ -26,10 +26,15 @@ from app.models.roadmap import Roadmap, RoadmapStatus
 from app.models.evaluation import Evaluation
 from app.models.provider_credential import ProviderCredential
 
-# Authoritative PostgreSQL Database URL
-PG_DATABASE_URL = os.getenv(
-    "POSTGRES_DATABASE_URL",
-    "postgresql+asyncpg://postgres:sarvadnya@localhost:5432/ideagpt"
+# Target PostgreSQL connection. Resolution order:
+#   1. POSTGRES_DATABASE_URL (explicit integration-test override)
+#   2. DATABASE_URL (standard app env — this is what CI's postgres service
+#      container provides, e.g. ideagpt:postgres@localhost:5432/ideagpt)
+#   3. Local development default
+PG_DATABASE_URL = (
+    os.getenv("POSTGRES_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+    or "postgresql+asyncpg://postgres:sarvadnya@localhost:5432/ideagpt"
 )
 
 if PG_DATABASE_URL.startswith("postgresql://"):
