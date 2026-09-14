@@ -110,7 +110,7 @@ export const useIdea = (projectId?: string | null) => {
       );
       return res.data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["ideas", variables.projectId],
       });

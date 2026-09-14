@@ -73,7 +73,7 @@ export default function GithubLabPage() {
       });
       setResult(res.data);
       toast.success("GitHub Codebase Scaffolding generated successfully!");
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Failed to generate repository blueprint");
     } finally {
       setIsGenerating(false);

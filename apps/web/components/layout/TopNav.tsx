@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { Menu, Search, Bell, BookOpen, User } from "lucide-react";
+import { Menu, Bell, BookOpen, User } from "lucide-react";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { CommandPalette } from "../shared/CommandPalette";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
   const pathname = usePathname();
   const { isLoaded, userId } = useAuth();
 
-  const getSearchPlaceholder = () => {
+  const _getSearchPlaceholder = () => {
     if (pathname.includes("roadmap")) return "Search milestones...";
     if (pathname.includes("tech-stack")) return "Search architecture...";
     if (pathname.includes("ai-analysis")) return "Search insights...";

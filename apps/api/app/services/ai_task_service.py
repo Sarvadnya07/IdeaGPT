@@ -205,48 +205,50 @@ class AiTaskService:
             return task
 
         except AIUnavailableException as exc:
-            logger.warning(f"Task {task_id} AI unavailable: {exc}")
-            duration_ms = int((time.time() - start_time) * 1000)
-            return await cls.update_task_status(
-                db=db,
-                task=task,
-                new_status="FAILED",
-                error_message="AI service is currently unavailable. Please check provider configuration or retry later.",
-                duration_ms=duration_ms
-            )
+            return await cls._fail_task(db, task, start_time, exc,
+                "AI service is currently unavailable. Please check provider configuration or retry later.")
 
         except AIQuotaExceededException as exc:
-            logger.warning(f"Task {task_id} quota exceeded: {exc}")
-            duration_ms = int((time.time() - start_time) * 1000)
-            return await cls.update_task_status(
-                db=db,
-                task=task,
-                new_status="FAILED",
-                error_message="Daily AI task quota reached for your account.",
-                duration_ms=duration_ms
-            )
+            return await cls._fail_task(db, task, start_time, exc,
+                "Daily AI task quota reached for your account.")
 
         except AIException as exc:
-            logger.warning(f"Task {task_id} AI exception: {exc}")
-            duration_ms = int((time.time() - start_time) * 1000)
-            return await cls.update_task_status(
-                db=db,
-                task=task,
-                new_status="FAILED",
-                error_message="An error occurred during AI model processing. Please try again.",
-                duration_ms=duration_ms
-            )
+            return await cls._fail_task(db, task, start_time, exc,
+                "An error occurred during AI model processing. Please try again.")
 
         except Exception as exc:
-            logger.error(f"Task execution failed for task {task_id}: {str(exc)}", exc_info=True)
-            duration_ms = int((time.time() - start_time) * 1000)
-            return await cls.update_task_status(
-                db=db,
-                task=task,
-                new_status="FAILED",
-                error_message="An unexpected error occurred during task execution. Please try again later.",
-                duration_ms=duration_ms
-            )
+            return await cls._fail_task(db, task, start_time, exc,
+                "An unexpected error occurred during task execution. Please try again later.")
+
+    @classmethod
+    async def _fail_task(
+        cls,
+        db: AsyncSession,
+        task: AiTask,
+        start_time: float,
+        exc: Exception,
+        user_message: str
+    ) -> AiTask:
+        """
+        Transition a task to FAILED with the user-safe message and timing.
+        Unexpected (non-AI) failures are logged at error level with traceback;
+        expected AI failures stay at warning.
+        """
+        unexpected = not isinstance(exc, AIException)
+        log = logger.error if unexpected else logger.warning
+        log(
+            "Task %s failed (%s): %s",
+            task.id, type(exc).__name__, exc,
+            exc_info=unexpected,
+        )
+        duration_ms = int((time.time() - start_time) * 1000)
+        return await cls.update_task_status(
+            db=db,
+            task=task,
+            new_status="FAILED",
+            error_message=user_message,
+            duration_ms=duration_ms
+        )
 
     @classmethod
     async def cleanup_stale_tasks(cls, db: AsyncSession, timeout_minutes: int = 5) -> int:

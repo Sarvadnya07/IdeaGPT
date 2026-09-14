@@ -13,7 +13,7 @@ import {
   Loader2,
   RefreshCw,
   Target,
-  FileSpreadsheet,
+  
 } from "lucide-react";
 
 interface ValuationRange {
@@ -71,7 +71,7 @@ export default function InvestorLabPage() {
     selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const [targetRaise, setTargetRaise] = useState<string>("$1.5M Seed");
+  const [targetRaise, _setTargetRaise] = useState<string>("$1.5M Seed");
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<InvestorLabResult | null>(null);
 
@@ -90,7 +90,7 @@ export default function InvestorLabPage() {
       });
       setResult(res.data);
       toast.success("Institutional Investor Analysis generated successfully!");
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Failed to generate investor analysis");
     } finally {
       setIsGenerating(false);

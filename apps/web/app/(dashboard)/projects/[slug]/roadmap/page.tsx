@@ -1,14 +1,14 @@
 "use client";
 
 import React, { use, useState } from "react";
-import Link from "next/link";
+
 import { useProjects } from "@/hooks/useProjects";
 import { useIdea } from "@/hooks/useIdea";
 import { useRoadmaps, Milestone } from "@/hooks/useRoadmaps";
 import { useApiClient } from "@/lib/api/client";
 import {
   Map,
-  Plus,
+  
   CheckCircle2,
   Circle,
   Clock,
@@ -72,7 +72,7 @@ export default function ProjectRoadmapPage({
         });
       }
       toast.success(`Dynamic AI roadmap generated with ${selectedModel}!`);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to generate AI roadmap.");
     } finally {
       setIsGeneratingAI(false);
@@ -111,7 +111,7 @@ export default function ProjectRoadmapPage({
             ? "In Progress"
             : "Pending";
       toast.success(`Task marked as ${statusLabel}`);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update task status.");
     }
   };
