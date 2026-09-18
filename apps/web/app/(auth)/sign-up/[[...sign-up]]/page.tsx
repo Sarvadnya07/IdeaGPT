@@ -7,10 +7,10 @@ export default function SignUpPage() {
       appearance={{
         variables: {
           colorBackground: "#0c0c0e",
-          colorText: "#f4f4f5",
+          colorForeground: "#f4f4f5",
           colorPrimary: "#4f46e5",
-          colorInputBackground: "#070709",
-          colorInputText: "#f4f4f5",
+          colorInput: "#070709",
+          colorInputForeground: "#f4f4f5",
         },
         elements: {
           cardBox: "shadow-2xl shadow-black/40",
