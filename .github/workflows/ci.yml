@@ -54,9 +54,9 @@ jobs:
 
       - name: Run Backend Pytest Suite
         env:
-          # Integration tests (tests/integration) connect to the service
-          # container via DATABASE_URL; alembic check uses the same URL.
-          DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
+          # Keep unit tests isolated on SQLite while the PostgreSQL lifecycle
+          # suite explicitly connects to the CI PostgreSQL service.
+          POSTGRES_DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
         run: |
           cd apps/api
           python -m pytest -v
@@ -73,14 +73,13 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v4
 
       - name: Install pnpm
-        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v4
         with:
           version: 11.1.1
 
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v4
         with:
-          # pnpm 11.x requires Node >= 22.13 (uses node:sqlite).
           node-version: 22
           cache: "pnpm"
 

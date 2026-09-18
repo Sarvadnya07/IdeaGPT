@@ -1,6 +1,6 @@
 """
-Real PostgreSQL 18 Integration Test Suite for IdeaGPT.
-Target: PostgreSQL 18.4 on localhost:5432 / DATABASE_URL.
+Real PostgreSQL Integration Test Suite for IdeaGPT.
+Target: PostgreSQL 15+ on localhost:5432 via POSTGRES_DATABASE_URL.
 Verifies native PostgreSQL-specific behavior:
   - Native UUID generation and indexing
   - JSONB document persistence and querying
@@ -26,15 +26,10 @@ from app.models.roadmap import Roadmap, RoadmapStatus
 from app.models.evaluation import Evaluation
 from app.models.provider_credential import ProviderCredential
 
-# Target PostgreSQL connection. Resolution order:
-#   1. POSTGRES_DATABASE_URL (explicit integration-test override)
-#   2. DATABASE_URL (standard app env — this is what CI's postgres service
-#      container provides, e.g. ideagpt:postgres@localhost:5432/ideagpt)
-#   3. Local development default
-PG_DATABASE_URL = (
-    os.getenv("POSTGRES_DATABASE_URL")
-    or os.getenv("DATABASE_URL")
-    or "postgresql+asyncpg://postgres:sarvadnya@localhost:5432/ideagpt"
+# Authoritative PostgreSQL Database URL
+PG_DATABASE_URL = os.getenv(
+    "POSTGRES_DATABASE_URL",
+    "postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt"
 )
 
 if PG_DATABASE_URL.startswith("postgresql://"):
