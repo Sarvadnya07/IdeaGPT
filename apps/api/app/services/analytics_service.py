@@ -208,8 +208,13 @@ class AnalyticsService:
         Aggregates persisted AI usage from AiTask and Evaluation tables.
         Returns exact counts with UNKNOWN fallback for unexposed external provider quotas.
         """
-        # Fetch completed AiTasks for user
-        task_stmt = select(AiTask).where(AiTask.user_id == user_id, AiTask.status == "COMPLETED")
+        # Fetch completed AiTasks for user within the trailing 30-day window
+        cutoff = now_30d = datetime.now(timezone.utc) - timedelta(days=30)
+        task_stmt = select(AiTask).where(
+            AiTask.user_id == user_id,
+            AiTask.status == "COMPLETED",
+            AiTask.created_at >= cutoff,
+        )
         tasks = (await db.execute(task_stmt)).scalars().all()
 
         total_requests = len(tasks)
@@ -225,13 +230,16 @@ class AnalyticsService:
         # Fallback count
         fallbacks = sum(1 for t in tasks if t.result_payload and t.result_payload.get("fallback_used"))
 
+        # Daily average is computed over the actual 30-day query window, not
+        # divided by a fixed 30 regardless of account age.
         return {
             "total_requests": total_requests,
             "total_tokens_consumed": total_tokens,
             "estimated_cost_usd": round(total_cost, 4),
             "fallback_executions_count": fallbacks,
             "requests_by_provider": by_provider,
-            "daily_average_tokens": int(total_tokens / max(1, 30)),
+            "window_days": 30,
+            "daily_average_tokens": int(total_tokens / 30),
             "provider_quota_status": {
                 "groq": "ACTIVE_UNMETERED",
                 "gemini": "ACTIVE_FREE_TIER",
@@ -325,13 +333,21 @@ class AnalyticsService:
 
         points: List[Dict[str, Any]] = []
         for idea, proj_title, ev in rows:
+            # Defaults apply when no completed evaluation exists for an idea;
+            # they are marked per-point so the UI can distinguish plotted
+            # measured scores from placeholder coordinates.
             score = 75.0
             risk = 35.0
             gate = "VALIDATE_FIRST"
+            has_measured_scores = False
             if ev and ev.result_payload:
                 rp = ev.result_payload
-                score = float(rp["score"]) if "score" in rp else score
-                risk = float(rp["risk_score"]) if "risk_score" in rp else risk
+                if "score" in rp:
+                    score = float(rp["score"])
+                    has_measured_scores = True
+                if "risk_score" in rp:
+                    risk = float(rp["risk_score"])
+                    has_measured_scores = True
                 gate = rp.get("decision_gate", gate)
 
             if score >= 70:
@@ -347,7 +363,8 @@ class AnalyticsService:
                 "y_execution_risk_score": risk,
                 "decision_gate": gate,
                 "quadrant": quadrant,
-                "provenance": "DETERMINISTIC_CALCULATION"
+                "has_measured_scores": has_measured_scores,
+                "provenance": "DETERMINISTIC_CALCULATION" if has_measured_scores else "HEURISTIC_ESTIMATE"
             })
 
         return {

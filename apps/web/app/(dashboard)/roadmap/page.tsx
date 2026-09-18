@@ -7,7 +7,7 @@ import {
   useRoadmaps,
   Milestone,
   Task,
-  Roadmap,
+  
 } from "../../../hooks/useRoadmaps";
 import { useApiClient } from "@/lib/api/client";
 import {
@@ -18,7 +18,7 @@ import {
   CheckCircle2,
   Circle,
   Clock,
-  ChevronRight,
+  
   Sparkles,
   Layers,
   BrainCircuit,
@@ -47,7 +47,7 @@ export default function RoadmapPage() {
   const projectIdeas = ideasQuery.data || [];
   const primaryIdea = projectIdeas[0];
 
-  const [selectedProvider, setSelectedProvider] = useState<string>("groq");
+  const [selectedProvider, _setSelectedProvider] = useState<string>("groq");
   const [selectedModel, setSelectedModel] = useState<string>(
     "llama-3.3-70b-versatile",
   );
@@ -58,7 +58,7 @@ export default function RoadmapPage() {
   const [milestoneTitle, setMilestoneTitle] = useState("");
   const [milestoneObjective, setMilestoneObjective] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
-  const [taskDays, setTaskDays] = useState<number>(3);
+  const [taskDays, _setTaskDays] = useState<number>(3);
 
   const handleGenerateAIRoadmap = async () => {
     if (!activeProjectId) return;
@@ -89,7 +89,7 @@ export default function RoadmapPage() {
         });
       }
       toast.success(`Dynamic AI roadmap generated with ${selectedModel}!`);
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to generate AI roadmap.");
     } finally {
       setIsGeneratingAI(false);
@@ -125,7 +125,7 @@ export default function RoadmapPage() {
       setMilestoneTitle("");
       setMilestoneObjective("");
       setTaskTitle("");
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update roadmap.");
     }
   };
@@ -155,7 +155,7 @@ export default function RoadmapPage() {
         roadmapId: activeRoadmap.id,
         data: { milestones: updatedMilestones },
       });
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to update task status.");
     }
   };
@@ -166,7 +166,7 @@ export default function RoadmapPage() {
       try {
         await deleteRoadmap.mutateAsync(activeRoadmap.id);
         toast.success("Roadmap deleted.");
-      } catch (err) {
+      } catch (_err) {
         toast.error("Failed to delete roadmap.");
       }
     }

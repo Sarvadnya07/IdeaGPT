@@ -21,7 +21,7 @@ import {
   Boxes,
   Target,
   X,
-  Sparkles,
+  
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { IdeaGPTLogo } from "../brand/IdeaGPTLogo";
@@ -127,7 +127,7 @@ export function Sidebar({ mobileMenuOpen, setMobileMenuOpen }: SidebarProps) {
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={(e) => {
+                    onClick={(_e) => {
                       // if (item.isComingSoon) e.preventDefault();
                       setMobileMenuOpen(false);
                     }}

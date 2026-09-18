@@ -12,8 +12,8 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
-  Copy,
-  Check,
+  
+  
   Award,
 } from "lucide-react";
 
@@ -64,7 +64,7 @@ export default function RecruiterLabPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<RecruiterLabResult | null>(null);
   const [selectedJobIdx, setSelectedJobIdx] = useState<number>(0);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [_copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     if (!activeProject) {
@@ -82,14 +82,14 @@ export default function RecruiterLabPage() {
       });
       setResult(res.data);
       toast.success("Executive Talent Blueprint synthesized successfully!");
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Failed to generate recruiting plan");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const copyToClipboard = (text: string, key: string) => {
+  const _copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     toast.success("Copied to clipboard!");
