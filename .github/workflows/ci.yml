@@ -53,6 +53,10 @@ jobs:
           python -m alembic check
 
       - name: Run Backend Pytest Suite
+        env:
+          # Keep unit tests isolated on SQLite while the PostgreSQL lifecycle
+          # suite explicitly connects to the CI PostgreSQL service.
+          POSTGRES_DATABASE_URL: postgresql+asyncpg://ideagpt:postgres@localhost:5432/ideagpt
         run: |
           cd apps/api
           python -m pytest -v
@@ -76,7 +80,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "pnpm"
 
       - name: Install Monorepo Dependencies

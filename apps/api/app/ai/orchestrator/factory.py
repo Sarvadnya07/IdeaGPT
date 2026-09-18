@@ -9,6 +9,19 @@ from app.ai.orchestrator.gateway_adapter import GatewayAIProviderAdapter
 logger = logging.getLogger(__name__)
 
 class ProviderFactory:
+    """
+    Single entry point for resolving a provider implementation.
+
+    CANONICAL PATH: ``gateway_registry`` -> ``BaseProviderAdapter``, wrapped in
+    ``GatewayAIProviderAdapter``. Every registered first-party provider (groq,
+    gemini, openai, ollama, mock, tavily) resolves here.
+
+    LEGACY PATH: the deprecated ``app.ai.providers`` registry. It remains
+    reachable only for providers that have no gateway adapter (currently
+    ``custom``) and emits a deprecation warning. It is scheduled for removal;
+    see ``app/ai/providers/__init__.py``.
+    """
+
     @staticmethod
     def create_provider(name: str) -> AIProvider:
         """
@@ -26,8 +39,10 @@ class ProviderFactory:
         try:
             provider_cls = registry.get_class(name)
             logger.warning(
-                f"[DEPRECATION] Using legacy AIProvider class for '{name}'. "
-                f"Migrate to canonical BaseProviderAdapter in gateway_registry."
+                f"[DEPRECATION] Provider '{name}' resolved via legacy AIProvider "
+                f"registry because no gateway adapter is registered. Add a "
+                f"BaseProviderAdapter for '{name}' in gateway_registry to remove "
+                f"this path."
             )
             return provider_cls()
         except ValueError:

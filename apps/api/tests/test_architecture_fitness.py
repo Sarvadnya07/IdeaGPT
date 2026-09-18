@@ -339,7 +339,93 @@ def test_legacy_provider_imports_forbidden_in_services_and_routes():
 
 
 # ===========================================================================
-# 11. Production Credential Encryption Fail-Closed
+# 11. Canonical Provider Path contains the legacy provider package
+# ===========================================================================
+def test_legacy_provider_package_confined_to_orchestrator():
+    """
+    Fitness Rule: the deprecated app.ai.providers package may only be imported
+    from app/ai/orchestrator/ (the compatibility factory, registry and adapter).
+    Any new import elsewhere re-opens the dual-abstraction problem.
+    """
+    allowed_prefixes = (
+        os.path.join(APP_DIR, "ai", "orchestrator"),
+        # The deprecated package may reference itself while it is being retired.
+        os.path.join(APP_DIR, "ai", "providers"),
+    )
+
+    for root, _, files in os.walk(APP_DIR):
+        for f in files:
+            if not f.endswith(".py") or f.startswith("__"):
+                continue
+            filepath = os.path.join(root, f)
+            if filepath.startswith(allowed_prefixes):
+                continue
+
+            with open(filepath, "r", encoding="utf-8-sig") as file:
+                tree = ast.parse(file.read(), filename=filepath)
+
+            for node in ast.walk(tree):
+                module = None
+                if isinstance(node, ast.ImportFrom):
+                    module = node.module or ""
+                elif isinstance(node, ast.Import):
+                    for alias in node.names:
+                        assert not alias.name.startswith("app.ai.providers"), (
+                            f"Architecture Violation in {filepath}: imports legacy {alias.name}"
+                        )
+                if module and module.startswith("app.ai.providers"):
+                    pytest.fail(
+                        f"Architecture Violation in {filepath}: imports legacy {module} "
+                        f"outside app/ai/orchestrator/"
+                    )
+
+
+# ===========================================================================
+# 12. Single Deterministic Fallback Path
+# ===========================================================================
+def test_deterministic_engine_only_reachable_via_evaluation_or_shared_glue():
+    """
+    Fitness Rule: DeterministicEvaluationEngine may only be imported by the
+    evaluation package itself and the shared fallback policy
+    (ai/orchestrator/generation_pipeline.py). This keeps a single, auditable
+    offline-fallback path instead of scattered ad-hoc fallbacks.
+    """
+    allowed_files = {
+        os.path.join(APP_DIR, "ai", "orchestrator", "generation_pipeline.py"),
+    }
+    allowed_prefixes = (os.path.join(APP_DIR, "evaluation"),)
+    offenders = []
+
+    for root, _, files in os.walk(APP_DIR):
+        for f in files:
+            if not f.endswith(".py") or f.startswith("__"):
+                continue
+            filepath = os.path.join(root, f)
+            if filepath in allowed_files or filepath.startswith(allowed_prefixes):
+                continue
+
+            with open(filepath, "r", encoding="utf-8-sig") as file:
+                tree = ast.parse(file.read(), filename=filepath)
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom):
+                    module = node.module or ""
+                    if module.startswith("app.evaluation.engine"):
+                        offenders.append(os.path.relpath(filepath, APP_DIR))
+                        break
+                elif isinstance(node, ast.Import):
+                    if any(a.name.startswith("app.evaluation.engine") for a in node.names):
+                        offenders.append(os.path.relpath(filepath, APP_DIR))
+                        break
+
+    assert not offenders, (
+        "Deterministic engine must be reached via DeterministicFallback only. "
+        f"Offending modules: {offenders}"
+    )
+
+
+# ===========================================================================
+# 13. Production Credential Encryption Fail-Closed
 # ===========================================================================
 def test_production_credential_encryption_key_enforcement():
     """
