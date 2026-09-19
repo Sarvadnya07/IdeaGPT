@@ -29,13 +29,14 @@ function runCmd(cmd, args, options = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Check Node.js Version (>= 18)
+// 1. Check Node.js Version (>= 22.13.0)
 // ---------------------------------------------------------------------------
 process.stdout.write('[1/6] Checking Node.js runtime... ');
-const nodeVersionMatch = process.version.match(/^v(\d+)/);
+const nodeVersionMatch = process.version.match(/^v(\d+)\.(\d+)/);
 const nodeMajor = nodeVersionMatch ? parseInt(nodeVersionMatch[1], 10) : 0;
-if (nodeMajor < 18) {
-  console.error(`\n❌ Node.js 18+ is required. Current version: ${process.version}`);
+const nodeMinor = nodeVersionMatch ? parseInt(nodeVersionMatch[2], 10) : 0;
+if (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 13)) {
+  console.error(`\n❌ Node.js >=22.13.0 is required. Current version: ${process.version}`);
   console.error('Please upgrade Node.js from https://nodejs.org/');
   process.exit(1);
 }

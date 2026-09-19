@@ -8,10 +8,10 @@ This guide describes the golden path for bootstrapping a complete local developm
 
 Before running setup, ensure the following host tools are installed:
 
-1. **Node.js** (v18 or higher) — [https://nodejs.org/](https://nodejs.org/)
-2. **pnpm** (v9 or higher) — Install via: `npm install -g pnpm`
-3. **Python** (v3.11 or v3.12) — [https://www.python.org/downloads/](https://www.python.org/downloads/)
-4. *(Optional but Recommended)* **Docker & Docker Compose** — [https://www.docker.com/](https://www.docker.com/) for local PostgreSQL 15 & Redis 7.
+1. **Node.js** (>=22.13.0, recommended 22.23.2) — [https://nodejs.org/](https://nodejs.org/)
+2. **pnpm** (11.1.1) — Install via: `npm install -g pnpm@11.1.1`
+3. **Python** (3.12.x) — [https://www.python.org/downloads/](https://www.python.org/downloads/)
+4. *(Optional but Recommended)* **Docker & Docker Compose** — [https://www.docker.com/](https://www.docker.com/) for local PostgreSQL 15+ & Redis 7.
 
 ---
 
@@ -32,7 +32,7 @@ pnpm setup
 ```
 
 ### What `pnpm setup` does automatically:
-* **Pre-flight Checks:** Verifies compatible Node (>=18), pnpm (>=9), and Python (>=3.11).
+* **Pre-flight Checks:** Verifies compatible Node (>=22.13.0), pnpm (11.1.1), and Python (3.12.x).
 * **Environment Template Initialization:** Safely initializes `apps/api/.env`, `apps/web/.env.local`, and root `.env` from template examples without overwriting any existing secrets.
 * **Virtual Environment Creation:** Automatically creates `apps/api/venv` and installs all development/testing dependencies (`requirements-dev.txt`).
 * **Cross-Platform Python Detection:** Prepares the runner for Windows (`venv\Scripts\python.exe`) or POSIX (`venv/bin/python`).

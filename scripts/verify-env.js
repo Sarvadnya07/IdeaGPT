@@ -41,13 +41,17 @@ function check(label, fn) {
 }
 
 // 1. Node.js
-check('Node.js Version (>=18)', () => {
-  const match = process.version.match(/^v(\d+)/);
-  return match && parseInt(match[1], 10) >= 18 ? true : { error: `Found ${process.version}` };
+check('Node.js Version (>=22.13.0)', () => {
+  const match = process.version.match(/^v(\d+)\.(\d+)/);
+  if (!match) return { error: `Cannot parse ${process.version}` };
+  const major = parseInt(match[1], 10);
+  const minor = parseInt(match[2], 10);
+  if (major > 22 || (major === 22 && minor >= 13)) return true;
+  return { error: `Node >=22.13.0 required, found ${process.version}` };
 });
 
 // 2. pnpm
-check('pnpm Package Manager (>=9)', () => {
+check('pnpm Package Manager (11.1.1 / >=10)', () => {
   const res = spawnSync('pnpm', ['--version'], { encoding: 'utf-8', shell: isWindows });
   return res.status === 0 ? true : { error: 'pnpm not found in PATH' };
 });
