@@ -17,7 +17,9 @@ import {
   BookOpen,
   Box,
   Layers,
+  CheckCircle2,
 } from "lucide-react";
+import { useLabArtifact } from "@/hooks/useLabArtifact";
 
 interface DirectoryItem {
   path: string;
@@ -59,6 +61,19 @@ export default function GithubLabPage() {
   >("tree");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  const labArtifact = useLabArtifact<GitHubLabResult>(
+    activeProjectId,
+    "github_lab"
+  );
+
+  React.useEffect(() => {
+    if (labArtifact.payload) {
+      setResult(labArtifact.payload);
+    } else if (!labArtifact.isLoading) {
+      setResult(null);
+    }
+  }, [labArtifact.payload, labArtifact.isLoading, activeProjectId]);
+
   const handleGenerate = async () => {
     if (!activeProject) {
       toast.error("Please select a project first.");
@@ -73,6 +88,7 @@ export default function GithubLabPage() {
         description: activeProject.description || "",
       });
       setResult(res.data);
+      await labArtifact.invalidate();
       toast.success("GitHub Codebase Scaffolding generated successfully!");
     } catch {
       // PRODUCT-01 P-11: no generic toast here. The shared API client interceptor
@@ -95,10 +111,16 @@ export default function GithubLabPage() {
       {/* Top Banner Heading */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-900 pb-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-zinc-700 uppercase tracking-widest gap-1.5">
               <GitBranch className="w-3 h-3" /> GitHub Architecture Lab
             </span>
+            {labArtifact.artifact?.created_at && !isGenerating && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-950/60 text-indigo-300 border border-indigo-800/60 gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-indigo-400" />
+                Saved Result Restored ({new Date(labArtifact.artifact.created_at).toLocaleDateString()})
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             {activeProject?.title || "Codebase Scaffolder"}
@@ -142,7 +164,14 @@ export default function GithubLabPage() {
         </div>
       </div>
 
-      {result ? (
+      {labArtifact.isLoading && !result ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+          <h3 className="text-sm font-medium text-zinc-300">
+            Restoring saved GitHub blueprint...
+          </h3>
+        </div>
+      ) : result ? (
         <div className="space-y-6">
           {/* Repo Overview Card */}
           <div className="p-6 rounded-2xl bg-zinc-950/60 border border-zinc-900 flex flex-wrap items-center justify-between gap-4">

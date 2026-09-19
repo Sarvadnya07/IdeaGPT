@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useProjects } from "../../../hooks/useProjects";
 import { useIdeaSubmission } from "../../../hooks/useIdeaSubmission";
 import { useApiClient } from "@/lib/api/client";
+import { useLabArtifact } from "@/hooks/useLabArtifact";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -118,11 +119,27 @@ export default function StrategyLabPage() {
     "decision" | "assumptions" | "scenarios" | "tradeoffs" | "actions"
   >("decision");
 
+  const labArtifact = useLabArtifact<DeepStrategyResponse>(
+    activeProjectId,
+    "strategy_lab"
+  );
+  const [persistedData, setPersistedData] = useState<DeepStrategyResponse | null>(null);
+
+  React.useEffect(() => {
+    if (labArtifact.payload) {
+      setPersistedData(labArtifact.payload);
+    } else if (!labArtifact.isLoading) {
+      setPersistedData(null);
+    }
+  }, [labArtifact.payload, labArtifact.isLoading, activeProjectId]);
+
   // Strategy Analysis Mutation
   const strategyMutation = useMutation({
     mutationFn: async () => {
       if (!latestIdea) return null;
       const res = await api.post<DeepStrategyResponse>("/ai/strategy/analyze", {
+        project_id: activeProjectId || undefined,
+        idea_id: latestIdea.id || undefined,
         title: latestIdea.title,
         industry: latestIdea.industry || "Technology",
         problem_statement: latestIdea.problem_statement || latestIdea.title,
@@ -131,7 +148,8 @@ export default function StrategyLabPage() {
       });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await labArtifact.invalidate();
       toast.success("Strategic Decision Analysis synthesized successfully!");
     },
     onError: () => {
@@ -205,17 +223,25 @@ export default function StrategyLabPage() {
     );
   }
 
-  const data = strategyMutation.data;
+  const data = strategyMutation.data || persistedData;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto p-4 md:p-8">
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-900/80 pb-6">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
-            <Compass className="w-7 h-7 text-indigo-400" />
-            Strategy Lab & Decision Intelligence
-          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+              <Compass className="w-7 h-7 text-indigo-400" />
+              Strategy Lab & Decision Intelligence
+            </h1>
+            {labArtifact.artifact?.created_at && !strategyMutation.isPending && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-950/60 text-indigo-300 border border-indigo-800/60 gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-indigo-400" />
+                Saved Result Restored ({new Date(labArtifact.artifact.created_at).toLocaleDateString()})
+              </span>
+            )}
+          </div>
           <p className="text-xs text-zinc-400 mt-1">
             Deep reasoning, assumption testing, controlled what-if scenarios,
             and risk-adjusted decision modeling.
@@ -324,6 +350,13 @@ export default function StrategyLabPage() {
           <p className="text-xs text-zinc-400">
             Synthesizing deep reasoning, assumption prioritization, and scenario
             curves...
+          </p>
+        </div>
+      ) : labArtifact.isLoading && !data ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <Loader2 className="w-10 h-10 text-indigo-500 animate-spin" />
+          <p className="text-xs text-zinc-400">
+            Restoring saved strategy analysis...
           </p>
         </div>
       ) : !data ? (

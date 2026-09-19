@@ -14,7 +14,9 @@ import {
   RefreshCw,
   Target,
   FileSpreadsheet,
+  CheckCircle2,
 } from "lucide-react";
+import { useLabArtifact } from "@/hooks/useLabArtifact";
 
 interface ValuationRange {
   pre_money_min_usd: number;
@@ -75,6 +77,19 @@ export default function InvestorLabPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<InvestorLabResult | null>(null);
 
+  const labArtifact = useLabArtifact<InvestorLabResult>(
+    activeProjectId,
+    "investor_lab"
+  );
+
+  React.useEffect(() => {
+    if (labArtifact.payload) {
+      setResult(labArtifact.payload);
+    } else if (!labArtifact.isLoading) {
+      setResult(null);
+    }
+  }, [labArtifact.payload, labArtifact.isLoading, activeProjectId]);
+
   const handleGenerate = async () => {
     if (!activeProject) {
       toast.error("Please select a project first.");
@@ -90,6 +105,7 @@ export default function InvestorLabPage() {
         target_raise: targetRaise,
       });
       setResult(res.data);
+      await labArtifact.invalidate();
       toast.success("Institutional Investor Analysis generated successfully!");
     } catch {
       // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
@@ -111,10 +127,16 @@ export default function InvestorLabPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-900 pb-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-widest gap-1.5">
               <DollarSign className="w-3 h-3" /> Investor & Valuation Lab
             </span>
+            {labArtifact.artifact?.created_at && !isGenerating && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950/60 text-amber-300 border border-amber-800/60 gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-amber-400" />
+                Saved Result Restored ({new Date(labArtifact.artifact.created_at).toLocaleDateString()})
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             {activeProject?.title || "Investor Assessment"}
@@ -157,7 +179,14 @@ export default function InvestorLabPage() {
         </div>
       </div>
 
-      {result ? (
+      {labArtifact.isLoading && !result ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+          <h3 className="text-sm font-medium text-zinc-300">
+            Restoring saved Investor analysis...
+          </h3>
+        </div>
+      ) : result ? (
         <div className="space-y-6">
           {/* Top Elevator Pitch Card */}
           <div className="p-6 rounded-2xl bg-amber-950/20 border border-amber-900/40">

@@ -16,6 +16,7 @@ import {
   Check,
   Award,
 } from "lucide-react";
+import { useLabArtifact } from "@/hooks/useLabArtifact";
 
 interface CompensationRange {
   salary_usd: string;
@@ -66,6 +67,20 @@ export default function RecruiterLabPage() {
   const [selectedJobIdx, setSelectedJobIdx] = useState<number>(0);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  const labArtifact = useLabArtifact<RecruiterLabResult>(
+    activeProjectId,
+    "recruiter_lab"
+  );
+
+  React.useEffect(() => {
+    if (labArtifact.payload) {
+      setResult(labArtifact.payload);
+      setSelectedJobIdx(0);
+    } else if (!labArtifact.isLoading) {
+      setResult(null);
+    }
+  }, [labArtifact.payload, labArtifact.isLoading, activeProjectId]);
+
   const handleGenerate = async () => {
     if (!activeProject) {
       toast.error("Please select a project first.");
@@ -82,6 +97,7 @@ export default function RecruiterLabPage() {
           "Founding Full-Stack Engineer, Head of Growth, Product Designer",
       });
       setResult(res.data);
+      await labArtifact.invalidate();
       toast.success("Executive Talent Blueprint synthesized successfully!");
     } catch {
       // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
@@ -104,10 +120,16 @@ export default function RecruiterLabPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-900 pb-6">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-widest gap-1.5">
               <Users className="w-3 h-3" /> Talent & Recruiter Lab
             </span>
+            {labArtifact.artifact?.created_at && !isGenerating && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 gap-1.5">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                Saved Result Restored ({new Date(labArtifact.artifact.created_at).toLocaleDateString()})
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             {activeProject?.title || "Hiring & Talent Architecture"}
@@ -151,7 +173,14 @@ export default function RecruiterLabPage() {
         </div>
       </div>
 
-      {result ? (
+      {labArtifact.isLoading && !result ? (
+        <div className="flex flex-col items-center justify-center py-20 border border-zinc-900/60 rounded-2xl bg-[#0b0b0d] text-center p-8 space-y-4">
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          <h3 className="text-sm font-medium text-zinc-300">
+            Restoring saved Recruiter blueprint...
+          </h3>
+        </div>
+      ) : result ? (
         <div className="space-y-6">
           {/* Sourcing Strategy Banner */}
           <div className="p-6 rounded-2xl bg-emerald-950/20 border border-emerald-900/40">
