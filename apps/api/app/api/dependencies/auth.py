@@ -33,7 +33,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from typing import Annotated
+from typing import Annotated, Optional
 
 from app.db.session import get_db
 from app.models.user import User
@@ -41,13 +41,37 @@ from app.core.security import ClerkAuth
 
 logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# HTTPBearer — auto_error=True means a missing Authorization header returns
-# 403 Forbidden.  We re-raise as 401 in the dependency below for consistency.
-# ---------------------------------------------------------------------------
 _http_bearer = HTTPBearer(auto_error=True)
+_http_bearer_optional = HTTPBearer(auto_error=False)
 
 clerk_auth = ClerkAuth()
+
+
+async def verify_metrics_auth(
+    request: Request,
+    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(_http_bearer_optional)],
+    db: AsyncSession = Depends(get_db),
+) -> bool:
+    """
+    Validates metrics access authorization:
+    1. If credentials missing: raise 401 Unauthorized.
+    2. If METRICS_SCRAPE_TOKEN is configured and matches bearer token: authorized.
+    3. Otherwise, verifies as valid authenticated user.
+    """
+    from app.core.config import settings
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication credentials required for metrics endpoint",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = credentials.credentials
+    if settings.METRICS_SCRAPE_TOKEN and token == settings.METRICS_SCRAPE_TOKEN:
+        return True
+
+    await get_current_user(request=request, credentials=credentials, db=db)
+    return True
 
 
 async def get_current_user(

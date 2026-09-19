@@ -14,10 +14,10 @@ from typing import Optional
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
+from app.core.proxy import get_client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def rate_limit_key_func(request: Request) -> str:
 
     Priority:
     1. Cryptographically verified `request.state.user_id` or `request.state.clerk_id` (attached during auth).
-    2. Fallback to client remote IP address.
+    2. Fallback to client IP address via trusted proxy topology.
     """
     user_id = getattr(request.state, "user_id", None)
     if user_id:
@@ -38,7 +38,7 @@ def rate_limit_key_func(request: Request) -> str:
     if clerk_id:
         return f"user:{clerk_id}"
 
-    return f"ip:{get_remote_address(request)}"
+    return f"ip:{get_client_ip(request)}"
 
 
 # Determine storage backend (Redis URL if configured, otherwise process-local in-memory)
@@ -56,13 +56,20 @@ def custom_rate_limit_exceeded_handler(request: Request, exc: Exception) -> Resp
     Standardized FastAPI HTTP 429 response handler.
     Matches IdeaGPT error schema and attaches a Retry-After header.
     """
+    client_ip = get_client_ip(request)
     detail = getattr(exc, "detail", "Rate limit exceeded")
     logger.warning(
         "Rate limit exceeded: path=%s ip=%s limit=%s",
         request.url.path,
-        get_remote_address(request),
+        client_ip,
         detail,
     )
+
+    try:
+        from app.core.metrics import record_rate_limit_exceeded
+        record_rate_limit_exceeded(request.url.path)
+    except Exception:
+        pass
 
     request_id = getattr(request.state, "request_id", "") or ""
 

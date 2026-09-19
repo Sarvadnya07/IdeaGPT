@@ -107,6 +107,17 @@ def tag_execution(
         payload["_model"] = model
     if fallback_reason is not None:
         payload["_fallback_reason"] = fallback_reason
+
+    if fallback_used:
+        try:
+            from app.core.metrics import record_ai_fallback
+            record_ai_fallback(
+                primary_provider=str(provider or "primary"),
+                fallback_provider="deterministic_fallback" if execution_type == "deterministic" else str(provider or "fallback"),
+            )
+        except Exception:
+            pass
+
     return payload
 
 

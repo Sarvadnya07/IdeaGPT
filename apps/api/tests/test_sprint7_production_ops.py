@@ -28,17 +28,18 @@ async def test_request_correlation_id_propagation():
 
 @pytest.mark.asyncio
 async def test_operational_metrics_endpoint():
-    """Verify /metrics operational endpoint returns system metrics."""
+    """Verify /metrics operational endpoint returns standard Prometheus text exposition metrics."""
     from tests.test_auth import _make_token
     auth_header = {"Authorization": f"Bearer {_make_token(sub='test_ops_metrics_user')}"}
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         res = await client.get("/metrics", headers=auth_header)
         assert res.status_code == 200
-        data = res.json()
-        assert "service" in data
-        assert "ai_task_metrics" in data
-        assert "total_tasks" in data["ai_task_metrics"]
+        assert "text/plain" in res.headers.get("content-type", "")
+        text = res.text
+        assert "# HELP" in text
+        assert "# TYPE" in text
+        assert "http_requests_total" in text
 
 def test_production_config_validation_rules():
     """Verify production configuration validation raises RuntimeError for insecure settings."""

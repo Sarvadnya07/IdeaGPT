@@ -80,6 +80,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from app.core.metrics import (
+    PrometheusMetricsMiddleware,
+    get_prometheus_exposition_text,
+    update_ai_tasks_gauge,
+)
+
+app.add_middleware(PrometheusMetricsMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
@@ -206,32 +213,29 @@ async def health_providers(
     status_dict["mock"] = "healthy"
     return status_dict
 
-@app.get("/metrics", summary="Operational Metrics")
-@app.get("/api/metrics", summary="Operational Metrics (prefixed)")
-async def get_metrics(
-    current_user: Annotated[User, Depends(get_current_user)],
-    db: AsyncSession = Depends(get_db)
-):
-    """Exposes operational task metrics and system status (authenticated)."""
-    task_count = 0
-    status_breakdown = {}
-    try:
-        res = await db.execute(select(func.count(AiTask.id)))
-        task_count = res.scalar() or 0
+from app.api.dependencies.auth import verify_metrics_auth
 
+@app.get("/metrics", summary="Prometheus Operational Metrics", response_class=Response)
+@app.get("/api/metrics", summary="Prometheus Operational Metrics (prefixed)", response_class=Response)
+async def get_metrics(
+    _: Annotated[bool, Depends(verify_metrics_auth)],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Exposes standard Prometheus text exposition format (version 0.0.4).
+    Requires authentication (valid Clerk session JWT or METRICS_SCRAPE_TOKEN).
+    """
+    try:
         breakdown_res = await db.execute(
             select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
         )
-        for st, cnt in breakdown_res.all():
-            status_breakdown[st] = cnt
-    except Exception:
-        pass
+        status_breakdown = {str(st): int(cnt) for st, cnt in breakdown_res.all()}
+        update_ai_tasks_gauge(status_breakdown)
+    except Exception as exc:
+        import logging
+        logging.getLogger("ideagpt.metrics").warning("Database task metrics refresh failed: %s", exc)
 
-    return {
-        "service": "IdeaGPT API",
-        "version": settings.VERSION,
-        "ai_task_metrics": {
-            "total_tasks": task_count,
-            "by_status": status_breakdown
-        }
-    }
+    return Response(
+        content=get_prometheus_exposition_text(),
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )

@@ -117,7 +117,8 @@ async def test_phase16_observability_endpoints():
 
         res_metrics = await ac.get("/metrics", headers=auth_header)
         assert res_metrics.status_code == 200
-        assert "service" in res_metrics.json()
+        assert "text/plain" in res_metrics.headers.get("content-type", "")
+        assert "http_requests_total" in res_metrics.text
 
 
 @pytest.mark.anyio

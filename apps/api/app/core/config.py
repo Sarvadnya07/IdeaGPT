@@ -62,6 +62,14 @@ class Settings(BaseSettings):
     WRITE_API_RATE_LIMIT: str = "30/minute"
     DEFAULT_API_RATE_LIMIT: str = "60/minute"
 
+    # Reverse Proxy Topology & Forwarded Header Trust
+    # Comma-separated list of trusted proxy IPs or CIDR subnets.
+    # NEVER set to "*" in production.
+    FORWARDED_ALLOW_IPS: str = "127.0.0.1,::1"
+
+    # Metrics & Observability
+    METRICS_SCRAPE_TOKEN: Optional[str] = None
+
     # AI Providers (Loaded lazily, no placeholder text)
     OPENAI_API_KEY: Optional[str] = None
     GEMINI_API_KEY: Optional[str] = None
@@ -193,6 +201,8 @@ class Settings(BaseSettings):
                 raise RuntimeError("PRODUCTION CONFIG ERROR: SQLite DATABASE_URL cannot be used in production. PostgreSQL is required.")
             if not self.CREDENTIAL_ENCRYPTION_KEY:
                 raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: CREDENTIAL_ENCRYPTION_KEY must be configured in production for BYOK vault security.")
+            if self.FORWARDED_ALLOW_IPS.strip() == "*":
+                raise RuntimeError("PRODUCTION CONFIG SECURITY ERROR: FORWARDED_ALLOW_IPS cannot be '*' in production. Specify explicit trusted proxy IPs or CIDR subnets.")
 
     def get_config_status(self) -> dict[str, str]:
         """
@@ -206,6 +216,8 @@ class Settings(BaseSettings):
             "CLERK_SECRET_KEY": "configured" if self.CLERK_SECRET_KEY else "absent",
             "CLERK_JWT_TEST_SECRET": "configured" if self.CLERK_JWT_TEST_SECRET else "absent",
             "CORS_ORIGINS": f"configured ({len(self.cors_origins_list)} origins)" if self.cors_origins_list else "missing",
+            "FORWARDED_ALLOW_IPS": self.FORWARDED_ALLOW_IPS,
+            "METRICS_SCRAPE_TOKEN": "configured" if self.METRICS_SCRAPE_TOKEN else "absent",
         }
 
 
