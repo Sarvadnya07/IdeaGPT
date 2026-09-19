@@ -9,6 +9,7 @@ from app.db.session import AsyncSessionLocal
 from app.models.evaluation import Evaluation
 from app.models.evaluation_history import EvaluationHistory
 from app.models.idea import Idea
+from app.models.project import Project
 from app.evaluation.state import (
     EvaluationStatus,
     EvaluationProgress,
@@ -114,7 +115,19 @@ class EvaluationExecutor:
         # COMPUTATION STAGE: Fetch Idea & Run AI Pipeline / Engine (Outside DB Tx)
         # ---------------------------------------------------------------------
         idea = None
+        idea_snapshot: Optional[Dict[str, Any]] = None
+        idea_context: Optional[Dict[str, Any]] = None
         try:
+            # F-07 remediation: pre-fetch the Idea, its parent Project and the
+            # evaluation metadata in a short session, then RELEASE the DB connection
+            # before the external LLM call.
+            #
+            # PRODUCT-01 P-07: the session is closed, but the *prompt is built here*
+            # via ContextBuilder.compile_context + prompt_registry so the orchestrator
+            # renders byte-identical model input (same user/system prompt, same
+            # prompt_version, temperature, max_tokens and cache key) as the legacy
+            # db-backed path. Passing db=None alone would silently degrade the prompt
+            # to a bare one-liner and bypass the evaluation cache.
             async with AsyncSessionLocal() as db:
                 idea_result = await db.execute(select(Idea).where(Idea.id == idea_id))
                 idea = idea_result.scalar_one_or_none()
@@ -126,21 +139,64 @@ class EvaluationExecutor:
                 requested_provider = eval_obj.provider if eval_obj else "groq"
                 requested_model = eval_obj.model if eval_obj else None
 
+                # Detach the idea data we need so no lazy DB access happens after
+                # the session is closed.
+                idea_title = idea.title
+                idea_problem = idea.problem_statement
+                idea_solution = idea.solution_description
+                idea_snapshot = {
+                    "title": idea.title,
+                    "problem_statement": idea.problem_statement,
+                    "solution_description": idea.solution_description,
+                    "target_users": idea.target_users,
+                    "industry": idea.industry,
+                    "business_model": idea.business_model,
+                    "stage": idea.stage,
+                    "tags": idea.tags,
+                    "notes": idea.notes,
+                }
+
+                # Build the full prompt context while the session is still open.
+                project_res = await db.execute(
+                    select(Project).where(Project.id == idea.project_id)
+                )
+                project_obj = project_res.scalar_one_or_none()
+                if project_obj is not None:
+                    from app.ai.pipelines.context import ContextBuilder
+                    idea_context = ContextBuilder.compile_context(idea, project_obj)
+
             # If user explicitly requested deterministic engine:
             if is_deterministic_provider(requested_provider):
-                result_payload = DeterministicFallback.from_idea(idea)
-            else:
-                # Execute via AI Orchestrator (Groq / OpenAI) with fallback
+                result_payload = DeterministicFallback.from_idea_snapshot(idea_snapshot)
+            elif idea_context is not None:
+                # Execute via AI Orchestrator with the detached context: no pooled
+                # connection is held across the external call, and the prompt is
+                # still the registry-rendered evaluation prompt.
                 from app.ai.orchestrator.orchestrator import orchestrator
-                prompt_text = f"Analyze startup idea: {idea.title}. Problem: {idea.problem_statement}. Solution: {idea.solution_description}"
-                async with AsyncSessionLocal() as db:
-                    result_payload = await orchestrator.analyze_startup_idea(
-                        prompt=prompt_text,
-                        db=db,
-                        idea_id=idea.id,
-                        preferred_provider=requested_provider,
-                        requested_model=requested_model,
-                    )
+                result_payload = await orchestrator.analyze_startup_idea(
+                    prompt=None,
+                    db=None,
+                    idea_id=None,
+                    context=idea_context,
+                    idea_snapshot=idea_snapshot,
+                    preferred_provider=requested_provider,
+                    requested_model=requested_model,
+                )
+            else:
+                # Parent project could not be resolved (orphaned idea). Fall back to
+                # the prompt-only path rather than failing the evaluation.
+                from app.ai.orchestrator.orchestrator import orchestrator
+                prompt_text = (
+                    f"Analyze startup idea: {idea_title}. "
+                    f"Problem: {idea_problem}. Solution: {idea_solution}"
+                )
+                result_payload = await orchestrator.analyze_startup_idea(
+                    prompt=prompt_text,
+                    db=None,
+                    idea_id=None,
+                    preferred_provider=requested_provider,
+                    requested_model=requested_model,
+                )
 
             duration_ms = int((time.time() - start_time) * 1000)
             if "metadata" not in result_payload:
@@ -149,9 +205,13 @@ class EvaluationExecutor:
 
         except Exception as exc:
             logger.error(f"Execution failed for evaluation '{evaluation_id}': {str(exc)}", exc_info=True)
-            # Resilient fallback to the deterministic engine via the shared policy
+            # Resilient fallback to the deterministic engine via the shared policy.
+            # Uses the detached idea_snapshot (no session held) so the fallback never
+            # touches the database or a pooled connection.
             try:
-                if idea is not None:
+                if idea_snapshot is not None:
+                    result_payload = DeterministicFallback.from_idea_snapshot(idea_snapshot)
+                elif idea is not None:
                     result_payload = DeterministicFallback.from_idea(idea)
                 else:
                     raise exc
@@ -204,6 +264,18 @@ class EvaluationExecutor:
                 evaluation.completed_at = datetime.now(timezone.utc)
                 evaluation.duration_ms = duration_ms
                 evaluation.error_message = None
+
+                # PRODUCT-01 P-13: persist measured usage and cost onto the typed
+                # columns that already exist for them, instead of leaving them NULL
+                # and forcing analytics to scrape result_payload. Values are only
+                # written when the provider actually reported them — never invented.
+                _meta = result_payload.get("metadata", {}) or {}
+                _tokens = _meta.get("token_usage")
+                if isinstance(_tokens, (int, float)) and not isinstance(_tokens, bool):
+                    evaluation.token_usage = int(_tokens)
+                _cost = _meta.get("estimated_cost")
+                if isinstance(_cost, (int, float)) and not isinstance(_cost, bool):
+                    evaluation.estimated_cost = float(_cost)
 
                 await cls.record_history_event(
                     db=db,

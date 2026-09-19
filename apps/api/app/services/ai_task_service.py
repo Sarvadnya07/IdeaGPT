@@ -47,6 +47,10 @@ class AiTaskService:
         # Enforce per-user daily task quota
         await AIQuotaService.check_user_quota(db, user)
 
+        # F-02 remediation: reject cross-tenant linkage before persisting
+        from app.services.ai_artifact_service import assert_tenant_links
+        await assert_tenant_links(db, user.id, project_id, idea_id)
+
         # Safeguard #6: Check for existing in-flight task with matching idempotency key
         if idempotency_key:
             stmt = select(AiTask).where(
@@ -83,7 +87,31 @@ class AiTaskService:
             created_at=datetime.now(timezone.utc)
         )
         db.add(new_task)
-        await db.commit()
+        try:
+            await db.commit()
+        except Exception as exc:
+            # F-06: if uq_ai_tasks_user_idempotency fired (concurrent insert with the
+            # same key), fetch and return the existing task instead of erroring.
+            await db.rollback()
+            from sqlalchemy.exc import IntegrityError
+            if isinstance(exc, IntegrityError) and idempotency_key:
+                existing = await db.execute(
+                    select(AiTask).where(
+                        and_(
+                            AiTask.user_id == user.id,
+                            AiTask.idempotency_key == idempotency_key,
+                        )
+                    )
+                )
+                existing_task = existing.scalars().first()
+                if existing_task:
+                    logger.info(
+                        "Idempotency race resolved: returning existing AiTask %s for key %s",
+                        existing_task.id,
+                        idempotency_key,
+                    )
+                    return existing_task
+            raise
         await db.refresh(new_task)
         return new_task
 
@@ -175,12 +203,64 @@ class AiTaskService:
             preferred = task.provider if task.provider != "auto" else None
             req_model = task.model if task.model not in ("auto", "default", None) else None
 
+            # F-07 remediation: hold a DB session ONLY for state transitions.
+            # The orchestrator call must not hold a pooled DB connection across the
+            # external provider round-trip. In BackgroundTasks execution the session
+            # commits before dispatch, so we pass db=None.
+            #
+            # PRODUCT-01 P-07: build the full prompt context here (while the session
+            # is available) and pass it down, so the orchestrator renders the same
+            # registry prompt it would have rendered with db + idea_id — instead of
+            # silently degrading to a bare one-liner and bypassing the prompt version
+            # and evaluation cache.
+            prompt_text = prompt
+            idea_context: Optional[Dict[str, Any]] = None
+            idea_snapshot: Optional[Dict[str, Any]] = None
+            if idea_id and db is not None:
+                try:
+                    from app.models.idea import Idea
+                    from app.models.project import Project
+                    from app.ai.pipelines.context import ContextBuilder
+
+                    idea_res = await db.execute(select(Idea).where(Idea.id == idea_id))
+                    idea_row = idea_res.scalar_one_or_none()
+                    if idea_row:
+                        project_res = await db.execute(
+                            select(Project).where(Project.id == idea_row.project_id)
+                        )
+                        project_row = project_res.scalar_one_or_none()
+                        if project_row is not None:
+                            idea_context = ContextBuilder.compile_context(idea_row, project_row)
+                        idea_snapshot = {
+                            "title": idea_row.title,
+                            "problem_statement": idea_row.problem_statement,
+                            "solution_description": idea_row.solution_description,
+                            "target_users": idea_row.target_users,
+                            "industry": idea_row.industry,
+                            "business_model": idea_row.business_model,
+                            "stage": idea_row.stage,
+                            "tags": idea_row.tags,
+                            "notes": idea_row.notes,
+                        }
+                except Exception:
+                    idea_context = None
+                    idea_snapshot = None
+
+            # When no idea context could be assembled, keep the historical
+            # prompt-only behaviour rather than failing the task.
+            if idea_context is None:
+                idea_snapshot = None
+                if idea_id:
+                    prompt_text = prompt
+
             # Execute via Orchestrator wrapped with AIRetryPolicy
             result = await AIRetryPolicy.execute_with_retry(
                 orchestrator.analyze_startup_idea,
-                prompt=prompt,
-                db=db,
-                idea_id=idea_id,
+                prompt=None if idea_context is not None else prompt_text,
+                db=None,
+                idea_id=None,
+                context=idea_context,
+                idea_snapshot=idea_snapshot,
                 preferred_provider=preferred,
                 requested_model=req_model,
                 strategy=task.provider

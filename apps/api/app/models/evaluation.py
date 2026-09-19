@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, JSON
+from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, JSON, Index, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
@@ -15,6 +15,22 @@ class Evaluation(Base):
     Consolidated Evaluation Job and Report state.
     """
     __tablename__ = "evaluations"
+
+    __table_args__ = (
+        # F-06 / PRODUCT-01 P-08: indexes created by migration e3f4a5b6c7d8.
+        # Declared on the model so the ORM metadata matches the database
+        # (alembic check) and so the "one active evaluation per idea" invariant is
+        # expressed in the ORM. Partial on both dialects to keep SQLite test runs
+        # semantically identical to PostgreSQL.
+        Index(
+            "uq_evaluations_active_per_idea",
+            "idea_id",
+            unique=True,
+            postgresql_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
+            sqlite_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
+        ),
+        Index("ix_evaluations_idea_id_status", "idea_id", "status"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(String(36), ForeignKey("projects.id", ondelete="CASCADE"), index=True)

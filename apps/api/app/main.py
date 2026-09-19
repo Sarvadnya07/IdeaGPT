@@ -40,6 +40,10 @@ async def lifespan(app: FastAPI):
     try:
         settings.validate_production_config()
     except RuntimeError as err:
+        if settings.APP_ENV == "production":
+            # F-04: fail closed — a known-insecure production configuration must not boot.
+            logger.critical("PRODUCTION CONFIGURATION FAILURE: %s", err)
+            raise
         logger.error("PRODUCTION CONFIGURATION WARNING: %s", err)
 
     # Pre-warm database connection pool on non-serverless dedicated instances

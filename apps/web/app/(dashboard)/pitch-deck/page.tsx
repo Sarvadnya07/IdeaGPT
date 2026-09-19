@@ -86,7 +86,7 @@ export default function PitchDeckPage() {
       toast.success("10-Slide Pitch Deck synthesized with AI!");
     } catch (err) {
       console.error("Failed to load pitch deck:", err);
-      toast.error("Failed to generate pitch deck outline.");
+      // PRODUCT-01 P-11: the API client interceptor surfaces the specific failure.
     } finally {
       setIsLoading(false);
     }

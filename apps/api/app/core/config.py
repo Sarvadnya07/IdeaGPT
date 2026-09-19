@@ -214,5 +214,10 @@ try:
     settings.validate_production_config()
 except RuntimeError as err:
     import logging
+    if settings.APP_ENV == "production":
+        # F-04: fail closed at import time so a mis-configured production process
+        # cannot serve requests with an insecure configuration.
+        logging.getLogger("uvicorn.error").critical(str(err))
+        raise
     logging.getLogger("uvicorn.error").error(str(err))
 

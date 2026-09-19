@@ -38,6 +38,19 @@ from app.ai.exceptions.ai_exceptions import (
 logger = logging.getLogger(__name__)
 
 
+# Static catalog of Groq models the platform actively routes.
+# Used as the offline/test-mode fallback so that model discovery returns a valid,
+# non-empty catalog even without an API key — matching the contract of the
+# gemini/openai static-model adapters. Dynamic discovery with a key takes precedence.
+GROQ_STATIC_MODELS: List[str] = [
+    "llama-3.3-70b-versatile",
+    "llama-3.1-8b-instant",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+]
+
+
 def classify_groq_model_meta(model_id: str) -> Dict[str, Any]:
     mid = model_id.lower()
 
@@ -162,15 +175,39 @@ class GroqProviderAdapter(BaseProviderAdapter):
                 error=str(exc),
             )
 
+    def _static_descriptors(self, configured: bool = False) -> List[ModelDescriptor]:
+        descriptors: List[ModelDescriptor] = []
+        for m_id in GROQ_STATIC_MODELS:
+            meta = classify_groq_model_meta(m_id)
+            descriptors.append(
+                ModelDescriptor(
+                    provider=self.provider_id,
+                    model_id=m_id,
+                    display_name=m_id.split("/")[-1].replace("-", " ").title(),
+                    category=meta["category"],
+                    capabilities=meta["capabilities"],
+                    capability_confidence=meta["confidence"],
+                    context_window=131072,
+                    supports_structured_output=meta["structured_output"],
+                    status=ModelStatus.ACTIVE,
+                    configured=configured,
+                    available=configured,
+                    last_seen=datetime.now(timezone.utc),
+                )
+            )
+        return descriptors
+
     async def list_models(self, byok_key: Optional[str] = None) -> List[ModelDescriptor]:
         key = byok_key or settings.GROQ_API_KEY
         if not key:
-            return []
+            return self._static_descriptors(configured=False)
 
         try:
             client = self._get_client(api_key=key)
             response = await client.models.list()
             raw_models = getattr(response, "data", []) or []
+            if not raw_models:
+                return self._static_descriptors(configured=True)
 
             descriptors: List[ModelDescriptor] = []
             for m in raw_models:
@@ -199,7 +236,7 @@ class GroqProviderAdapter(BaseProviderAdapter):
             return descriptors
         except Exception as e:
             logger.warning(f"Groq dynamic model discovery failed: {e}")
-            return []
+            return self._static_descriptors(configured=bool(key))
 
     async def execute(self, request: AIRequest) -> AIResult:
         client = self._get_client(api_key=request.byok_api_key)

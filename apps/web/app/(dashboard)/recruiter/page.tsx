@@ -74,6 +74,7 @@ export default function RecruiterLabPage() {
     setIsGenerating(true);
     try {
       const res = await api.post<RecruiterLabResult>("/ai/labs/recruiter", {
+        project_id: activeProjectId || undefined,
         title: activeProject.title,
         category: activeProject.category || "B2B SaaS",
         current_team_size: "Founding Team (1-2)",
@@ -82,8 +83,8 @@ export default function RecruiterLabPage() {
       });
       setResult(res.data);
       toast.success("Executive Talent Blueprint synthesized successfully!");
-    } catch (err: any) {
-      toast.error("Failed to generate recruiting plan");
+    } catch {
+      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
     } finally {
       setIsGenerating(false);
     }

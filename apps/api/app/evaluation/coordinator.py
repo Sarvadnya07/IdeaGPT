@@ -148,7 +148,19 @@ class EvaluationCoordinator:
             message="Evaluation job created in PENDING state",
         )
 
-        await db.commit()
+        try:
+            await db.commit()
+        except Exception as exc:
+            # F-06: if the partial unique index uq_evaluations_active_per_idea fired
+            # (concurrent create), surface a 409 instead of a 500.
+            await db.rollback()
+            from sqlalchemy.exc import IntegrityError
+            if isinstance(exc, IntegrityError):
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="An active evaluation job is already in progress for this idea.",
+                ) from exc
+            raise
         await db.refresh(evaluation)
         return evaluation
 

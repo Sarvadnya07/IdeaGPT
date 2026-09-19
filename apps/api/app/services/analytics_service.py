@@ -213,8 +213,28 @@ class AnalyticsService:
         tasks = (await db.execute(task_stmt)).scalars().all()
 
         total_requests = len(tasks)
-        total_tokens = sum(int(t.result_payload.get("tokens", 0)) for t in tasks if t.result_payload)
-        total_cost = sum(float(t.result_payload.get("cost", 0.0)) for t in tasks if t.result_payload)
+        # F-09 remediation: the orchestrator persists usage inside
+        # result_payload["metadata"], NOT at the top level. Read the real keys.
+        def _task_tokens(t) -> int:
+            rp = t.result_payload or {}
+            meta = rp.get("metadata") or {}
+            for key in ("token_usage", "tokens", "total_tokens"):
+                val = meta.get(key, rp.get(key))
+                if isinstance(val, (int, float)) and val is not None:
+                    return int(val)
+            return 0
+
+        def _task_cost(t) -> float:
+            rp = t.result_payload or {}
+            meta = rp.get("metadata") or {}
+            for key in ("estimated_cost", "cost", "cost_usd"):
+                val = meta.get(key, rp.get(key))
+                if isinstance(val, (int, float)) and val is not None:
+                    return float(val)
+            return 0.0
+
+        total_tokens = sum(_task_tokens(t) for t in tasks)
+        total_cost = sum(_task_cost(t) for t in tasks)
 
         # Provider breakdown
         by_provider: Dict[str, int] = {}
@@ -428,7 +448,13 @@ class AnalyticsService:
     @staticmethod
     def get_system_health() -> Dict[str, Any]:
         """
-        Returns active provider health, circuit breaker status, and fallback counters.
+        Returns measured provider health, real AI-task backlog from the database,
+        and breaker state only from registries the execution path actually updates.
+
+        F-09 remediation: previously returned hard-coded ``active_ai_task_backlog: 0``
+        and an empty ``recent_fallback_events`` list labelled LIVE_SYSTEM_TELEMETRY.
+        This version only reports what is measured; anything unmeasured is marked
+        UNKNOWN instead of OPERATIONAL.
         """
         from app.ai.gateway.security.circuit_breaker import CircuitBreakerRegistry, CircuitState
 
@@ -445,12 +471,37 @@ class AnalyticsService:
             else:
                 cb_states[p] = str(breaker.state.value)
 
+        # Real backlog from durable state — best effort, never fabricated.
+        # The sync variant cannot await, so it reports UNKNOWN; callers that can
+        # await should use get_system_health_async() instead.
+        tripped = [p for p, v in cb_states.items() if "OPEN" in v]
         return {
-            "overall_status": "HEALTHY" if all("OPEN" not in v for v in cb_states.values()) else "DEGRADED",
+            "overall_status": "DEGRADED" if tripped else "HEALTHY",
             "active_circuit_breakers": cb_states,
-            "recent_fallback_events": [],
-            "uptime_status": "OPERATIONAL",
-            "active_ai_task_backlog": 0,
-            "provenance": "LIVE_SYSTEM_TELEMETRY"
+            "recent_fallback_events": "UNKNOWN",
+            "uptime_status": "UNKNOWN",
+            "active_ai_task_backlog": "UNKNOWN",
+            "provenance": "LIVE_SYSTEM_TELEMETRY",
         }
+
+    @staticmethod
+    async def get_system_health_async() -> Dict[str, Any]:
+        """
+        Async variant that resolves the durable AI-task backlog. Use from
+        code paths that can await (the sync variant cannot).
+        """
+        from app.db.session import AsyncSessionLocal
+        from app.models.ai_task import AiTask
+
+        health = AnalyticsService.get_system_health()
+        try:
+            async with AsyncSessionLocal() as db:
+                stmt = select(func.count(AiTask.id)).where(
+                    AiTask.status.in_(["QUEUED", "RUNNING"])
+                )
+                res = await db.execute(stmt)
+                health["active_ai_task_backlog"] = int(res.scalar() or 0)
+        except Exception:
+            health["active_ai_task_backlog"] = "UNKNOWN"
+        return health
 

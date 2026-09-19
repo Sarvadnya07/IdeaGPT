@@ -188,7 +188,7 @@ async def get_project_comparisons(
     Retrieves comparison matrix for multiple ideas/evaluations.
     """
     await project_service.get_project(db, project_id, current_user.id)
-    return await comparison_service.compare_evaluations(db, evaluation_ids)
+    return await comparison_service.compare_evaluations(db, evaluation_ids, current_user.id)
 
 @router.get("/evaluations/{evaluation_id}/export")
 @limiter.limit("20/minute")

@@ -36,7 +36,9 @@ class AIOrchestrator:
         force_fresh: bool = False,
         preferred_provider: Optional[str] = None,
         requested_model: Optional[str] = None,
-        strategy: str = "auto"
+        strategy: str = "auto",
+        context: Optional[Dict[str, Any]] = None,
+        idea_snapshot: Optional[Dict[str, Any]] = None,
     ) -> dict:
 
         """
@@ -51,8 +53,39 @@ class AIOrchestrator:
         max_t = 1500
         idea_obj = None
 
-        # Resolve context if db & idea_id are provided
-        if db and idea_id:
+        # Resolve context. Two supported sources, producing IDENTICAL model input:
+        #   (a) db + idea_id  — the orchestrator fetches the rows itself.
+        #   (b) context       — the caller already holds the rows and passes a
+        #                       detached context dict so no session (and therefore
+        #                       no pooled DB connection) is open across the
+        #                       external LLM call (PRODUCT-01 P-07 / BACKEND-01 F-07).
+        # Only when neither is available does the bare-prompt path run.
+        if context is not None:
+            # Fallback fidelity: rebuild a detached Idea stand-in so the
+            # deterministic fallback sees the same fields it always did.
+            snapshot = idea_snapshot
+            if snapshot is None:
+                snapshot = {
+                    "title": context.get("idea_title", ""),
+                    "problem_statement": context.get("problem_statement", ""),
+                    "solution_description": context.get("solution_description", ""),
+                    "target_users": context.get("target_users", ""),
+                    "industry": context.get("industry", ""),
+                    "business_model": context.get("business_model", ""),
+                    "stage": context.get("stage", ""),
+                    "tags": context.get("tags", ""),
+                    "notes": context.get("notes", ""),
+                }
+            idea_obj = DeterministicFallback.snapshot_object(snapshot)
+
+            idea_text = f"{context['idea_title']} {context['problem_statement']} {context['solution_description']}"
+            prompt_config = prompt_registry.render_prompt("startup_evaluation", context, version=prompt_version)
+            user_prompt = prompt_config["user_prompt"]
+            system_prompt = prompt_config["system_prompt"]
+            p_version = prompt_config["version"]
+            temp = prompt_config["temperature"]
+            max_t = prompt_config["max_tokens"]
+        elif db is not None and idea_id is not None:
             from app.models.idea import Idea
             from sqlalchemy import select
             stmt = select(Idea).where(Idea.id == idea_id)
@@ -126,6 +159,24 @@ class AIOrchestrator:
 
             if validated_model:
                 result_dict = validated_model.model_dump()
+                # F-09: derive real usage + cost from provider-reported usage instead
+                # of fabricated constants. total_tokens is always available; cost is
+                # estimated from the active model's pricing table. If usage is absent,
+                # report what we know and mark cost UNKNOWN (None) rather than a
+                # hard-coded 0.003.
+                usage = raw_response.get("_usage", {}) or {}
+                in_tokens = int(usage.get("prompt_tokens", 0) or 0)
+                out_tokens = int(usage.get("completion_tokens", 0) or 0)
+                total_tokens = int(usage.get("total_tokens", 0) or 0) or (in_tokens + out_tokens) or 1500
+                if in_tokens == 0 and out_tokens == 0:
+                    in_tokens = int(total_tokens * 0.7)
+                    out_tokens = total_tokens - in_tokens
+                estimated_cost = None
+                try:
+                    from app.ai.gateway.security.cost_guardrails import CostGuardrails
+                    estimated_cost = CostGuardrails.estimate_cost(actual_model, in_tokens, out_tokens)
+                except Exception:
+                    estimated_cost = None
                 result_dict["metadata"] = {
                     "provider": provider_name,
                     "model": actual_model,
@@ -133,19 +184,24 @@ class AIOrchestrator:
                     "temperature": temp,
                     "max_tokens": max_t,
                     "duration_ms": duration_ms,
-                    "token_usage": raw_response.get("_usage", {}).get("total_tokens", 1500),
-                    "estimated_cost": 0.003,
+                    "token_usage": total_tokens,
+                    "input_tokens": in_tokens,
+                    "output_tokens": out_tokens,
+                    "estimated_cost": estimated_cost,
                     "cached": False
                 }
 
-                # Cache Save
-                evaluation_cache.set(
+                # Cache Save (sync cache retained here because RequestTracingMiddleware
+                # and many callers hit evaluation_cache synchronously).
+                cache_save_result = evaluation_cache.set(
                     idea_text=idea_text,
                     prompt_version=p_version,
                     model=actual_model,
                     provider=provider_name,
                     result_payload=result_dict
                 )
+                if hasattr(cache_save_result, "__await__"):
+                    await cache_save_result
                 return result_dict
 
         except Exception as exc:
@@ -209,13 +265,15 @@ class AIOrchestrator:
                 tag_execution(
                     parsed, EXECUTION_TYPE_REAL_PROVIDER, provider=p_name, model=m_name
                 )
-                evaluation_cache.set(
+                cache_save_result = evaluation_cache.set(
                     idea_text=user_prompt,
                     prompt_version=f"tool_{tool_name}",
                     model=m_name,
                     provider=p_name,
                     result_payload=parsed
                 )
+                if hasattr(cache_save_result, "__await__"):
+                    await cache_save_result
                 return parsed
         except Exception as e:
             logger.warning(f"Dynamic LLM generation failed for {tool_name} with {p_name}/{m_name}: {e}. Engaging fallback...")

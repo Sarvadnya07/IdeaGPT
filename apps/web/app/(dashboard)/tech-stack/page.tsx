@@ -77,7 +77,7 @@ export default function TechStackPage() {
       toast.success("Tech Stack generated with AI!");
     } catch (err) {
       console.error("Failed to load tech stack:", err);
-      toast.error("Failed to generate tech stack recommendation.");
+      // PRODUCT-01 P-11: the API client interceptor surfaces the specific failure.
     } finally {
       setIsLoading(false);
     }

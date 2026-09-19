@@ -69,6 +69,7 @@ export default function MentorLabPage() {
     setIsGenerating(true);
     try {
       const res = await api.post<MentorLabResult>("/ai/labs/mentor", {
+        project_id: activeProjectId || undefined,
         title: activeProject.title,
         category: activeProject.category || "B2B SaaS",
         stage: "Early Stage / Seed",
@@ -76,8 +77,8 @@ export default function MentorLabPage() {
       });
       setResult(res.data);
       toast.success("Founder Mentoring Session synthesized successfully!");
-    } catch (err: any) {
-      toast.error("Failed to generate mentoring session");
+    } catch {
+      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
     } finally {
       setIsGenerating(false);
     }

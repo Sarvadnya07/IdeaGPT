@@ -7,9 +7,24 @@ function axiosError(status: number, data?: unknown) {
 }
 
 describe("normalizeApiError", () => {
-  it("maps 401/403 to a re-authenticate message", () => {
-    expect(normalizeApiError(axiosError(401)).message).toContain("Session expired");
-    expect(normalizeApiError(axiosError(403)).message).toContain("Session expired");
+  it("maps 401 to a re-authenticate message", () => {
+    expect(normalizeApiError(axiosError(401)).message).toContain("sign in again");
+  });
+
+  it("maps 403 to an access-denied message, not a re-auth prompt", () => {
+    // PRODUCT-01 P-12: re-authenticating cannot fix an authorization denial.
+    const result = normalizeApiError(axiosError(403));
+    expect(result.message).toContain("do not have access");
+    expect(result.message).not.toContain("sign in again");
+  });
+
+  it("prefers the server detail on 403 when the API explains the denial", () => {
+    const result = normalizeApiError(
+      axiosError(403, { detail: "One or more selected evaluations do not exist or access is denied." }),
+    );
+    expect(result.message).toBe(
+      "One or more selected evaluations do not exist or access is denied.",
+    );
   });
 
   it("prefers the server detail string when provided", () => {

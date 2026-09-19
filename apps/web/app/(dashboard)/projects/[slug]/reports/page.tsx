@@ -31,6 +31,40 @@ interface EvaluationItem {
   };
 }
 
+/**
+ * A durably persisted AI artifact (PRODUCT-01 P-01).
+ *
+ * These were previously written by every generator but never read back by any
+ * page, so generated PRDs / blueprints / lab outputs vanished from the product
+ * on refresh while remaining in the database.
+ */
+interface AIArtifactItem {
+  id: string;
+  artifact_type: string;
+  title?: string | null;
+  project_id?: string | null;
+  idea_id?: string | null;
+  provider?: string | null;
+  model?: string | null;
+  execution_type?: string | null;
+  fallback_used?: boolean;
+  content_payload?: Record<string, unknown> | null;
+  created_at?: string | null;
+}
+
+const ARTIFACT_LABELS: Record<string, string> = {
+  roadmap: "Roadmap",
+  tech_stack: "Tech Stack",
+  architecture: "Architecture Blueprint",
+  prd: "Product Requirements Doc",
+  pitch_deck: "Pitch Deck",
+  github_lab: "GitHub Blueprint",
+  investor_lab: "Investor Analysis",
+  mentor_lab: "Mentor Session",
+  recruiter_lab: "Recruiting Plan",
+  strategy_lab: "Strategy Analysis",
+};
+
 export default function ProjectReportsPage({
   params,
 }: {
@@ -56,6 +90,38 @@ export default function ProjectReportsPage({
 
   const evaluations = evaluationsQuery.data || [];
   const completedEvals = evaluations.filter((e) => e.status === "COMPLETED");
+
+  // PRODUCT-01 P-01: read back the durable artifacts generated for this project.
+  const artifactsQuery = useQuery({
+    queryKey: ["projectArtifacts", project?.id],
+    queryFn: async () => {
+      if (!project?.id) return [];
+      const res = await api.get<AIArtifactItem[]>("/ai/artifacts", {
+        params: { project_id: project.id, limit: 100 },
+      });
+      return res.data;
+    },
+    enabled: !!project?.id,
+  });
+
+  const artifacts = artifactsQuery.data || [];
+  const [expandedArtifactId, setExpandedArtifactId] = React.useState<
+    string | null
+  >(null);
+
+  const handleDownloadArtifactJson = (item: AIArtifactItem) => {
+    const blob = new Blob(
+      [JSON.stringify(item.content_payload ?? {}, null, 2)],
+      { type: "application/json" },
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${item.artifact_type}-${item.id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Artifact JSON downloaded!");
+  };
 
   const handleDownloadMarkdown = (item: EvaluationItem) => {
     const payload = item.result_payload || {};
@@ -153,12 +219,14 @@ ${arch}
         </Link>
       </div>
 
-      {projectsQuery.isLoading || evaluationsQuery.isLoading ? (
+      {projectsQuery.isLoading ||
+      evaluationsQuery.isLoading ||
+      artifactsQuery.isLoading ? (
         <div className="flex items-center justify-center py-16 text-neutral-400 gap-2">
           <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
           <span className="text-xs">Loading project reports...</span>
         </div>
-      ) : completedEvals.length === 0 ? (
+      ) : completedEvals.length === 0 && artifacts.length === 0 ? (
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-8 text-center max-w-lg mx-auto my-8 space-y-4">
           <div className="w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center mx-auto text-neutral-400">
             <FileText className="w-5 h-5" />
@@ -230,6 +298,92 @@ ${arch}
             );
           })}
         </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Durable AI artifacts (PRODUCT-01 P-01)                              */}
+      {/* Previously write-only: generated blueprints/PRDs/labs were stored   */}
+      {/* but no page read them back.                                        */}
+      {/* ------------------------------------------------------------------ */}
+      {artifacts.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-white">
+              Generated Artifacts
+            </h2>
+            <span className="text-[10px] font-mono bg-neutral-800 text-neutral-400 px-2 py-0.5 rounded">
+              {artifacts.length}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {artifacts.map((item) => {
+              const isOpen = expandedArtifactId === item.id;
+              const label =
+                ARTIFACT_LABELS[item.artifact_type] || item.artifact_type;
+              return (
+                <div
+                  key={item.id}
+                  className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-950 border border-indigo-800 text-indigo-300 px-2 py-0.5 rounded">
+                          {label}
+                        </span>
+                        {item.fallback_used && (
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-wider bg-amber-950 border border-amber-800 text-amber-300 px-2 py-0.5 rounded"
+                            title="The AI provider was unavailable; this output came from the deterministic rule-based engine."
+                          >
+                            Rule-based fallback
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-neutral-200 font-medium truncate">
+                        {item.title || "Untitled artifact"}
+                      </p>
+                      <div className="text-[10px] font-mono text-neutral-500 flex flex-wrap gap-x-3">
+                        {item.provider && <span>{item.provider}</span>}
+                        {item.model && <span>{item.model}</span>}
+                        {item.created_at && (
+                          <span>
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() =>
+                          setExpandedArtifactId(isOpen ? null : item.id)
+                        }
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-300 text-xs rounded-lg transition-colors"
+                      >
+                        {isOpen ? "Hide" : "View"}
+                      </button>
+                      <button
+                        onClick={() => handleDownloadArtifactJson(item)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-neutral-300 text-xs rounded-lg transition-colors"
+                      >
+                        <FileCode className="w-3 h-3" />
+                        <span>.JSON</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <pre className="border-t border-neutral-800 bg-black/40 p-4 text-[11px] text-neutral-300 font-mono overflow-x-auto max-h-96">
+                      {JSON.stringify(item.content_payload ?? {}, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
       )}
     </div>
   );

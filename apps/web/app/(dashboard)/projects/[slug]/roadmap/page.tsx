@@ -49,6 +49,8 @@ export default function ProjectRoadmapPage({
     setIsGeneratingAI(true);
     try {
       const res = await api.post<any>("/ai/roadmap", {
+        project_id: project.id,
+        idea_id: primaryIdea?.id || undefined,
         title: primaryIdea?.title || project?.title || "Startup Product",
         category: primaryIdea?.industry || project?.category || "B2B SaaS",
         problem_statement: primaryIdea?.problem_statement || "",
@@ -72,8 +74,8 @@ export default function ProjectRoadmapPage({
         });
       }
       toast.success(`Dynamic AI roadmap generated with ${selectedModel}!`);
-    } catch (err) {
-      toast.error("Failed to generate AI roadmap.");
+    } catch {
+      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
     } finally {
       setIsGeneratingAI(false);
     }

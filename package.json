@@ -2,6 +2,9 @@
   "name": "ideagpt",
   "private": true,
   "packageManager": "pnpm@11.1.1",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "setup": "node scripts/setup.js",
     "dev": "turbo dev",
@@ -18,7 +21,7 @@
     "db:up": "docker compose up -d db redis",
     "db:down": "docker compose down",
     "db:migrate": "pnpm --filter api exec node run-python.js -m alembic upgrade head",
-    "prepare": "node -e \"if (require('fs').existsSync('.git')) require('child_process').execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['husky'], {stdio:'inherit'})\""
+    "prepare": "node -e \"if (require('fs').existsSync('.git')) { try { require('child_process').spawnSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['husky'], {stdio:'inherit', shell: true}); } catch {} }\""
   },
   "devDependencies": {
     "@types/testing-library__jest-dom": "^5.14.9",

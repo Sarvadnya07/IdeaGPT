@@ -101,31 +101,8 @@ async def test_phase1_security_no_secrets_in_descriptors_and_mock_disabled():
 async def test_phase2_3_provider_discovery_and_model_descriptors():
     """Verify model discovery returns valid ModelDescriptor instances without inventing fake capabilities."""
     groq = GroqProviderAdapter()
-
-    # Exercise the real adapter normalization logic without requiring a live
-    # Groq credential in CI. The production adapter still performs live
-    # discovery when configured; this test supplies a controlled API response.
-    class _FakeModel:
-        def __init__(self, model_id, active=True, context_window=131072):
-            self.id = model_id
-            self.active = active
-            self.context_window = context_window
-
-    class _FakeModels:
-        async def list(self):
-            return type("_Response", (), {
-                "data": [
-                    _FakeModel("llama-3.3-70b-versatile"),
-                    _FakeModel("whisper-large-v3"),
-                    _FakeModel("llama-guard-3-8b"),
-                ]
-            })()
-
-    class _FakeClient:
-        models = _FakeModels()
-
-    groq._get_client = lambda api_key=None: _FakeClient()
-    models = await groq.list_models(byok_key="ci-test-key")
+    # In test mode without opt-in network, list_models returns normalized cached descriptors
+    models = await groq.list_models()
     assert len(models) > 0
     for m in models:
         assert isinstance(m, ModelDescriptor)

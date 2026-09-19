@@ -3,10 +3,12 @@ AI Operations Sub-Router: Provider diagnostics, benchmarks, and startup blueprin
 """
 
 from typing import Optional, Any, Dict, List, Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.db.session import get_db
 from app.api.dependencies.auth import get_current_user
 from app.models.user import User
@@ -129,7 +131,9 @@ async def refresh_registry(
 # ---------------------------------------------------------------------------
 
 @router.post("/roadmap", summary="Generate AI-powered startup roadmap milestones and tasks")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_roadmap(
+    request: Request,
     payload: RoadmapRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -170,7 +174,9 @@ async def generate_roadmap(
 
 
 @router.post("/tech-stack", summary="Generate tailored technology stack recommendations")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_tech_stack(
+    request: Request,
     payload: TechStackRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -206,7 +212,9 @@ async def generate_tech_stack(
 
 
 @router.post("/architecture", summary="Generate system architecture blueprint and topology")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_architecture(
+    request: Request,
     payload: ArchitectureRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -242,7 +250,9 @@ async def generate_architecture(
 
 
 @router.post("/prd", summary="Generate Product Requirements Document (PRD)")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_prd(
+    request: Request,
     payload: PRDRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -280,7 +290,9 @@ async def generate_prd(
 
 
 @router.post("/pitch-deck", summary="Generate 10-slide startup pitch deck outline")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_pitch_deck(
+    request: Request,
     payload: PitchDeckRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -348,4 +360,4 @@ async def get_system_health_monitor(
     current_user: User = Depends(get_current_user)
 ):
     from app.services.analytics_service import AnalyticsService
-    return AnalyticsService.get_system_health()
+    return await AnalyticsService.get_system_health_async()

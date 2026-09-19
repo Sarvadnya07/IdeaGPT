@@ -201,23 +201,52 @@ class ComparisonService:
     async def compare_evaluations(
         self,
         db: AsyncSession,
-        evaluation_ids: Optional[List[str]]
+        evaluation_ids: Optional[List[str]],
+        user_id: int,
     ) -> List[Dict[str, Any]]:
         """
         Retrieves multiple evaluations and structures comparison matrices.
+
+        F-01 remediation: every evaluation must belong to the authenticated user.
+        The query joins through Idea -> Project and filters on
+        Project.user_id == user_id AND Project.deleted_at IS NULL.
+        If any requested evaluation is not owned, the entire request fails with 403
+        (mirrors compare_ideas ownership semantics).
         """
         if not evaluation_ids:
             return []
 
-        result = await db.execute(select(Evaluation).where(Evaluation.id.in_(evaluation_ids)))
+        from app.models.idea import Idea
+        from app.models.project import Project
+
+        stmt = (
+            select(Evaluation)
+            .join(Idea, Evaluation.idea_id == Idea.id)
+            .join(Project, Idea.project_id == Project.id)
+            .where(
+                and_(
+                    Evaluation.id.in_(evaluation_ids),
+                    Project.user_id == user_id,
+                    Project.deleted_at.is_(None),
+                )
+            )
+        )
+        result = await db.execute(stmt)
         evaluations = result.scalars().all()
-        
+
+        # If any requested evaluation is not owned or missing, fail closed.
+        if len(evaluations) != len(evaluation_ids):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="One or more selected evaluations do not exist or access is denied.",
+            )
+
         comparison_matrix = []
         for ev in evaluations:
             payload = ev.result_payload or {}
             dims = payload.get("dimensions", {})
             meta = payload.get("metadata", {})
-            
+
             comparison_matrix.append({
                 "evaluation_id": str(ev.id),
                 "idea_id": str(ev.idea_id),
@@ -237,7 +266,7 @@ class ComparisonService:
                     "investment": dims.get("competitive_differentiation", 70)
                 }
             })
-            
+
         return comparison_matrix
 
 comparison_service = ComparisonService()

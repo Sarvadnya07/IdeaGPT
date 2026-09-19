@@ -83,6 +83,7 @@ export default function InvestorLabPage() {
     setIsGenerating(true);
     try {
       const res = await api.post<InvestorLabResult>("/ai/labs/investor", {
+        project_id: activeProjectId || undefined,
         title: activeProject.title,
         category: activeProject.category || "B2B SaaS",
         market_size: "$10B+ TAM",
@@ -90,8 +91,8 @@ export default function InvestorLabPage() {
       });
       setResult(res.data);
       toast.success("Institutional Investor Analysis generated successfully!");
-    } catch (err: any) {
-      toast.error("Failed to generate investor analysis");
+    } catch {
+      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
     } finally {
       setIsGenerating(false);
     }

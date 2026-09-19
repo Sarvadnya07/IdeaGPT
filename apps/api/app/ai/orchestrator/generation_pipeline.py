@@ -132,6 +132,38 @@ class DeterministicFallback:
         return payload
 
     @staticmethod
+    def snapshot_object(snapshot: Dict[str, Any]) -> Any:
+        """
+        Build a detached, attribute-compatible stand-in for an Idea row.
+
+        Shared by from_idea_snapshot() and by the orchestrator's internal fallback
+        (PRODUCT-01 P-07) so both paths evaluate the *same* inputs. When a caller
+        cannot hand the orchestrator the ORM instance (because the session was
+        closed to avoid holding a connection across the LLM call), it hands this
+        snapshot dict instead and fallback fidelity is preserved.
+        """
+        return type(
+            "IdeaSnapshotObj",
+            (),
+            {
+                "title": snapshot.get("title", ""),
+                "problem_statement": snapshot.get("problem_statement", ""),
+                "solution_description": snapshot.get("solution_description", ""),
+                "target_users": snapshot.get("target_users", ""),
+                "industry": snapshot.get("industry", ""),
+                "business_model": snapshot.get("business_model", ""),
+                "stage": snapshot.get("stage", ""),
+                "tags": snapshot.get("tags", ""),
+                "notes": snapshot.get("notes", ""),
+            },
+        )()
+
+    @classmethod
+    def from_idea_snapshot(cls, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate a detached idea snapshot dictionary with the deterministic engine."""
+        return cls.from_idea(cls.snapshot_object(snapshot))
+
+    @staticmethod
     def from_prompt(prompt: str) -> Dict[str, Any]:
         """
         Build a deterministic payload from a bare prompt when no Idea row is
