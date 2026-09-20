@@ -136,27 +136,32 @@ async def health_live():
 
 @app.get("/health/ready", summary="Readiness endpoint")
 @app.get("/api/health/ready", summary="Readiness endpoint (prefixed)")
-async def health_ready(response: Response, db: AsyncSession = Depends(get_db)):
+async def health_ready(response: Response):
     """Database connectivity readiness check."""
     try:
-        res = await db.execute(text("SELECT 1"))
-        _ = res.scalar()
-        return {"status": "ready", "database": "connected"}
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            res = await db.execute(text("SELECT 1"))
+            _ = res.scalar()
+            return {"status": "ready", "database": "connected"}
     except Exception as exc:
         import logging
-        logging.getLogger("ideagpt.health").error(f"Readiness check failed: {exc}", exc_info=True)
+        exc_type = type(exc).__name__
+        logging.getLogger("ideagpt.health").error(f"Readiness check failed: {exc_type}: {exc}", exc_info=True)
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {"status": "unready", "error": "Database connectivity check failed"}
+        return {"status": "unready", "error": "Database connectivity check failed", "failure_type": exc_type}
 
 # ---------------------------------------------------------------------------
 # Authenticated operational endpoints
 # These endpoints expose configuration/operational details and require auth.
 # ---------------------------------------------------------------------------
 
+from app.api.dependencies.auth import verify_metrics_auth
+
 @app.get("/health/config")
 @app.get("/api/health/config")
 async def health_config(
-    current_user: Annotated[User, Depends(get_current_user)]
+    _: Annotated[bool, Depends(verify_metrics_auth)]
 ):
     """Security configuration state (authenticated)."""
     return settings.get_config_status()
@@ -164,7 +169,7 @@ async def health_config(
 @app.get("/health/ai")
 @app.get("/api/health/ai")
 async def health_ai(
-    current_user: Annotated[User, Depends(get_current_user)]
+    _: Annotated[bool, Depends(verify_metrics_auth)]
 ):
     return {
         "status": "healthy",
@@ -180,7 +185,7 @@ async def health_ai(
 @app.get("/health/providers")
 @app.get("/api/health/providers")
 async def health_providers(
-    current_user: Annotated[User, Depends(get_current_user)]
+    _: Annotated[bool, Depends(verify_metrics_auth)]
 ):
     import httpx
     status_dict = {}
@@ -213,7 +218,171 @@ async def health_providers(
     status_dict["mock"] = "healthy"
     return status_dict
 
-from app.api.dependencies.auth import verify_metrics_auth
+
+@app.get("/health/db-diagnostics", summary="Database Runtime Diagnostics (authenticated)")
+@app.get("/api/health/db-diagnostics", summary="Database Runtime Diagnostics (prefixed)")
+async def health_db_diagnostics(_: Annotated[bool, Depends(verify_metrics_auth)]):
+    """
+    Executes in-container database diagnostics:
+    - Environment variables presence
+    - Connection target URL (sanitized with credentials redacted)
+    - DNS resolution
+    - TCP reachability
+    - TLS/SSL handshake & Auth
+    - SELECT 1 & SELECT version()
+    - Table inventory
+    - Failure classification
+    """
+    import os
+    import socket
+    import asyncio
+    from sqlalchemy.engine import make_url
+
+    raw_url = os.getenv("DATABASE_URL") or settings.DATABASE_URL or ""
+    redis_url = os.getenv("REDIS_URL")
+
+    safe_db_url = "MISSING"
+    host = None
+    port = 5432
+    driver = "unknown"
+    if raw_url:
+        try:
+            u = make_url(raw_url)
+            driver = u.drivername
+            host = u.host
+            port = u.port or 5432
+            safe_db_url = u.render_as_string(hide_password=True)
+        except Exception as e:
+            safe_db_url = f"MALFORMED: {type(e).__name__}"
+
+    env_status = {
+        "DATABASE_URL": "PRESENT" if os.getenv("DATABASE_URL") else "MISSING",
+        "POSTGRES_DATABASE_URL": "PRESENT" if os.getenv("POSTGRES_DATABASE_URL") else "MISSING",
+        "DATABASE_PUBLIC_URL": "PRESENT" if os.getenv("DATABASE_PUBLIC_URL") else "MISSING",
+        "DATABASE_PRIVATE_URL": "PRESENT" if os.getenv("DATABASE_PRIVATE_URL") else "MISSING",
+        "PGHOST": "PRESENT" if os.getenv("PGHOST") else "MISSING",
+        "PGPORT": "PRESENT" if os.getenv("PGPORT") else "MISSING",
+        "PGUSER": "PRESENT" if os.getenv("PGUSER") else "MISSING",
+        "PGDATABASE": "PRESENT" if os.getenv("PGDATABASE") else "MISSING",
+        "REDIS_URL": "PRESENT" if redis_url else "MISSING",
+        "APP_ENV": settings.APP_ENV,
+    }
+
+    diag = {
+        "env": env_status,
+        "connection_target": safe_db_url,
+        "host": host,
+        "port": port,
+        "driver": driver,
+        "dns": "NOT_TESTED",
+        "tcp": "NOT_TESTED",
+        "tls_ssl": "NOT_TESTED",
+        "auth_query": "NOT_TESTED",
+        "select_1": "NOT_TESTED",
+        "version": None,
+        "current_database": None,
+        "tables": [],
+        "failure_class": None,
+        "error_details": None,
+    }
+
+    if not host or "sqlite" in driver:
+        diag["dns"] = "SKIPPED_SQLITE"
+        diag["tcp"] = "SKIPPED_SQLITE"
+        diag["tls_ssl"] = "SKIPPED_SQLITE"
+        try:
+            from app.core.database import AsyncSessionLocal
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(text("SELECT 1;"))
+                diag["select_1"] = "OK" if res.scalar() == 1 else "FAILED"
+                diag["auth_query"] = "OK"
+        except Exception as exc:
+            diag["failure_class"] = "SQLITE_ERROR"
+            diag["error_details"] = f"{type(exc).__name__}: {exc}"
+        return diag
+
+    # 1. DNS Resolution
+    resolved_ips = []
+    try:
+        addr_info = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for item in addr_info:
+            ip_str = str(item[4][0])
+            if ip_str not in resolved_ips:
+                resolved_ips.append(ip_str)
+        diag["dns"] = f"OK ({', '.join(resolved_ips)})"
+    except socket.gaierror as gai:
+        diag["dns"] = f"FAILED: {gai}"
+        diag["failure_class"] = "A_DNS"
+        diag["error_details"] = f"socket.gaierror: {gai}"
+        return diag
+    except Exception as exc:
+        diag["dns"] = f"FAILED: {type(exc).__name__}: {exc}"
+        diag["failure_class"] = "A_DNS"
+        diag["error_details"] = str(exc)
+        return diag
+
+    # 2. TCP Reachability
+    try:
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(host, port), timeout=3.0)
+        writer.close()
+        await writer.wait_closed()
+        diag["tcp"] = f"OK (connected to {host}:{port})"
+    except asyncio.TimeoutError:
+        diag["tcp"] = "FAILED (Timeout after 3s)"
+        diag["failure_class"] = "D_TIMEOUT"
+        diag["error_details"] = f"TCP connection timed out to {host}:{port}"
+        return diag
+    except ConnectionRefusedError as cre:
+        diag["tcp"] = "FAILED (Connection Refused)"
+        diag["failure_class"] = "C_CONNECTION_REFUSED"
+        diag["error_details"] = f"Connection refused on {host}:{port}"
+        return diag
+    except Exception as exc:
+        diag["tcp"] = f"FAILED: {type(exc).__name__}: {exc}"
+        diag["failure_class"] = "B_NETWORK_ROUTING"
+        diag["error_details"] = str(exc)
+        return diag
+
+    # 3. PostgreSQL Handshake / Auth / Query
+    try:
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as session:
+            res1 = await session.execute(text("SELECT 1;"))
+            _ = res1.scalar()
+            diag["select_1"] = "OK"
+            diag["auth_query"] = "OK"
+            diag["tls_ssl"] = "OK"
+
+            v_res = await session.execute(text("SELECT version();"))
+            diag["version"] = v_res.scalar()
+
+            db_res = await session.execute(text("SELECT current_database();"))
+            diag["current_database"] = db_res.scalar()
+
+            t_res = await session.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"))
+            diag["tables"] = [row[0] for row in t_res.all()]
+    except Exception as exc:
+        exc_name = type(exc).__name__
+        exc_str = str(exc)
+        diag["auth_query"] = f"FAILED: {exc_name}"
+        diag["error_details"] = f"{exc_name}: {exc_str}"
+
+        # Classify
+        if "InvalidPassword" in exc_name or "password authentication failed" in exc_str.lower():
+            diag["failure_class"] = "E_AUTHENTICATION"
+        elif "InvalidCatalogName" in exc_name or "does not exist" in exc_str.lower():
+            diag["failure_class"] = "F_DATABASE_DOES_NOT_EXIST"
+        elif "SSLError" in exc_name or "ssl" in exc_str.lower():
+            diag["failure_class"] = "G_SSL"
+            diag["tls_ssl"] = f"FAILED: {exc_name}"
+        elif "Timeout" in exc_name:
+            diag["failure_class"] = "D_TIMEOUT"
+        elif "ConnectionRefused" in exc_name:
+            diag["failure_class"] = "C_CONNECTION_REFUSED"
+        else:
+            diag["failure_class"] = "I_APPLICATION_CONFIGURATION"
+
+    return diag
 
 @app.get("/metrics", summary="Prometheus Operational Metrics", response_class=Response)
 @app.get("/api/metrics", summary="Prometheus Operational Metrics (prefixed)", response_class=Response)
