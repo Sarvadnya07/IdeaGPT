@@ -219,18 +219,19 @@ from app.api.dependencies.auth import verify_metrics_auth
 @app.get("/api/metrics", summary="Prometheus Operational Metrics (prefixed)", response_class=Response)
 async def get_metrics(
     _: Annotated[bool, Depends(verify_metrics_auth)],
-    db: AsyncSession = Depends(get_db),
 ):
     """
     Exposes standard Prometheus text exposition format (version 0.0.4).
     Requires authentication (valid Clerk session JWT or METRICS_SCRAPE_TOKEN).
     """
     try:
-        breakdown_res = await db.execute(
-            select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
-        )
-        status_breakdown = {str(st): int(cnt) for st, cnt in breakdown_res.all()}
-        update_ai_tasks_gauge(status_breakdown)
+        from app.core.database import AsyncSessionLocal
+        async with AsyncSessionLocal() as db:
+            breakdown_res = await db.execute(
+                select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
+            )
+            status_breakdown = {str(st): int(cnt) for st, cnt in breakdown_res.all()}
+            update_ai_tasks_gauge(status_breakdown)
     except Exception as exc:
         import logging
         logging.getLogger("ideagpt.metrics").warning("Database task metrics refresh failed: %s", exc)

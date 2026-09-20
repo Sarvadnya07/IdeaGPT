@@ -50,13 +50,12 @@ clerk_auth = ClerkAuth()
 async def verify_metrics_auth(
     request: Request,
     credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(_http_bearer_optional)],
-    db: AsyncSession = Depends(get_db),
 ) -> bool:
     """
     Validates metrics access authorization:
     1. If credentials missing: raise 401 Unauthorized.
     2. If METRICS_SCRAPE_TOKEN is configured and matches bearer token: authorized.
-    3. Otherwise, verifies as valid authenticated user.
+    3. Otherwise, verifies as valid authenticated user without database dependency.
     """
     from app.core.config import settings
     if not credentials:
@@ -70,7 +69,7 @@ async def verify_metrics_auth(
     if settings.METRICS_SCRAPE_TOKEN and token == settings.METRICS_SCRAPE_TOKEN:
         return True
 
-    await get_current_user(request=request, credentials=credentials, db=db)
+    await clerk_auth.verify_token(token)
     return True
 
 

@@ -331,3 +331,24 @@ async def test_health_endpoints_remain_json_unaltered():
         assert res_ready.status_code == 200
         assert "application/json" in res_ready.headers.get("content-type", "")
         assert res_ready.json()["status"] == "ready"
+
+
+@pytest.mark.asyncio
+async def test_metrics_endpoint_resilient_to_database_failure(monkeypatch):
+    """Metrics endpoint must remain accessible and return 200 even if database query fails."""
+    auth_header = {"Authorization": f"Bearer {_make_token(sub='test_metrics_resilience_user')}"}
+
+    class FailingSession:
+        async def __aenter__(self):
+            raise RuntimeError("Simulated database connection failure")
+        async def __aexit__(self, *args):
+            pass
+
+    monkeypatch.setattr("app.core.database.AsyncSessionLocal", lambda: FailingSession())
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        res = await client.get("/metrics", headers=auth_header)
+        assert res.status_code == 200
+        assert "text/plain" in res.headers.get("content-type", "")
+        assert "# HELP http_requests_total" in res.text
+
