@@ -76,3 +76,53 @@ class IdeaComparisonResponse(BaseModel):
         "scalability": "Scalability",
         "competitive_differentiation": "Competitive Differentiation"
     }
+
+class DimensionDelta(BaseModel):
+    key: str
+    label: str
+    value_a: Optional[float] = None
+    value_b: Optional[float] = None
+    delta: Optional[float] = None
+    formatted_delta: Optional[str] = None
+    status: str  # "improved" | "declined" | "unchanged" | "unavailable"
+    direction: str = "higher_is_better"  # "higher_is_better" | "lower_is_better"
+
+class ListDelta(BaseModel):
+    added: List[str] = []
+    removed: List[str] = []
+    retained: List[str] = []
+
+class SectionDelta(BaseModel):
+    section_key: str
+    label: str
+    present_in_a: bool
+    present_in_b: bool
+    status: str  # "changed" | "unchanged" | "added" | "removed" | "unavailable"
+    diff_summary: Optional[str] = None
+    value_a: Optional[Any] = None
+    value_b: Optional[Any] = None
+
+class EvaluationProvenance(BaseModel):
+    id: str
+    created_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    status: str
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    duration_ms: Optional[int] = None
+    token_usage: Optional[int] = None
+    estimated_cost: Optional[float] = None
+    score: Optional[float] = None
+
+class EvaluationVersionComparisonResponse(BaseModel):
+    idea_id: str
+    evaluation_a: EvaluationProvenance
+    evaluation_b: EvaluationProvenance
+    overall_score: DimensionDelta
+    confidence: Optional[DimensionDelta] = None
+    dimensions: List[DimensionDelta]
+    swot: Dict[str, ListDelta]
+    sections: List[SectionDelta]
+    provenance_comparison: Dict[str, Any]
+    summary: str
+    generated_at: str

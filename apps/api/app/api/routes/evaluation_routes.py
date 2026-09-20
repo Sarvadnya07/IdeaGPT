@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import or_, func
@@ -7,18 +7,21 @@ from pydantic import BaseModel
 
 from app.db.session import get_db
 from app.models.user import User
+from app.models.evaluation import Evaluation
 from app.api.dependencies.auth import get_current_user
 from app.schemas.evaluation_schema import (
     EvaluationResponse,
     EvaluationCreate,
     EvaluationHistoryResponse,
     IdeaCompareRequest,
-    IdeaComparisonResponse
+    IdeaComparisonResponse,
+    EvaluationVersionComparisonResponse,
 )
 from app.services.evaluation_service import evaluation_service
 from app.services.project_service import project_service
 from app.services.insight_service import insight_service, scoring_service
 from app.services.comparison_service import comparison_service
+from app.services.evaluation_version_comparison_service import evaluation_version_comparison_service
 from app.services.export_service import export_service
 from app.services.visualization_service import visualization_service
 from app.evaluation.coordinator import EvaluationCoordinator
@@ -189,6 +192,102 @@ async def get_project_comparisons(
     """
     await project_service.get_project(db, project_id, current_user.id)
     return await comparison_service.compare_evaluations(db, evaluation_ids, current_user.id)
+
+
+async def _handle_compare_evaluation_versions(
+    idea_id: str,
+    a: str,
+    b: str,
+    current_user: User,
+    db: AsyncSession,
+) -> EvaluationVersionComparisonResponse:
+    if a == b:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot compare an evaluation with itself. Please select two different evaluation runs.",
+        )
+
+    # 1. Verify idea belongs to project owned by current user (fail closed for unauthorized or missing idea)
+    await EvaluationCoordinator.verify_idea_ownership(db, idea_id, current_user.id)
+
+    # 2. Scoped queries enforcing Evaluation.idea_id == idea_id in the DB query directly (No IDOR)
+    stmt_a = select(Evaluation).where(
+        Evaluation.id == a,
+        Evaluation.idea_id == idea_id,
+    )
+    stmt_b = select(Evaluation).where(
+        Evaluation.id == b,
+        Evaluation.idea_id == idea_id,
+    )
+
+    res_a = await db.execute(stmt_a)
+    eval_a = res_a.scalar_one_or_none()
+    if not eval_a:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Evaluation '{a}' not found for this idea.",
+        )
+
+    res_b = await db.execute(stmt_b)
+    eval_b = res_b.scalar_one_or_none()
+    if not eval_b:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Evaluation '{b}' not found for this idea.",
+        )
+
+    # 3. Require both evaluations to be COMPLETED
+    if eval_a.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Evaluation '{a}' is in status '{eval_a.status}'. Only COMPLETED evaluations can be compared.",
+        )
+    if eval_b.status != "COMPLETED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Evaluation '{b}' is in status '{eval_b.status}'. Only COMPLETED evaluations can be compared.",
+        )
+
+    # 4. Pure deterministic comparison service
+    return evaluation_version_comparison_service.compare_evaluation_versions(eval_a, eval_b)
+
+
+@router.get(
+    "/evaluations/{idea_id}/compare",
+    response_model=EvaluationVersionComparisonResponse,
+    summary="Compare two completed evaluation versions for the same idea",
+)
+async def compare_evaluation_versions(
+    idea_id: str,
+    a: str = Query(..., description="Evaluation ID for Version A"),
+    b: str = Query(..., description="Evaluation ID for Version B"),
+    current_user: Annotated[User, Depends(get_current_user)] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Deterministically compares exactly two completed evaluation runs belonging to the same idea.
+    Enforces tenant scoping, ownership boundaries, and same-idea isolation.
+    """
+    return await _handle_compare_evaluation_versions(idea_id, a, b, current_user, db)
+
+
+@router.get(
+    "/ideas/{idea_id}/evaluations/compare",
+    response_model=EvaluationVersionComparisonResponse,
+    summary="Compare two completed evaluation versions for the same idea (alias)",
+)
+async def compare_idea_evaluation_versions_alias(
+    idea_id: str,
+    a: str = Query(..., description="Evaluation ID for Version A"),
+    b: str = Query(..., description="Evaluation ID for Version B"),
+    current_user: Annotated[User, Depends(get_current_user)] = None,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Alias route for /evaluations/{idea_id}/compare.
+    """
+    return await _handle_compare_evaluation_versions(idea_id, a, b, current_user, db)
+
 
 @router.get("/evaluations/{evaluation_id}/export")
 @limiter.limit("20/minute")
