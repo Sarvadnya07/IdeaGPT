@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select, func
 from typing import Annotated
+import asyncio
 
 from app.core.config import settings
 from app.core.logging import RequestLoggingMiddleware
@@ -50,15 +51,18 @@ async def lifespan(app: FastAPI):
     is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
     if not is_serverless:
         try:
-            from app.core.database import engine
-            from app.db.session import AsyncSessionLocal
-            from app.evaluation.coordinator import EvaluationCoordinator
-            from app.services.ai_task_service import AiTaskService
-            async with engine.begin() as conn:
-                await conn.execute(text("SELECT 1"))
-            async with AsyncSessionLocal() as db:
-                await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
-                await AiTaskService.cleanup_stale_tasks(db, timeout_minutes=5)
+            async def _prewarm():
+                from app.core.database import engine
+                from app.db.session import AsyncSessionLocal
+                from app.evaluation.coordinator import EvaluationCoordinator
+                from app.services.ai_task_service import AiTaskService
+                async with engine.begin() as conn:
+                    await conn.execute(text("SELECT 1"))
+                async with AsyncSessionLocal() as db:
+                    await EvaluationCoordinator.recover_stale_evaluations(db, threshold_seconds=300)
+                    await AiTaskService.cleanup_stale_tasks(db, timeout_minutes=5)
+
+            await asyncio.wait_for(_prewarm(), timeout=3.0)
         except Exception as exc:
             logger.warning("Dedicated server pre-warm warning: %s", exc)
     yield
