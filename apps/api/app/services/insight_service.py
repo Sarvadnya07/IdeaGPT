@@ -56,6 +56,13 @@ class InsightService:
         return {
             "evaluation_id": evaluation.id,
 
+            # Provenance contract: fields derived from the evaluation payload are
+            # labeled DETERMINISTIC_CALCULATION. Fields with canned/heuristic
+            # content (TAM/SAM/SOM estimates, ARR ranges, risk matrices, market
+            # adoption notes) are labeled HEURISTIC_ESTIMATE so the UI can
+            # surface them as estimates rather than measured data.
+            "provenance": "HEURISTIC_ESTIMATE",
+
             # --- EXECUTIVE SUMMARY MODULE ---
             "executive_summary": {
                 "summary": payload.get("summary", "No summary available."),
@@ -84,6 +91,8 @@ class InsightService:
                 "target_audience": target_audience,
                 "adoption_barriers": ["Switching costs from existing habits", "Budget sensitivity in target cohort", "Product awareness"],
                 "market_maturity": "Early growth" if dims.get("market_potential", 70) >= 70 else "Saturated",
+                # TAM/SAM/SOM are template estimates, not measured market data.
+                "tam_sam_som_provenance": "HEURISTIC_ESTIMATE",
             },
 
             # --- COMPETITOR ANALYSIS MODULE ---
@@ -143,10 +152,14 @@ class InsightService:
                 "year3_arr_estimate": "$2M–$8M",
                 "funding_round_fit": "Pre-Seed → Seed" if dims.get("business_viability", 70) < 75 else "Seed → Series A",
                 "burn_rate_estimate": "$40k–$80k/month for 8-person team",
+                # ARR/burn ranges are industry-template estimates, not measured.
+                "financials_provenance": "HEURISTIC_ESTIMATE",
             },
 
             # --- RISK ANALYSIS MODULE ---
+            # Risk levels are static advisory defaults, not per-idea analysis.
             "risk_analysis": {
+                "provenance": "HEURISTIC_ESTIMATE",
                 "market_risk": {
                     "level": "Medium",
                     "description": "Competitive entry risk is elevated. Monitor competitor funding rounds.",

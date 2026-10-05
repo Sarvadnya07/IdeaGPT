@@ -5,7 +5,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select, func
 from typing import Annotated
-import asyncio
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 from app.core.config import settings
 from app.core.logging import RequestLoggingMiddleware
@@ -47,7 +49,9 @@ async def lifespan(app: FastAPI):
             raise
         logger.error("PRODUCTION CONFIGURATION WARNING: %s", err)
 
-    # Pre-warm database connection pool on non-serverless dedicated instances
+    # Pre-warm database connection pool on non-serverless dedicated instances.
+    # Function-scope imports are deliberate: they control initialization order
+    # and avoid importing the DB engine (and its side effects) on serverless.
     is_serverless = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
     if not is_serverless:
         try:
@@ -66,17 +70,19 @@ async def lifespan(app: FastAPI):
         except Exception as exc:
             logger.warning("Dedicated server pre-warm warning: %s", exc)
     yield
-    # Shutdown: Dispose engine and redis pool gracefully
+    # Shutdown: Dispose engine and redis pool gracefully.
+    # Failures here are non-actionable during process teardown, but a log line
+    # keeps resource leaks diagnosable instead of silently ignored.
     try:
         from app.core.database import engine
         await engine.dispose()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Engine dispose failed during shutdown: %s", exc)
     try:
         from app.core.redis import close_redis_pool
         await close_redis_pool()
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Redis pool close failed during shutdown: %s", exc)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -169,6 +175,7 @@ async def health_config(
 ):
     """Security configuration state (authenticated)."""
     return settings.get_config_status()
+
 
 @app.get("/health/ai")
 @app.get("/api/health/ai")
@@ -393,23 +400,33 @@ async def health_db_diagnostics(_: Annotated[bool, Depends(verify_metrics_auth)]
 async def get_metrics(
     _: Annotated[bool, Depends(verify_metrics_auth)],
 ):
-    """
-    Exposes standard Prometheus text exposition format (version 0.0.4).
-    Requires authentication (valid Clerk session JWT or METRICS_SCRAPE_TOKEN).
-    """
+    """Exposes operational task metrics and system status (authenticated)."""
+    # Monitoring must not silently report fabricated zeros when the DB is
+    # unreachable — surface a degraded state so dashboards can alert on it.
+    task_count: int | None = None
+    status_breakdown: dict = {}
+    db_available = True
     try:
-        from app.core.database import AsyncSessionLocal
-        async with AsyncSessionLocal() as db:
-            breakdown_res = await db.execute(
-                select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
-            )
-            status_breakdown = {str(st): int(cnt) for st, cnt in breakdown_res.all()}
-            update_ai_tasks_gauge(status_breakdown)
-    except Exception as exc:
-        import logging
-        logging.getLogger("ideagpt.metrics").warning("Database task metrics refresh failed: %s", exc)
+        res = await db.execute(select(func.count(AiTask.id)))
+        task_count = res.scalar() or 0
 
-    return Response(
-        content=get_prometheus_exposition_text(),
-        media_type="text/plain; version=0.0.4; charset=utf-8",
-    )
+        breakdown_res = await db.execute(
+            select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
+        )
+        for st, cnt in breakdown_res.all():
+            status_breakdown[st] = cnt
+    except Exception as exc:
+        db_available = False
+        logging.getLogger("ideagpt.metrics").warning(
+            "Metrics query failed (database unavailable): %s", exc
+        )
+
+    return {
+        "service": "IdeaGPT API",
+        "version": settings.VERSION,
+        "database_available": db_available,
+        "ai_task_metrics": {
+            "total_tasks": task_count,
+            "by_status": status_breakdown
+        }
+    }

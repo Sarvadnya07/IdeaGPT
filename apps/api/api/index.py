@@ -1,3 +1,4 @@
+# Vercel serverless entry point (twin of apps/api/index.py — see note there).
 import sys
 from pathlib import Path
 

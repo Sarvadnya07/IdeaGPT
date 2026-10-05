@@ -13,8 +13,7 @@ import {
   Loader2,
   RefreshCw,
   Target,
-  FileSpreadsheet,
-  CheckCircle2,
+  
 } from "lucide-react";
 import { useLabArtifact } from "@/hooks/useLabArtifact";
 
@@ -73,7 +72,7 @@ export default function InvestorLabPage() {
     selectedProjectId || (projects.length > 0 ? projects[0].id : "");
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const [targetRaise, setTargetRaise] = useState<string>("$1.5M Seed");
+  const [targetRaise, _setTargetRaise] = useState<string>("$1.5M Seed");
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<InvestorLabResult | null>(null);
 
@@ -107,8 +106,8 @@ export default function InvestorLabPage() {
       setResult(res.data);
       await labArtifact.invalidate();
       toast.success("Institutional Investor Analysis generated successfully!");
-    } catch {
-      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
+    } catch (_err: any) {
+      toast.error("Failed to generate investor analysis");
     } finally {
       setIsGenerating(false);
     }

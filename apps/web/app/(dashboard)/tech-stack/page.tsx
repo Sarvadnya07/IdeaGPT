@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+
 import { useProjects } from "@/hooks/useProjects";
 import { useApiClient } from "@/lib/api/client";
 import {
@@ -9,14 +9,14 @@ import {
   Layers,
   Sparkles,
   RefreshCw,
-  Plus,
+  
   Server,
   Database,
   ShieldCheck,
   Bot,
   CheckCircle2,
   AlertCircle,
-  ArrowRight,
+  
   Code2,
 } from "lucide-react";
 import { toast } from "sonner";

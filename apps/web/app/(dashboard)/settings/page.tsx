@@ -8,14 +8,9 @@ import { useAIProviders } from "../../../hooks/useAIProviders";
 import {
   Settings,
   Save,
-  Shield,
   User as UserIcon,
-  BellRing,
   Cpu,
-  Palette,
   Keyboard,
-  Accessibility,
-  Check,
   Loader2,
   Lock,
   KeyRound,
@@ -48,8 +43,8 @@ const MODELS: Record<string, string[]> = {
   ollama: ["llama3", "mistral", "phi3"],
   tavily: ["tavily-search-v1"],
 };
-const LANGUAGES = ["English", "Spanish", "French", "German", "Japanese"];
-const THEMES = ["Dark", "System"];
+const _LANGUAGES = ["English", "Spanish", "French", "German", "Japanese"];
+const _THEMES = ["Dark", "System"];
 
 const SHORTCUT_MAP = [
   { action: "New Project", keys: "⌘ N" },
@@ -69,7 +64,7 @@ export default function SettingsPage() {
     deleteCredential,
     isSaving: isSavingCred,
   } = useAICredentials();
-  const { providers, refetchProviders } = useAIProviders();
+  const { refetchProviders } = useAIProviders();
 
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -80,15 +75,15 @@ export default function SettingsPage() {
   const [timezone, setTimezone] = useState("UTC");
 
   // Notifications
-  const [receiveAlerts, setReceiveAlerts] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(true);
-  const [evaluationComplete, setEvaluationComplete] = useState(true);
+  const [_receiveAlerts, _setReceiveAlerts] = useState(true);
+  const [_weeklyDigest, _setWeeklyDigest] = useState(true);
+  const [_evaluationComplete, _setEvaluationComplete] = useState(true);
 
   // AI defaults
   const [defaultProvider, setDefaultProvider] = useState("groq");
   const [defaultModel, setDefaultModel] = useState("llama-3.3-70b-versatile");
-  const [maxTokens, setMaxTokens] = useState("4096");
-  const [temperature, setTemperature] = useState("0.2");
+  const [_maxTokens, _setMaxTokens] = useState("4096");
+  const [_temperature, _setTemperature] = useState("0.2");
 
   // BYOK Key Input States
   const [byokProvider, setByokProvider] = useState("groq");
@@ -98,11 +93,11 @@ export default function SettingsPage() {
   );
 
   // Theme & Language
-  const [theme, setTheme] = useState("Dark");
-  const [language, setLanguage] = useState("English");
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
-  const [largeText, setLargeText] = useState(false);
+  const [_theme, _setTheme] = useState("Dark");
+  const [_language, _setLanguage] = useState("English");
+  const [_reducedMotion, _setReducedMotion] = useState(false);
+  const [_highContrast, _setHighContrast] = useState(false);
+  const [_largeText, _setLargeText] = useState(false);
 
   useEffect(() => {
     async function loadUser() {
@@ -112,7 +107,7 @@ export default function SettingsPage() {
         setProfileName(res.data.name || "");
         setFullName(res.data.full_name || "");
         setTimezone(res.data.timezone || "UTC");
-      } catch (err) {
+      } catch (_err) {
         toast.error("Failed to load user profile");
       } finally {
         setIsLoadingUser(false);
@@ -131,7 +126,7 @@ export default function SettingsPage() {
         timezone,
       });
       toast.success("Settings saved successfully");
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to save settings");
     } finally {
       setIsSaving(false);
@@ -166,7 +161,7 @@ export default function SettingsPage() {
       } else {
         toast.error(res.message);
       }
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Verification failed");
     } finally {
       setVerifyingProvider(null);
@@ -178,7 +173,7 @@ export default function SettingsPage() {
       await deleteCredential(providerName);
       toast.success(`Revoked ${providerName.toUpperCase()} API key`);
       refetchProviders();
-    } catch (err: any) {
+    } catch (_err: any) {
       toast.error("Failed to revoke API key");
     }
   };
@@ -193,7 +188,7 @@ export default function SettingsPage() {
   const selectCls =
     "block w-full px-4 py-2.5 text-xs text-white bg-zinc-900/80 border border-zinc-800 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all";
 
-  const renderToggle = (
+  const _renderToggle = (
     label: string,
     desc: string,
     value: boolean,

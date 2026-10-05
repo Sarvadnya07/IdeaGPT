@@ -38,10 +38,11 @@ from app.ai.exceptions.ai_exceptions import (
 logger = logging.getLogger(__name__)
 
 
-# Static catalog of Groq models the platform actively routes.
-# Used as the offline/test-mode fallback so that model discovery returns a valid,
-# non-empty catalog even without an API key — matching the contract of the
-# gemini/openai static-model adapters. Dynamic discovery with a key takes precedence.
+# Static catalog of Groq models the platform actively routes (mirrors the
+# candidate list in execute()). Used as the offline/test-mode fallback so that
+# model discovery returns a valid, non-empty catalog even without an API key —
+# matching the contract of the gemini/openai static-model adapters. Dynamic
+# discovery with a key takes precedence; this list only fills the gap.
 GROQ_STATIC_MODELS: List[str] = [
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
@@ -200,12 +201,18 @@ class GroqProviderAdapter(BaseProviderAdapter):
     async def list_models(self, byok_key: Optional[str] = None) -> List[ModelDescriptor]:
         key = byok_key or settings.GROQ_API_KEY
         if not key:
+            # No key: expose the static catalog marked unconfigured/available=False
+            # instead of an empty list, so the registry and health endpoints still
+            # report a valid model catalog (see GROQ_STATIC_MODELS note above).
             return self._static_descriptors(configured=False)
 
         try:
             client = self._get_client(api_key=key)
             response = await client.models.list()
             raw_models = getattr(response, "data", []) or []
+            if not raw_models:
+                return self._static_descriptors(configured=True)
+
             if not raw_models:
                 return self._static_descriptors(configured=True)
 
@@ -236,7 +243,32 @@ class GroqProviderAdapter(BaseProviderAdapter):
             return descriptors
         except Exception as e:
             logger.warning(f"Groq dynamic model discovery failed: {e}")
-            return self._static_descriptors(configured=bool(key))
+            # Degraded but not empty: static catalog marked configured.
+            return self._static_descriptors(configured=True)
+
+    def _static_descriptors(self, configured: bool) -> List[ModelDescriptor]:
+        """Build descriptors from GROQ_STATIC_MODELS via the shared classifier."""
+        now = datetime.now(timezone.utc)
+        descriptors: List[ModelDescriptor] = []
+        for m_id in GROQ_STATIC_MODELS:
+            meta = classify_groq_model_meta(m_id)
+            descriptors.append(
+                ModelDescriptor(
+                    provider=self.provider_id,
+                    model_id=m_id,
+                    display_name=m_id.split("/")[-1].replace("-", " ").title(),
+                    category=meta["category"],
+                    capabilities=meta["capabilities"],
+                    capability_confidence=meta["confidence"],
+                    context_window=131072,
+                    supports_structured_output=meta["structured_output"],
+                    status=ModelStatus.ACTIVE,
+                    configured=configured,
+                    available=False,
+                    last_seen=now,
+                )
+            )
+        return descriptors
 
     async def execute(self, request: AIRequest) -> AIResult:
         client = self._get_client(api_key=request.byok_api_key)

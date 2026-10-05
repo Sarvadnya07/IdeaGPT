@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException, status
@@ -150,17 +151,16 @@ class EvaluationCoordinator:
 
         try:
             await db.commit()
-        except Exception as exc:
-            # F-06: if the partial unique index uq_evaluations_active_per_idea fired
-            # (concurrent create), surface a 409 instead of a 500.
+        except IntegrityError as exc:
+            # The partial unique index uq_evaluations_one_active_per_idea is
+            # the real concurrency guard; the SELECT above only pre-screens.
+            # A concurrent request won the race — surface 409 like the
+            # pre-screen path does.
             await db.rollback()
-            from sqlalchemy.exc import IntegrityError
-            if isinstance(exc, IntegrityError):
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail="An active evaluation job is already in progress for this idea.",
-                ) from exc
-            raise
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="An active evaluation job is already in progress for this idea.",
+            ) from exc
         await db.refresh(evaluation)
         return evaluation
 

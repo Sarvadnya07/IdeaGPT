@@ -12,8 +12,8 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
-  Copy,
-  Check,
+  
+  
   Award,
 } from "lucide-react";
 import { useLabArtifact } from "@/hooks/useLabArtifact";
@@ -65,7 +65,7 @@ export default function RecruiterLabPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<RecruiterLabResult | null>(null);
   const [selectedJobIdx, setSelectedJobIdx] = useState<number>(0);
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [_copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const labArtifact = useLabArtifact<RecruiterLabResult>(
     activeProjectId,
@@ -99,14 +99,14 @@ export default function RecruiterLabPage() {
       setResult(res.data);
       await labArtifact.invalidate();
       toast.success("Executive Talent Blueprint synthesized successfully!");
-    } catch {
-      // PRODUCT-01 P-11: the API client interceptor reports the specific failure.
+    } catch (_err: any) {
+      toast.error("Failed to generate recruiting plan");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const copyToClipboard = (text: string, key: string) => {
+  const _copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
     setCopiedKey(key);
     toast.success("Copied to clipboard!");

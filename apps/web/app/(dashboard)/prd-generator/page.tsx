@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+
 import { useProjects } from "@/hooks/useProjects";
 import { useApiClient } from "@/lib/api/client";
 import {
@@ -16,7 +16,7 @@ import {
   ListOrdered,
   Users,
   Target,
-  ArrowRight,
+  
   Shield,
   Zap,
 } from "lucide-react";

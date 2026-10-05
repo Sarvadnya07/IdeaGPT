@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
+
 import { useProjects } from "@/hooks/useProjects";
 import { useApiClient } from "@/lib/api/client";
 import {
@@ -14,7 +14,7 @@ import {
   Network,
   Code2,
   Lock,
-  ArrowRight,
+  
   CheckCircle2,
   DollarSign,
   Boxes,

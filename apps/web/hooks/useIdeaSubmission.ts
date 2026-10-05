@@ -118,7 +118,7 @@ export const useIdeaSubmission = (
         return res.data;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: ["idea", ideaId] });
       queryClient.invalidateQueries({ queryKey: ["ideas", projectId] });
     },

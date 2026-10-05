@@ -70,7 +70,7 @@ export default function IdeaSubmissionPage() {
       try {
         await saveIdeaMutation.mutateAsync(data);
         setSaveMessage("Saved just now");
-      } catch (err) {
+      } catch (_err) {
         setSaveMessage("Error saving");
       } finally {
         setIsSaving(false);

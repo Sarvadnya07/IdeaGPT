@@ -90,10 +90,8 @@ export default function GithubLabPage() {
       setResult(res.data);
       await labArtifact.invalidate();
       toast.success("GitHub Codebase Scaffolding generated successfully!");
-    } catch {
-      // PRODUCT-01 P-11: no generic toast here. The shared API client interceptor
-      // already surfaces the specific reason (rate limit, validation, provider
-      // failure); a second generic toast only obscured it.
+    } catch (_err: any) {
+      toast.error("Failed to generate repository blueprint");
     } finally {
       setIsGenerating(false);
     }
