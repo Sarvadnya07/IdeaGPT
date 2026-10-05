@@ -10,7 +10,7 @@
   <p><em>Advanced AI co-founder for technical feasibility, architectural blueprints, and timeline evaluation.</em></p>
 
   <p>
-    <img src="https://img.shields.io/badge/Python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+    <img src="https://img.shields.io/badge/Python-3.12-blue.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
     <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" alt="FastAPI" />
     <img src="https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
     <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
@@ -70,7 +70,7 @@ _(Note: Replace placeholder links with actual demo screenshots when ready)_
 **Backend Environment:**
 
 - **Framework:** FastAPI
-- **Language:** Python 3.11+
+- **Language:** Python 3.12
 - **Database:** PostgreSQL (with Asyncpg & SQLAlchemy)
 - **Migrations:** Alembic
 - **Validation:** Pydantic
@@ -92,9 +92,9 @@ IdeaGPT is structured as an enterprise-ready **Turborepo** monorepo, strictly se
 
 ### Prerequisites
 
-- [Node.js (v18+)](https://nodejs.org/) & [pnpm (v9+)](https://pnpm.io/)
-- [Python (3.11+)](https://www.python.org/)
-- *(Optional)* [Docker & Docker Compose](https://www.docker.com/) for local PostgreSQL 15 & Redis 7
+- [Node.js (>=22.13.0, recommended 22.23.2)](https://nodejs.org/) & [pnpm (11.1.1)](https://pnpm.io/)
+- [Python (3.12+)](https://www.python.org/)
+- *(Optional)* [Docker & Docker Compose](https://www.docker.com/) for local PostgreSQL 15+ & Redis 7
 
 ### 3-Step Setup
 
@@ -124,7 +124,7 @@ pnpm dev
 | `pnpm setup` | Bootstrap environment, virtualenv, dependencies & `.env` files |
 | `pnpm dev` | Start full-stack development servers with Turborepo concurrency |
 | `pnpm test` | Run complete unified test suite (Frontend Vitest + Backend Pytest) |
-| `pnpm test:integration` | Run native PostgreSQL 18 integration tests (schema, cascade, jsonb) |
+| `pnpm test:integration` | Run native PostgreSQL 15+ integration tests (schema, cascade, jsonb) |
 | `pnpm test:e2e` | Run Playwright browser automation suite (auth & route protection) |
 | `pnpm typecheck` | Run static type checking across web (TypeScript) and backend (Mypy) |
 | `pnpm lint` | Run ESLint and Flake8 linters |

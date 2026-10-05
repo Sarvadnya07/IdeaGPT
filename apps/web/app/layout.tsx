@@ -34,7 +34,10 @@ export default function RootLayout({
         className="font-sans antialiased bg-[#070709] text-zinc-100 min-h-screen selection:bg-indigo-500/30 selection:text-white"
         suppressHydrationWarning
       >
-        <ClerkProvider publishableKey={publishableKey || undefined}>
+        <ClerkProvider
+          publishableKey={publishableKey || undefined}
+          afterSignOutUrl="/"
+        >
           <Providers>{children}</Providers>
         </ClerkProvider>
       </body>

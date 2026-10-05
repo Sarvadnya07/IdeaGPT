@@ -6,22 +6,16 @@ from app.models.project import Project
 
 class ContextBuilder:
     @staticmethod
-    async def build_context(db: AsyncSession, idea_id: str) -> Dict[str, Any]:
+    def compile_context(idea: Any, project: Any) -> Dict[str, Any]:
         """
-        Assembles all relevant context for the target idea and parent project.
+        Pure context assembly from detached Idea / Project entities.
+
+        Split out of build_context() (PRODUCT-01 P-07) so a caller that already
+        holds the rows can render the identical prompt WITHOUT keeping a database
+        session — and therefore a pooled connection — open across the external
+        LLM call. The output of this function is byte-for-byte what build_context()
+        has always produced.
         """
-        # Fetch the idea
-        idea_result = await db.execute(select(Idea).where(Idea.id == idea_id))
-        idea = idea_result.scalar_one_or_none()
-        if not idea:
-            raise ValueError(f"Idea with ID {idea_id} not found.")
-
-        # Fetch the parent project
-        project_result = await db.execute(select(Project).where(Project.id == idea.project_id))
-        project = project_result.scalar_one_or_none()
-        if not project:
-            raise ValueError(f"Parent project for idea ID {idea_id} not found.")
-
         # Compile variables dictionary
         context = {
             "project_id": project.id,
@@ -48,3 +42,22 @@ class ContextBuilder:
         })
 
         return context
+
+    @staticmethod
+    async def build_context(db: AsyncSession, idea_id: str) -> Dict[str, Any]:
+        """
+        Assembles all relevant context for the target idea and parent project.
+        """
+        # Fetch the idea
+        idea_result = await db.execute(select(Idea).where(Idea.id == idea_id))
+        idea = idea_result.scalar_one_or_none()
+        if not idea:
+            raise ValueError(f"Idea with ID {idea_id} not found.")
+
+        # Fetch the parent project
+        project_result = await db.execute(select(Project).where(Project.id == idea.project_id))
+        project = project_result.scalar_one_or_none()
+        if not project:
+            raise ValueError(f"Parent project for idea ID {idea_id} not found.")
+
+        return ContextBuilder.compile_context(idea, project)

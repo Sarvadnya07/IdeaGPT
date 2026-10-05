@@ -10,11 +10,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.api.dependencies.auth import get_current_user
 from app.models.user import User
+from app.services.ai_artifact_service import AIArtifactService, assert_tenant_links
 
 router = APIRouter()
 
 
 class StrategyAnalyzeRequest(BaseModel):
+    project_id: Optional[str] = None
+    idea_id: Optional[str] = None
     title: str = Field(default="Startup Venture", max_length=100)
     industry: str = Field(default="Technology", max_length=50)
     problem_statement: str = Field(default="", max_length=2000)
@@ -64,10 +67,12 @@ class RedFlagsRequest(BaseModel):
 @router.post("/strategy/analyze", summary="Execute deep strategic reasoning with calibrated decision gates and trade-offs")
 async def analyze_strategy(
     payload: StrategyAnalyzeRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.gateway.strategy.pipeline import StrategicDecisionPipeline
-    return await StrategicDecisionPipeline.analyze_strategy(
+    res = await StrategicDecisionPipeline.analyze_strategy(
         idea_title=payload.title,
         industry=payload.industry,
         problem_statement=payload.problem_statement,
@@ -80,6 +85,31 @@ async def analyze_strategy(
         provider=payload.provider or "auto",
         model=payload.model or "auto"
     )
+    payload_data = res.model_dump() if hasattr(res, "model_dump") else (res.dict() if hasattr(res, "dict") else res)
+    if isinstance(payload_data, dict):
+        payload_data.setdefault("schema_version", 1)
+
+    if payload.project_id:
+        artifact = await AIArtifactService.save_artifact(
+            db=db,
+            user_id=current_user.id,
+            project_id=payload.project_id,
+            idea_id=payload.idea_id,
+            artifact_type="strategy_lab",
+            title=f"Strategy Analysis: {payload.title}",
+            content_payload=payload_data if isinstance(payload_data, dict) else {},
+            provider=payload.provider or "auto",
+            model=payload.model or "auto",
+            execution_type="PIPELINE",
+            fallback_used=False
+        )
+        if hasattr(res, "__dict__"):
+            res.__dict__["artifact_id"] = str(artifact.id)
+            res.__dict__["schema_version"] = 1
+        elif isinstance(res, dict):
+            res["artifact_id"] = str(artifact.id)
+            res["schema_version"] = 1
+    return res
 
 
 @router.post("/strategy/assumptions", summary="Extract and prioritize underlying startup assumptions")

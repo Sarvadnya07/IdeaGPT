@@ -58,33 +58,18 @@ const navigationGroups: SidebarGroup[] = [
   },
   {
     heading: "Simulations & Operations",
+    // PRODUCT-01 P-06: these five surfaces are fully implemented and backed by
+    // live, rate-limited endpoints (/ai/labs/*, /ai/strategy/*). They were badged
+    // `isComingSoon` when they were future scope and never updated afterwards —
+    // the badge told users working features were unavailable while the links
+    // remained clickable. Do not re-add the flag without also removing the route.
     items: [
       { name: "Platform Ops", href: "/analytics", icon: Activity },
-      {
-        name: "Investor Analysis",
-        href: "/investor",
-        icon: TrendingUp,
-        isComingSoon: true,
-      },
-      { name: "AI Mentor", href: "/mentor", icon: Cpu, isComingSoon: true },
-      {
-        name: "Recruiter Sim",
-        href: "/recruiter",
-        icon: UserCheck,
-        isComingSoon: true,
-      },
-      {
-        name: "GitHub Lab",
-        href: "/github-lab",
-        icon: Cpu,
-        isComingSoon: true,
-      },
-      {
-        name: "Strategy Lab",
-        href: "/strategy-lab",
-        icon: Target,
-        isComingSoon: true,
-      },
+      { name: "Investor Analysis", href: "/investor", icon: TrendingUp },
+      { name: "AI Mentor", href: "/mentor", icon: Cpu },
+      { name: "Recruiter Sim", href: "/recruiter", icon: UserCheck },
+      { name: "GitHub Lab", href: "/github-lab", icon: Cpu },
+      { name: "Strategy Lab", href: "/strategy-lab", icon: Target },
     ],
   },
 ];

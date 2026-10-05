@@ -65,6 +65,8 @@ export default function RoadmapPage() {
     setIsGeneratingAI(true);
     try {
       const res = await api.post<any>("/ai/roadmap", {
+        project_id: activeProjectId,
+        idea_id: primaryIdea?.id || undefined,
         title: primaryIdea?.title || activeProject?.title || "Startup Product",
         category:
           primaryIdea?.industry || activeProject?.category || "B2B SaaS",

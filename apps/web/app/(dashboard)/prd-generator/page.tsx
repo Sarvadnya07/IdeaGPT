@@ -104,7 +104,7 @@ export default function PRDGeneratorPage() {
       toast.success("PRD generated successfully with AI!");
     } catch (err) {
       console.error("Failed to load PRD:", err);
-      toast.error("Failed to generate PRD.");
+      // PRODUCT-01 P-11: the API client interceptor surfaces the specific failure.
     } finally {
       setIsLoading(false);
     }

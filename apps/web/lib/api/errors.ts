@@ -69,12 +69,25 @@ export function normalizeApiError(error: unknown): NormalizedApiError {
     extractServerMessage(payload?.detail) ??
     (typeof payload?.error === "string" ? payload.error : undefined);
 
-  if (status === 401 || status === 403) {
+  // 401 and 403 are NOT the same problem (PRODUCT-01 P-12). Re-authenticating
+  // cannot resolve an authorization denial, so telling a user to "log in again"
+  // on a 403 sends them into a loop and hides a genuine access refusal.
+  if (status === 401) {
     return {
       status,
       payload,
       isNetworkError: false,
-      message: "Session expired or unauthorized. Please log in again.",
+      message: serverMessage ?? "Your session has expired. Please sign in again.",
+    };
+  }
+  if (status === 403) {
+    return {
+      status,
+      payload,
+      isNetworkError: false,
+      message:
+        serverMessage ??
+        "You do not have access to this resource. It may belong to another account.",
     };
   }
   if (status === 429) {

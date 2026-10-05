@@ -69,7 +69,7 @@ export function TopNav({ setMobileMenuOpen }: TopNavProps) {
           {!isLoaded ? (
             <div className="w-8 h-8 rounded-full border border-border bg-muted animate-pulse"></div>
           ) : userId ? (
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           ) : (
             <button className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground hover:bg-muted/80 transition-colors">
               <User className="w-4 h-4" />

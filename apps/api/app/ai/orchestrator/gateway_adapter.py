@@ -6,6 +6,7 @@ Wraps any canonical BaseProviderAdapter to satisfy the legacy AIProvider interfa
 
 import json
 import logging
+import time
 from typing import Any, Dict, List, Optional
 from app.ai.providers.base import AIProvider
 from app.ai.gateway.providers.base_adapter import BaseProviderAdapter
@@ -88,7 +89,39 @@ class GatewayAIProviderAdapter(AIProvider):
             model_override=model_override,
         )
 
-        res = await self.adapter.execute(req)
+        start_time = time.perf_counter()
+        try:
+            res = await self.adapter.execute(req)
+            duration = time.perf_counter() - start_time
+            try:
+                from app.core.metrics import record_ai_request, record_ai_tokens
+                record_ai_request(
+                    provider=res.provider or self.adapter.provider_id,
+                    operation="generation",
+                    status="success",
+                    duration_seconds=duration,
+                )
+                if res.usage:
+                    record_ai_tokens(
+                        provider=res.provider or self.adapter.provider_id,
+                        prompt_tokens=getattr(res.usage, "prompt_tokens", 0) or 0,
+                        completion_tokens=getattr(res.usage, "completion_tokens", 0) or 0,
+                    )
+            except Exception:
+                pass
+        except Exception:
+            duration = time.perf_counter() - start_time
+            try:
+                from app.core.metrics import record_ai_request
+                record_ai_request(
+                    provider=self.adapter.provider_id,
+                    operation="generation",
+                    status="failure",
+                    duration_seconds=duration,
+                )
+            except Exception:
+                pass
+            raise
 
         if res.structured_data:
             out = dict(res.structured_data)

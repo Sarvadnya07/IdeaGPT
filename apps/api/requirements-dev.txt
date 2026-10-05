@@ -10,6 +10,6 @@ pytest>=9.1.1
 pytest-asyncio>=1.4.0
 
 # Linting & Code Quality
-flake8>=7.3.0
+flake8>=7.4.1
 mypy>=2.3.1
 

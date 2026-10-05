@@ -3,5 +3,9 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter web build",
-  "outputDirectory": "apps/web/.next"
+  "outputDirectory": ".next",
+  "git": {
+    "deploymentEnabled": true
+  },
+  "commandForIgnoringBuildStep": "if [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ]; then exit 1; else git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- apps/web packages; fi"
 }

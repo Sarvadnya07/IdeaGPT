@@ -39,12 +39,29 @@ class AIArtifactDetailResponse(AIArtifactResponse):
 async def list_user_artifacts(
     current_user: Annotated[User, Depends(get_current_user)],
     artifact_type: Optional[str] = None,
+    project_id: Optional[str] = None,
+    idea_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Retrieves all durably persisted AI blueprints, PRDs, roadmaps, and analysis dossiers.
+    Retrieves durably persisted AI blueprints, PRDs, roadmaps, and analysis
+    dossiers owned by the caller.
+
+    PRODUCT-01 P-01: this read path previously had no consumer and no scoping.
+    `project_id`/`idea_id` let the project Reports hub list what was generated
+    for that project; ownership filtering is unchanged and always applied.
     """
-    artifacts = await AIArtifactService.list_artifacts_by_user(db=db, user=current_user, artifact_type=artifact_type)
+    artifacts = await AIArtifactService.list_artifacts_by_user(
+        db=db,
+        user=current_user,
+        artifact_type=artifact_type,
+        project_id=project_id,
+        idea_id=idea_id,
+        limit=limit,
+        offset=offset,
+    )
     return [
         AIArtifactResponse(
             id=str(a.id),

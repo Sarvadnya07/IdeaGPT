@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Index, JSON
+from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Index, JSON, text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
@@ -42,4 +42,18 @@ class AiTask(Base):
     __table_args__ = (
         Index("idx_ai_tasks_user_status", "user_id", "status"),
         Index("idx_ai_tasks_idempotency", "user_id", "idempotency_key"),
+        # F-06 / PRODUCT-01 P-08: partial unique index created by migration
+        # e3f4a5b6c7d8. Declared here so the ORM metadata matches the database
+        # (alembic check) and so the idempotency invariant is visible to the ORM.
+        # Partial on both dialects so SQLite test runs keep the same semantics as
+        # PostgreSQL instead of enforcing uniqueness across NULL keys.
+        Index(
+            "uq_ai_tasks_user_idempotency",
+            "user_id",
+            "idempotency_key",
+            unique=True,
+            postgresql_where=text("idempotency_key IS NOT NULL"),
+            sqlite_where=text("idempotency_key IS NOT NULL"),
+        ),
+        Index("ix_ai_tasks_user_id_created_at", "user_id", "created_at"),
     )

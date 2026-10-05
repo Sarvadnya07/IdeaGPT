@@ -39,6 +39,7 @@ from app.models.evaluation_history import EvaluationHistory
 from app.models.roadmap import Roadmap
 from app.models.ai_task import AiTask
 from app.models.provider_credential import ProviderCredential
+from app.models.ai_artifact import AIArtifact
 
 from app.core.database import engine
 

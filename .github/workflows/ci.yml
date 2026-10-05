@@ -86,6 +86,7 @@ jobs:
       - name: Install Monorepo Dependencies
         run: pnpm install --frozen-lockfile
 
+
       - name: Frontend Typecheck
         run: pnpm --filter web exec tsc --noEmit
 

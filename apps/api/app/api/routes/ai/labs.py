@@ -3,14 +3,16 @@ AI Labs and Evidence Sub-Router: Secondary labs and grounded market/competitor/r
 """
 
 from typing import Optional, Any, Dict, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.db.session import get_db
 from app.api.dependencies.auth import get_current_user
 from app.models.user import User
-from app.services.ai_artifact_service import AIArtifactService
+from app.services.ai_artifact_service import AIArtifactService, assert_tenant_links
 
 router = APIRouter()
 
@@ -95,11 +97,14 @@ class GroundedRiskRequest(BaseModel):
 
 
 @router.post("/labs/github", summary="Generate GitHub codebase scaffolding, directory tree, and CI/CD workflow")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_github_lab(
+    request: Request,
     payload: GitHubLabRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.orchestrator.orchestrator import AIOrchestrator
     from app.ai.orchestrator.generation_pipeline import read_execution_provenance
     res = await AIOrchestrator.generate_github_lab_ai(
@@ -111,6 +116,8 @@ async def generate_github_lab(
         model=payload.model or "llama-3.3-70b-versatile"
     )
     exec_type, fb_used = read_execution_provenance(res)
+    if isinstance(res, dict):
+        res.setdefault("schema_version", 1)
 
     artifact = await AIArtifactService.save_artifact(
         db=db,
@@ -133,12 +140,17 @@ async def generate_github_lab(
 
 
 @router.post("/labs/investor", summary="Generate institutional venture capital analysis, valuation, and cap table")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_investor_lab(
+    request: Request,
     payload: InvestorLabRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_investor_lab_ai(
+    from app.ai.orchestrator.generation_pipeline import read_execution_provenance
+    res = await AIOrchestrator.generate_investor_lab_ai(
         title=payload.title,
         category=payload.category,
         market_size=payload.market_size,
@@ -146,15 +158,42 @@ async def generate_investor_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type, fb_used = read_execution_provenance(res)
+    if isinstance(res, dict):
+        res.setdefault("schema_version", 1)
+
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="investor_lab",
+        title=f"Investor Analysis: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type=exec_type,
+        fallback_used=fb_used
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
+    return res
 
 
 @router.post("/labs/mentor", summary="Generate founder advisory plan, blindspot diagnostics, and mental models")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_mentor_lab(
+    request: Request,
     payload: MentorLabRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_mentor_lab_ai(
+    from app.ai.orchestrator.generation_pipeline import read_execution_provenance
+    res = await AIOrchestrator.generate_mentor_lab_ai(
         title=payload.title,
         category=payload.category,
         stage=payload.stage,
@@ -162,15 +201,42 @@ async def generate_mentor_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type, fb_used = read_execution_provenance(res)
+    if isinstance(res, dict):
+        res.setdefault("schema_version", 1)
+
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="mentor_lab",
+        title=f"Mentor Session: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type=exec_type,
+        fallback_used=fb_used
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
+    return res
 
 
 @router.post("/labs/recruiter", summary="Generate hiring roadmap, job descriptions, and compensation benchmarks")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_recruiter_lab(
+    request: Request,
     payload: RecruiterLabRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_recruiter_lab_ai(
+    from app.ai.orchestrator.generation_pipeline import read_execution_provenance
+    res = await AIOrchestrator.generate_recruiter_lab_ai(
         title=payload.title,
         category=payload.category,
         current_team_size=payload.current_team_size,
@@ -178,15 +244,42 @@ async def generate_recruiter_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type, fb_used = read_execution_provenance(res)
+    if isinstance(res, dict):
+        res.setdefault("schema_version", 1)
+
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="recruiter_lab",
+        title=f"Recruiting Plan: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type=exec_type,
+        fallback_used=fb_used
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
+    return res
 
 
 @router.post("/labs/strategy", summary="Generate Porter's Five Forces, Blue Ocean strategy, and defensibility moats")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_strategy_lab(
+    request: Request,
     payload: StrategyLabRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
+    await assert_tenant_links(db, current_user.id, payload.project_id, payload.idea_id)
     from app.ai.orchestrator.orchestrator import AIOrchestrator
-    return await AIOrchestrator.generate_strategy_lab_ai(
+    from app.ai.orchestrator.generation_pipeline import read_execution_provenance
+    res = await AIOrchestrator.generate_strategy_lab_ai(
         title=payload.title,
         category=payload.category,
         competitors=payload.competitors,
@@ -194,6 +287,28 @@ async def generate_strategy_lab(
         provider=payload.provider or "groq",
         model=payload.model or "llama-3.3-70b-versatile"
     )
+    exec_type, fb_used = read_execution_provenance(res)
+    if isinstance(res, dict):
+        res.setdefault("schema_version", 1)
+
+    artifact = await AIArtifactService.save_artifact(
+        db=db,
+        user_id=current_user.id,
+        project_id=payload.project_id,
+        idea_id=payload.idea_id,
+        artifact_type="strategy_lab",
+        title=f"Strategy Analysis: {payload.title}",
+        content_payload=res,
+        provider=payload.provider or "groq",
+        model=payload.model or "llama-3.3-70b-versatile",
+        execution_type=exec_type,
+        fallback_used=fb_used
+    )
+    if isinstance(res, dict):
+        res["artifact_id"] = artifact.id
+        res["execution_type"] = exec_type
+        res["fallback_used"] = fb_used
+    return res
 
 
 @router.post("/research/plan", summary="Generate bounded research query plan")
@@ -211,7 +326,9 @@ async def plan_research(
 
 
 @router.post("/market-grounded", summary="Generate evidence-backed market analysis with citations")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_grounded_market(
+    request: Request,
     payload: GroundedMarketRequest,
     current_user: User = Depends(get_current_user)
 ):
@@ -227,7 +344,9 @@ async def generate_grounded_market(
 
 
 @router.post("/competitors-grounded", summary="Generate evidence-backed competitor analysis with citations")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_grounded_competitors(
+    request: Request,
     payload: GroundedCompetitorRequest,
     current_user: User = Depends(get_current_user)
 ):
@@ -242,7 +361,9 @@ async def generate_grounded_competitors(
 
 
 @router.post("/risks-grounded", summary="Generate evidence-backed regulatory and technical risk analysis")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def generate_grounded_risks(
+    request: Request,
     payload: GroundedRiskRequest,
     current_user: User = Depends(get_current_user)
 ):

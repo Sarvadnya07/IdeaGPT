@@ -107,6 +107,17 @@ def tag_execution(
         payload["_model"] = model
     if fallback_reason is not None:
         payload["_fallback_reason"] = fallback_reason
+
+    if fallback_used:
+        try:
+            from app.core.metrics import record_ai_fallback
+            record_ai_fallback(
+                primary_provider=str(provider or "primary"),
+                fallback_provider="deterministic_fallback" if execution_type == "deterministic" else str(provider or "fallback"),
+            )
+        except Exception:
+            pass
+
     return payload
 
 
@@ -130,6 +141,38 @@ class DeterministicFallback:
         payload: Dict[str, Any] = DeterministicEvaluationEngine.evaluate(idea)
         payload.setdefault("metadata", {})
         return payload
+
+    @staticmethod
+    def snapshot_object(snapshot: Dict[str, Any]) -> Any:
+        """
+        Build a detached, attribute-compatible stand-in for an Idea row.
+
+        Shared by from_idea_snapshot() and by the orchestrator's internal fallback
+        (PRODUCT-01 P-07) so both paths evaluate the *same* inputs. When a caller
+        cannot hand the orchestrator the ORM instance (because the session was
+        closed to avoid holding a connection across the LLM call), it hands this
+        snapshot dict instead and fallback fidelity is preserved.
+        """
+        return type(
+            "IdeaSnapshotObj",
+            (),
+            {
+                "title": snapshot.get("title", ""),
+                "problem_statement": snapshot.get("problem_statement", ""),
+                "solution_description": snapshot.get("solution_description", ""),
+                "target_users": snapshot.get("target_users", ""),
+                "industry": snapshot.get("industry", ""),
+                "business_model": snapshot.get("business_model", ""),
+                "stage": snapshot.get("stage", ""),
+                "tags": snapshot.get("tags", ""),
+                "notes": snapshot.get("notes", ""),
+            },
+        )()
+
+    @classmethod
+    def from_idea_snapshot(cls, snapshot: Dict[str, Any]) -> Dict[str, Any]:
+        """Evaluate a detached idea snapshot dictionary with the deterministic engine."""
+        return cls.from_idea(cls.snapshot_object(snapshot))
 
     @staticmethod
     def from_prompt(prompt: str) -> Dict[str, Any]:

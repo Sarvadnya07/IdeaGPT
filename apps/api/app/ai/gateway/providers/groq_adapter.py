@@ -176,6 +176,28 @@ class GroqProviderAdapter(BaseProviderAdapter):
                 error=str(exc),
             )
 
+    def _static_descriptors(self, configured: bool = False) -> List[ModelDescriptor]:
+        descriptors: List[ModelDescriptor] = []
+        for m_id in GROQ_STATIC_MODELS:
+            meta = classify_groq_model_meta(m_id)
+            descriptors.append(
+                ModelDescriptor(
+                    provider=self.provider_id,
+                    model_id=m_id,
+                    display_name=m_id.split("/")[-1].replace("-", " ").title(),
+                    category=meta["category"],
+                    capabilities=meta["capabilities"],
+                    capability_confidence=meta["confidence"],
+                    context_window=131072,
+                    supports_structured_output=meta["structured_output"],
+                    status=ModelStatus.ACTIVE,
+                    configured=configured,
+                    available=configured,
+                    last_seen=datetime.now(timezone.utc),
+                )
+            )
+        return descriptors
+
     async def list_models(self, byok_key: Optional[str] = None) -> List[ModelDescriptor]:
         key = byok_key or settings.GROQ_API_KEY
         if not key:
@@ -188,6 +210,8 @@ class GroqProviderAdapter(BaseProviderAdapter):
             client = self._get_client(api_key=key)
             response = await client.models.list()
             raw_models = getattr(response, "data", []) or []
+            if not raw_models:
+                return self._static_descriptors(configured=True)
 
             if not raw_models:
                 return self._static_descriptors(configured=True)

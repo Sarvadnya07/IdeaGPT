@@ -68,8 +68,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         
         response.headers["x-request-id"] = request_id
 
-        # Mask client IP if multiple proxy headers exist or sanitize
-        client_ip = request.client.host if request.client else None
+        # Resolve client IP via trusted proxy topology (rejecting untrusted spoofing)
+        try:
+            from app.core.proxy import get_client_ip
+            client_ip = get_client_ip(request)
+        except Exception:
+            client_ip = request.client.host if request.client else None
 
         log_dict = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

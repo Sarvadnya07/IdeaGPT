@@ -93,7 +93,7 @@ export default function ArchitecturePage() {
       toast.success("Architecture Blueprint synthesized with AI!");
     } catch (err) {
       console.error("Failed to load blueprint:", err);
-      toast.error("Failed to generate architecture blueprint.");
+      // PRODUCT-01 P-11: the API client interceptor surfaces the specific failure.
     } finally {
       setIsLoading(false);
     }
