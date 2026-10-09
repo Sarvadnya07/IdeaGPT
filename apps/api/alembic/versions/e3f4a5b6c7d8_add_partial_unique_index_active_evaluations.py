@@ -30,15 +30,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.create_index(
-        'uq_evaluations_active_per_idea',
-        'evaluations',
-        ['idea_id'],
-        unique=True,
-        postgresql_where=sa_text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
+    op.execute(
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_evaluations_active_per_idea
+        ON evaluations (idea_id)
+        WHERE status IN ('PENDING', 'RUNNING', 'QUEUED')
+        """
     )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index('uq_evaluations_active_per_idea', table_name='evaluations')
+    op.execute('DROP INDEX IF EXISTS uq_evaluations_active_per_idea')
