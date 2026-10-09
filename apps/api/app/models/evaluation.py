@@ -20,6 +20,12 @@ class Evaluation(Base):
     # Keep the index name/predicate aligned with the Alembic migration.
     __table_args__ = (
         Index(
+            "ix_evaluations_idea_id_status",
+            "idea_id",
+            "status",
+            unique=False,
+        ),
+        Index(
             "uq_evaluations_active_per_idea",
             "idea_id",
             unique=True,
