@@ -16,17 +16,20 @@ class Evaluation(Base):
     """
     __tablename__ = "evaluations"
 
-    # DB-enforced concurrency guard (migration e3f4a5b6c7d8): at most one
-    # active evaluation per idea. Declared here so alembic autogenerate does
-    # not report the partial index as spurious drift. The where-clause text
-    # must stay byte-identical to the migration's index definition.
+    # DB-enforced concurrency guard: at most one active evaluation per idea.
+    # Keep the index name/predicate aligned with the Alembic migration.
     __table_args__ = (
         Index(
-            "uq_evaluations_one_active_per_idea",
+            "ix_evaluations_idea_id_status",
+            "idea_id",
+            "status",
+            unique=False,
+        ),
+        Index(
+            "uq_evaluations_active_per_idea",
             "idea_id",
             unique=True,
             postgresql_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
-            sqlite_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
         ),
     )
 
