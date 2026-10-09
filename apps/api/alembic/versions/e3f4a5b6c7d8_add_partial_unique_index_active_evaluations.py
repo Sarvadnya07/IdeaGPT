@@ -23,39 +23,19 @@ from sqlalchemy import text as sa_text
 
 # revision identifiers, used by Alembic.
 revision: str = 'f4a5b6c7d8e9'
-down_revision: Union[str, Sequence[str], None] = 'e3f4a5b6c7d8'
+down_revision: Union[str, Sequence[str], None] = 'f4a5b6c7d8e9'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # Guard against pre-existing duplicates violating the invariant: if any
-    # exist, this migration must fail loudly rather than silently pick one.
-    conn = op.get_bind()
-    duplicates = conn.execute(
-        sa_text("""
-            SELECT idea_id
-            FROM evaluations
-            WHERE status IN ('PENDING', 'RUNNING', 'QUEUED')
-            GROUP BY idea_id
-            HAVING COUNT(*) > 1
-        """)
-    ).fetchall()
-    if duplicates:
-        raise RuntimeError(
-            "Cannot add unique index on active evaluations: duplicate active "
-            f"evaluations exist for idea_id(s): {[row[0] for row in duplicates]}. "
-            "Resolve duplicates (cancel or delete extras) before migrating."
-        )
-
     op.create_index(
-        'uq_evaluations_one_active_per_idea',
+        'uq_evaluations_active_per_idea',
         'evaluations',
         ['idea_id'],
         unique=True,
         postgresql_where=sa_text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
-        sqlite_where=sa_text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
     )
 
 
