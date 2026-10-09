@@ -41,4 +41,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_index('uq_evaluations_one_active_per_idea', table_name='evaluations')
+    op.drop_index('uq_evaluations_active_per_idea', table_name='evaluations')
