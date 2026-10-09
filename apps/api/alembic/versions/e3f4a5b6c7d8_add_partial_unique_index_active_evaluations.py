@@ -11,7 +11,7 @@ completed/failed/cancelled history is unaffected.
 SQLite supports partial indexes, so local dev (aiosqlite) and CI PostgreSQL
 both accept this migration.
 
-Revision ID: e3f4a5b6c7d8
+Revision ID: f4a5b6c7d8e9
 Revises: d2e3f4a5b6c7
 Create Date: 2026-09-14 00:00:00.000000
 """
@@ -22,8 +22,8 @@ from sqlalchemy import text as sa_text
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e3f4a5b6c7d8'
-down_revision: Union[str, Sequence[str], None] = 'd2e3f4a5b6c7'
+revision: str = 'f4a5b6c7d8e9'
+down_revision: Union[str, Sequence[str], None] = 'e3f4a5b6c7d8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
