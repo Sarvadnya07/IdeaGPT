@@ -98,3 +98,6 @@ test-results/
 blob-report/
 .vercel/
 .freebuff/
+
+# Local agent worktrees and nested Git repositories must not be committed.
+.freebuff/
