@@ -5,6 +5,7 @@
   "buildCommand": "pnpm --filter web build",
   "outputDirectory": ".next",
   "git": {
-    "deploymentEnabled": false
-  }
+    "deploymentEnabled": true
+  },
+  "commandForIgnoringBuildStep": "if [ -z \"$VERCEL_GIT_PREVIOUS_SHA\" ]; then exit 1; else git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- apps/web packages; fi"
 }

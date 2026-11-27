@@ -34,7 +34,7 @@ export const useEvaluationPolling = (jobId: string | null) => {
       const res = await api.post(`/evaluations/${jobId}/retry`);
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (_data) => {
       // Re-initialize polling with new job ID
       queryClient.invalidateQueries({ queryKey: ["evaluationStatus"] });
     },

@@ -7,24 +7,24 @@ import { useIdeaSubmission } from "../../../hooks/useIdeaSubmission";
 import { useApiClient } from "@/lib/api/client";
 import { useLabArtifact } from "@/hooks/useLabArtifact";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Compass,
   Zap,
-  Shield,
-  Tag,
-  Share2,
+  
+  
+  
   Loader2,
   RefreshCw,
   Target,
   BarChart3,
-  Layers,
-  Sparkles,
-  ArrowRight,
+  
+  
+  
   Flame,
   Scale,
   Sliders,
-  CheckCircle2,
+  
   AlertTriangle,
   Folder,
   Plus,

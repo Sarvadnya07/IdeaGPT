@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { PieChart, Globe, DollarSign, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Globe, TrendingUp } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 
 export interface MarketLayer {
   layer_name: string;
@@ -48,7 +48,7 @@ export const TamSamSomVisualizer: React.FC<TamSamSomVisualizerProps> = ({
     source_citation: "IdeaGPT GTM Execution Model"
   },
   cagr = "14.5%",
-  industry = "B2B AI Software"
+  industry: _industry = "B2B AI Software"
 }) => {
   return (
     <Card className="border border-slate-800 bg-slate-950 text-slate-100 shadow-xl">

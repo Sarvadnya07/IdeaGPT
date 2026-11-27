@@ -16,20 +16,18 @@ class Evaluation(Base):
     """
     __tablename__ = "evaluations"
 
+    # DB-enforced concurrency guard (migration e3f4a5b6c7d8): at most one
+    # active evaluation per idea. Declared here so alembic autogenerate does
+    # not report the partial index as spurious drift. The where-clause text
+    # must stay byte-identical to the migration's index definition.
     __table_args__ = (
-        # F-06 / PRODUCT-01 P-08: indexes created by migration e3f4a5b6c7d8.
-        # Declared on the model so the ORM metadata matches the database
-        # (alembic check) and so the "one active evaluation per idea" invariant is
-        # expressed in the ORM. Partial on both dialects to keep SQLite test runs
-        # semantically identical to PostgreSQL.
         Index(
-            "uq_evaluations_active_per_idea",
+            "uq_evaluations_one_active_per_idea",
             "idea_id",
             unique=True,
             postgresql_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
             sqlite_where=text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
         ),
-        Index("ix_evaluations_idea_id_status", "idea_id", "status"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

@@ -16,9 +16,9 @@ import {
   Sparkles,
   Copy,
   Check,
-  Filter,
+  
   FileCode,
-  FileSpreadsheet,
+  
 } from "lucide-react";
 import { toast } from "sonner";
 

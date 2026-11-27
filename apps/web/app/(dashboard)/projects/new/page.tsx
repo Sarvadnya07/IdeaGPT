@@ -25,7 +25,7 @@ export default function NewProjectPage() {
         setTitle(parsed.title || "");
         setDescription(parsed.description || "");
         setCategory(parsed.category || "Other");
-      } catch (e) {}
+      } catch (_e) {}
     }
   }, []);
 

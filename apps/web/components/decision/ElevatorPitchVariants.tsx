@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mic, Copy, Check, Sparkles, MessageSquare, Users, Briefcase } from "lucide-react";
+import { Mic, Copy, Check } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -44,7 +44,7 @@ export const ElevatorPitchVariants: React.FC<ElevatorPitchVariantsProps> = ({
       pitch_text: "IdeaGPT captures the $4.2B venture intelligence market with an AI-gateway decision engine featuring strong switching costs, verified citations, and 85%+ gross margins."
     }
   ],
-  ideaTitle = "Startup Venture"
+  ideaTitle: _ideaTitle = "Startup Venture"
 }) => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
