@@ -91,37 +91,52 @@ def _reconcile_pre_existing_violations() -> None:
 def upgrade() -> None:
     _reconcile_pre_existing_violations()
 
-    # Partial unique index: at most one active evaluation per idea.
-    op.create_index(
-        "uq_evaluations_active_per_idea",
-        "evaluations",
-        ["idea_id"],
-        unique=True,
-        postgresql_where=sa.text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
-    )
+    is_pg = op.get_bind().dialect.name == "postgresql"
 
-    # Partial unique index: idempotency-key deduplication per user.
-    op.create_index(
-        "uq_ai_tasks_user_idempotency",
-        "ai_tasks",
-        ["user_id", "idempotency_key"],
-        unique=True,
-        postgresql_where=sa.text("idempotency_key IS NOT NULL"),
-    )
+    def _create_indexes() -> None:
+        # Partial unique index: at most one active evaluation per idea.
+        op.create_index(
+            "uq_evaluations_active_per_idea",
+            "evaluations",
+            ["idea_id"],
+            unique=True,
+            postgresql_where=sa.text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
+            sqlite_where=sa.text("status IN ('PENDING', 'RUNNING', 'QUEUED')"),
+            postgresql_concurrently=is_pg,
+        )
 
-    # Supporting composite indexes for the hot ownership probes.
-    op.create_index(
-        "ix_evaluations_idea_id_status",
-        "evaluations",
-        ["idea_id", "status"],
-        unique=False,
-    )
-    op.create_index(
-        "ix_ai_tasks_user_id_created_at",
-        "ai_tasks",
-        ["user_id", "created_at"],
-        unique=False,
-    )
+        # Partial unique index: idempotency-key deduplication per user.
+        op.create_index(
+            "uq_ai_tasks_user_idempotency",
+            "ai_tasks",
+            ["user_id", "idempotency_key"],
+            unique=True,
+            postgresql_where=sa.text("idempotency_key IS NOT NULL"),
+            sqlite_where=sa.text("idempotency_key IS NOT NULL"),
+            postgresql_concurrently=is_pg,
+        )
+
+        # Supporting composite indexes for the hot ownership probes.
+        op.create_index(
+            "ix_evaluations_idea_id_status",
+            "evaluations",
+            ["idea_id", "status"],
+            unique=False,
+            postgresql_concurrently=is_pg,
+        )
+        op.create_index(
+            "ix_ai_tasks_user_id_created_at",
+            "ai_tasks",
+            ["user_id", "created_at"],
+            unique=False,
+            postgresql_concurrently=is_pg,
+        )
+
+    if is_pg:
+        with op.get_context().autocommit_block():
+            _create_indexes()
+    else:
+        _create_indexes()
 
 
 def downgrade() -> None:

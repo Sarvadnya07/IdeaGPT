@@ -14,6 +14,8 @@ from app.ai.orchestrator.generation_pipeline import (
     tag_execution,
 )
 from app.ai.orchestrator.router import AIRouter
+from app.ai.gateway.security.prompt_guard import PromptGuard
+from app.ai.gateway.security.circuit_breaker import CircuitBreakerRegistry
 from app.ai.prompts.registry import prompt_registry
 from app.ai.validators.output_validator import OutputValidator
 from app.ai.pipelines.context import ContextBuilder
@@ -39,6 +41,7 @@ class AIOrchestrator:
         strategy: str = "auto",
         context: Optional[Dict[str, Any]] = None,
         idea_snapshot: Optional[Dict[str, Any]] = None,
+        byok_api_key: Optional[str] = None,
     ) -> dict:
 
         """
@@ -128,15 +131,31 @@ class AIOrchestrator:
                 cached_result["metadata"]["cached"] = True
                 return cached_result
 
-        # LLM Invocation with Resilient Fallback
+        # LLM Invocation with Resilient Fallback & Circuit Breaker
+        breaker = CircuitBreakerRegistry.get_breaker(provider_name)
+        if not breaker.can_execute():
+            logger.warning("Circuit breaker OPEN for provider=%s; engaging deterministic fallback.", provider_name)
+            fallback_payload = DeterministicFallback.build(
+                idea=idea_obj, prompt=user_prompt or prompt or ""
+            )
+            return DeterministicFallback.with_reason(
+                fallback_payload, f"Provider {provider_name} circuit open"
+            )
+
+        guarded_prompt = PromptGuard.wrap_untrusted_user_input(user_prompt)
+        gen_kwargs: Dict[str, Any] = {
+            "prompt": guarded_prompt,
+            "system_prompt": system_prompt,
+            "response_format": "json",
+            "model_override": target_model,
+            "max_tokens": max_t,
+        }
+        if byok_api_key:
+            gen_kwargs["byok_api_key"] = byok_api_key
+
         try:
             start_time = time.time()
-            raw_response = await provider.generate(
-                prompt=user_prompt,
-                system_prompt=system_prompt,
-                response_format="json",
-                model_override=target_model
-            )
+            raw_response = await provider.generate(**gen_kwargs)
             duration_ms = int((time.time() - start_time) * 1000)
             actual_model = raw_response.get("_actual_model") or target_model
 
@@ -146,18 +165,16 @@ class AIOrchestrator:
             if not validated_model and error_msg:
                 logger.warning(f"Initial AI response invalid: {error_msg}. Retrying with repair guidance...")
                 repair_prompt = (
-                    f"{user_prompt}\n\n"
+                    f"{guarded_prompt}\n\n"
                     f"Your previous response was malformed/invalid because: {error_msg}.\n"
                     f"Please fix and return valid JSON matching the requested schema exactly."
                 )
-                raw_response = await provider.generate(
-                    prompt=repair_prompt,
-                    system_prompt=system_prompt,
-                    response_format="json"
-                )
+                repair_kwargs = {**gen_kwargs, "prompt": repair_prompt}
+                raw_response = await provider.generate(**repair_kwargs)
                 validated_model, error_msg = OutputValidator.validate_and_repair(raw_response)
 
             if validated_model:
+                breaker.record_success()
                 result_dict = validated_model.model_dump()
                 # F-09: derive real usage + cost from provider-reported usage instead
                 # of fabricated constants. total_tokens is always available; cost is
@@ -205,6 +222,7 @@ class AIOrchestrator:
                 return result_dict
 
         except Exception as exc:
+            breaker.record_failure()
             logger.warning(f"Upstream AI provider '{provider_name}' failed ({exc}). Engaging deterministic fallback engine...")
 
         # Fallback Execution via the shared deterministic fallback policy.
@@ -235,8 +253,13 @@ class AIOrchestrator:
         if settings.APP_ENV == "test" and os.getenv("GROQ_E2E") != "true":
             return cls._build_fallback(fallback_fn)
 
-        p_name = provider or "groq"
-        m_name = model or "llama-3.3-70b-versatile"
+        decision = AIRouter.route_task(
+            task_type=tool_name,
+            requested_provider=provider or "groq",
+            requested_model=model or "auto",
+        )
+        p_name = decision["actual_provider"]
+        m_name = decision["actual_model"]
 
         # Check Cache
         cached = evaluation_cache.get(
@@ -251,10 +274,15 @@ class AIOrchestrator:
                 cached, EXECUTION_TYPE_CACHED, provider=p_name, model=m_name
             )
 
+        tool_breaker = CircuitBreakerRegistry.get_breaker(p_name)
+        if not tool_breaker.can_execute():
+            logger.warning("Circuit breaker OPEN for provider=%s on tool=%s; engaging fallback.", p_name, tool_name)
+            return cls._build_fallback(fallback_fn)
+
         try:
             prov = ProviderFactory.create_provider(p_name)
             raw = await prov.generate(
-                prompt=user_prompt,
+                prompt=PromptGuard.wrap_untrusted_user_input(user_prompt),
                 system_prompt=system_prompt,
                 response_format="json",
                 model_override=m_name
@@ -262,6 +290,7 @@ class AIOrchestrator:
 
             parsed = parse_provider_json(raw)
             if parsed is not None:
+                tool_breaker.record_success()
                 tag_execution(
                     parsed, EXECUTION_TYPE_REAL_PROVIDER, provider=p_name, model=m_name
                 )
@@ -276,6 +305,7 @@ class AIOrchestrator:
                     await cache_save_result
                 return parsed
         except Exception as e:
+            tool_breaker.record_failure()
             logger.warning(f"Dynamic LLM generation failed for {tool_name} with {p_name}/{m_name}: {e}. Engaging fallback...")
 
         return cls._build_fallback(fallback_fn)

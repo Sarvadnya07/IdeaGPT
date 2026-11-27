@@ -39,11 +39,11 @@ export default function DashboardPage() {
     is_archived: false, // We hide archived on main dashboard
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [_isModalOpen, setIsModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const _handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
     await createProject.mutateAsync({ title: newTitle, description: newDesc });

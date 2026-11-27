@@ -15,7 +15,11 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.idea import Idea
 from app.models.evaluation import Evaluation
+from app.models.evaluation_history import EvaluationHistory
 from app.models.roadmap import Roadmap
+from app.models.ai_task import AiTask
+from app.models.ai_artifact import AIArtifact
+from app.models.provider_credential import ProviderCredential
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

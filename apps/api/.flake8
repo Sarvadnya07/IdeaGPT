@@ -1,0 +1,17 @@
+[flake8]
+# Fatal-error gate matching how CI/lint actually invokes flake8:
+#   flake8 app tests --count --select=E9,F63,F7,F82 --show-source --statistics
+# E9  = syntax errors, F63 = invalid comparison, F7 = misplaced assert,
+# F82 = undefined name. These are always bugs, never style.
+# Full PEP8 style checking is intentionally NOT enabled — formatting is
+# delegated to formatters; enable additional codes deliberately, in small
+# increments, once existing violations are fixed.
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    build,
+    dist,
+    alembic/versions

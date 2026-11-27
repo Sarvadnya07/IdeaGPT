@@ -45,10 +45,10 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({
             secondaryColor: "#1e1b4b",
             tertiaryColor: "#0f172a",
           },
-          securityLevel: "loose",
+          securityLevel: "strict",
           flowchart: {
             curve: "basis",
-            htmlLabels: true,
+            htmlLabels: false,
           },
         });
 
@@ -205,7 +205,7 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({
               {chart}
             </pre>
           </div>
-        ) : (
+        ) : svgContent ? (
           <div
             ref={containerRef}
             style={{
@@ -214,8 +214,12 @@ export const MermaidViewer: React.FC<MermaidViewerProps> = ({
               transition: "transform 0.15s ease-out",
             }}
             className="w-full flex justify-center py-4 [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:rounded-xl [&_svg]:filter [&_svg]:drop-shadow-md"
-            dangerouslySetInnerHTML={{ __html: svgContent || `<pre class="text-xs font-mono text-indigo-300">${chart}</pre>` }}
+            dangerouslySetInnerHTML={{ __html: svgContent }}
           />
+        ) : (
+          <pre className="p-5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-indigo-300 w-full overflow-x-auto leading-relaxed shadow-inner">
+            {chart}
+          </pre>
         )}
       </CardContent>
     </Card>

@@ -187,10 +187,15 @@ class Settings(BaseSettings):
 
     def validate_production_config(self):
         """
-        Validates critical configuration parameters when running in production mode.
-        Fails fast with RuntimeError if insecure or missing settings are detected.
+        Validates critical configuration parameters when running in production/staging mode.
+        Fails fast with RuntimeError if insecure or unknown settings are detected.
         """
-        if self.APP_ENV == "production":
+        allowed_envs = {"development", "test", "staging", "production"}
+        if self.APP_ENV not in allowed_envs:
+            raise RuntimeError(
+                f"CONFIG ERROR: Invalid APP_ENV='{self.APP_ENV}'. Must be one of {sorted(allowed_envs)}."
+            )
+        if self.APP_ENV in ("production", "staging"):
             if not self.clerk_issuer:
                 raise RuntimeError("PRODUCTION CONFIG ERROR: CLERK_PUBLISHABLE_KEY or CLERK_JWT_ISSUER must be configured in production.")
             if self.CLERK_JWT_TEST_SECRET:

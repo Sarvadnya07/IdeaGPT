@@ -131,10 +131,10 @@ class GeminiProviderAdapter(BaseProviderAdapter):
 
         start = time.time()
         try:
-            # Check models list with key
-            url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
+            # Check models list with key in header (never in URL query string)
+            url = "https://generativelanguage.googleapis.com/v1beta/models"
             async with httpx.AsyncClient(timeout=8.0) as client:
-                res = await client.get(url)
+                res = await client.get(url, headers={"x-goog-api-key": key})
                 latency = int((time.time() - start) * 1000)
                 if res.status_code == 200:
                     models = res.json().get("models", [])
@@ -226,7 +226,7 @@ class GeminiProviderAdapter(BaseProviderAdapter):
         # Model name cleaning (remove prefix if present)
         clean_model = target_model.replace("models/", "")
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
 
         # Construct Gemini payload
         contents = []
@@ -261,7 +261,11 @@ class GeminiProviderAdapter(BaseProviderAdapter):
         start_time = time.time()
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                res = await client.post(url, json=body)
+                res = await client.post(
+                    url,
+                    json=body,
+                    headers={"x-goog-api-key": key},
+                )
                 duration_ms = int((time.time() - start_time) * 1000)
 
                 if res.status_code == 400 or res.status_code == 401 or res.status_code == 403:

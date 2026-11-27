@@ -9,7 +9,7 @@ import {
   GitCompare,
   CheckCircle2,
   AlertCircle,
-  TrendingUp,
+  
   Layers,
   ArrowRight,
   Sparkles,
