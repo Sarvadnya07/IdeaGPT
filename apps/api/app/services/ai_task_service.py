@@ -309,8 +309,13 @@ class AiTaskService:
                         "notes": idea_row.notes,
                     }
                     return idea_context, idea_snapshot
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(
+                "Failed to build detached idea context for idea_id=%s (%s): %s",
+                idea_id,
+                type(exc).__name__,
+                exc,
+            )
         return None, None
 
     @classmethod
