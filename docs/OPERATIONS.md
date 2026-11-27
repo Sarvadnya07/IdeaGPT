@@ -54,3 +54,20 @@ pnpm db:migrate
 
 * **Structured Logging:** FastAPI outputs structured JSON logs with UTC timestamps, HTTP method, path, response status, and request duration in milliseconds.
 * **Sensitive Data Redaction:** Headers containing `Authorization`, API keys, and secret credentials are automatically stripped from log traces.
+* **Prometheus Metrics:** `GET /metrics` (authenticated via `METRICS_SCRAPE_TOKEN` or Clerk JWT) returns standard Prometheus text exposition (`text/plain; version=0.0.4`).
+
+---
+
+## 💾 Production Backup, Restore & Disaster Recovery
+
+* **Automated Backups:** Managed PostgreSQL daily automated snapshots + WAL archiving (or `pg_dump --format=custom --no-owner`).
+* **Restore Verification Gate:** A backup is not considered valid until restored into an isolated database and verified with `alembic current` + `SELECT count(*) FROM users;`.
+* **Pre-Deploy Migration Gate:** Run `alembic upgrade head` in a pre-deploy step against a recent snapshot; verify zero lock contention (`CONCURRENTLY` for index builds) before rolling application traffic.
+
+---
+
+## 🚨 Incident Response Runbooks
+
+1. **Database Unavailable (`/health/ready` returns 503):** Check `GET /health/db-diagnostics` (authenticated) for `failure_class`, verify PostgreSQL pool saturation (`DB_POOL_SIZE` / `DB_STATEMENT_TIMEOUT_MS`), and check managed DB health.
+2. **AI Provider Outage / Circuit Open:** `CircuitBreakerRegistry` opens automatically after repeated failures and routes evaluations to `DeterministicFallback`. Inspect `GET /ops/health-monitor` and `GET /health/providers`.
+3. **Bad Deployment / Rollback:** Roll back Vercel deployment to previous immutable build and redeploy previous Railway Docker image; if a schema migration is non-reversible, execute roll-forward hotfix migration.

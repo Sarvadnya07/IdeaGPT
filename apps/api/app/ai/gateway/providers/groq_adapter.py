@@ -246,30 +246,6 @@ class GroqProviderAdapter(BaseProviderAdapter):
             # Degraded but not empty: static catalog marked configured.
             return self._static_descriptors(configured=True)
 
-    def _static_descriptors(self, configured: bool) -> List[ModelDescriptor]:
-        """Build descriptors from GROQ_STATIC_MODELS via the shared classifier."""
-        now = datetime.now(timezone.utc)
-        descriptors: List[ModelDescriptor] = []
-        for m_id in GROQ_STATIC_MODELS:
-            meta = classify_groq_model_meta(m_id)
-            descriptors.append(
-                ModelDescriptor(
-                    provider=self.provider_id,
-                    model_id=m_id,
-                    display_name=m_id.split("/")[-1].replace("-", " ").title(),
-                    category=meta["category"],
-                    capabilities=meta["capabilities"],
-                    capability_confidence=meta["confidence"],
-                    context_window=131072,
-                    supports_structured_output=meta["structured_output"],
-                    status=ModelStatus.ACTIVE,
-                    configured=configured,
-                    available=False,
-                    last_seen=now,
-                )
-            )
-        return descriptors
-
     async def execute(self, request: AIRequest) -> AIResult:
         client = self._get_client(api_key=request.byok_api_key)
 

@@ -77,6 +77,8 @@ class GatewayAIProviderAdapter(AIProvider):
         system_prompt: str = "",
         response_format: str = "json",
         model_override: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        byok_api_key: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Executes generation via the canonical BaseProviderAdapter.
@@ -87,6 +89,8 @@ class GatewayAIProviderAdapter(AIProvider):
             system_prompt=system_prompt,
             capability=AICapability.STRUCTURED_OUTPUT if response_format == "json" else AICapability.TEXT_GENERATION,
             model_override=model_override,
+            max_output_tokens=max_tokens or 2048,
+            byok_api_key=byok_api_key,
         )
 
         start_time = time.perf_counter()

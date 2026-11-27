@@ -44,8 +44,9 @@ class AiTaskService:
         prompt = (input_payload or {}).get("prompt", "Analyze startup idea.")
         AIQuotaService.validate_input_length(prompt)
 
-        # Enforce per-user daily task quota
+        # Enforce per-user daily task quota and concurrent execution limit
         await AIQuotaService.check_user_quota(db, user)
+        await AIQuotaService.check_user_concurrency(db, user)
 
         # F-02 remediation: reject cross-tenant linkage before persisting
         from app.services.ai_artifact_service import assert_tenant_links
@@ -182,8 +183,140 @@ class AiTaskService:
         
         task_id = str(first_arg)
         from app.db.session import AsyncSessionLocal
+
+        # Tx1: Claim task (QUEUED -> RUNNING), build context & resolve optional BYOK key,
+        # then release the DB connection BEFORE calling external AI providers.
         async with AsyncSessionLocal() as session:
-            return await cls._execute_task_internal(session, task_id)
+            stmt = select(AiTask).where(AiTask.id == task_id)
+            res = await session.execute(stmt)
+            task = res.scalars().first()
+            if not task:
+                raise KeyError(f"Task {task_id} not found for execution.")
+
+            await cls.update_task_status(session, task, "RUNNING")
+            prompt = (task.input_payload or {}).get("prompt", "Analyze startup idea.")
+            idea_id = task.idea_id
+            preferred = task.provider if task.provider != "auto" else None
+            req_model = task.model if task.model not in ("auto", "default", None) else None
+            strategy = task.provider
+            user_id = task.user_id
+
+            idea_context: Optional[Dict[str, Any]] = None
+            idea_snapshot: Optional[Dict[str, Any]] = None
+            if idea_id:
+                idea_context, idea_snapshot = await cls._build_detached_idea_context(session, idea_id)
+
+            byok_key: Optional[str] = None
+            if preferred:
+                from app.services.credential_vault_service import CredentialVaultService
+                byok_key = await CredentialVaultService.get_decrypted_key(session, user_id, preferred)
+
+        # AI Execution outside any open DB transaction/session
+        start_time = time.time()
+        try:
+            result = await AIRetryPolicy.execute_with_retry(
+                orchestrator.analyze_startup_idea,
+                prompt=None if idea_context is not None else prompt,
+                db=None,
+                idea_id=None,
+                context=idea_context,
+                idea_snapshot=idea_snapshot,
+                preferred_provider=preferred,
+                requested_model=req_model,
+                strategy=strategy,
+                byok_api_key=byok_key,
+            )
+            duration_ms = int((time.time() - start_time) * 1000)
+
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(select(AiTask).where(AiTask.id == task_id))
+                task = res.scalars().first()
+                if not task:
+                    raise KeyError(f"Task {task_id} not found after execution.")
+                meta = result.get("metadata", {})
+                if meta.get("provider"):
+                    task.provider = meta["provider"]
+                if meta.get("model"):
+                    task.model = meta["model"]
+                await cls.update_task_status(
+                    session, task, "COMPLETED", result_payload=result, duration_ms=duration_ms
+                )
+                return task
+        except AIUnavailableException as exc:
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(select(AiTask).where(AiTask.id == task_id))
+                task = res.scalars().first()
+                return await cls._fail_task(
+                    session, task, start_time, exc,
+                    "AI service is currently unavailable. Please check provider configuration or retry later.",
+                )
+        except AIQuotaExceededException as exc:
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(select(AiTask).where(AiTask.id == task_id))
+                task = res.scalars().first()
+                return await cls._fail_task(
+                    session, task, start_time, exc,
+                    "Daily AI task quota reached for your account.",
+                )
+        except AIException as exc:
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(select(AiTask).where(AiTask.id == task_id))
+                task = res.scalars().first()
+                return await cls._fail_task(
+                    session, task, start_time, exc,
+                    "An error occurred during AI model processing. Please try again.",
+                )
+        except Exception as exc:
+            async with AsyncSessionLocal() as session:
+                res = await session.execute(select(AiTask).where(AiTask.id == task_id))
+                task = res.scalars().first()
+                return await cls._fail_task(
+                    session, task, start_time, exc,
+                    "An unexpected error occurred during task execution. Please try again later.",
+                )
+
+    @classmethod
+    async def _build_detached_idea_context(
+        cls, db: AsyncSession, idea_id: str
+    ) -> tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+        try:
+            from app.models.idea import Idea
+            from app.models.project import Project
+            from app.ai.pipelines.context import ContextBuilder
+
+            idea_res = await db.execute(select(Idea).where(Idea.id == idea_id))
+            idea_row = idea_res.scalar_one_or_none()
+            if idea_row:
+                project_res = await db.execute(
+                    select(Project).where(Project.id == idea_row.project_id)
+                )
+                project_row = project_res.scalar_one_or_none()
+                idea_context = (
+                    ContextBuilder.compile_context(idea_row, project_row)
+                    if project_row is not None
+                    else None
+                )
+                if idea_context is not None:
+                    idea_snapshot = {
+                        "title": idea_row.title,
+                        "problem_statement": idea_row.problem_statement,
+                        "solution_description": idea_row.solution_description,
+                        "target_users": idea_row.target_users,
+                        "industry": idea_row.industry,
+                        "business_model": idea_row.business_model,
+                        "stage": idea_row.stage,
+                        "tags": idea_row.tags,
+                        "notes": idea_row.notes,
+                    }
+                    return idea_context, idea_snapshot
+        except Exception as exc:
+            logger.warning(
+                "Failed to build detached idea context for idea_id=%s (%s): %s",
+                idea_id,
+                type(exc).__name__,
+                exc,
+            )
+        return None, None
 
     @classmethod
     async def _execute_task_internal(cls, db: AsyncSession, task_id: str) -> AiTask:

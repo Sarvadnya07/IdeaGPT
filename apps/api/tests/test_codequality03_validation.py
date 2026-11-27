@@ -221,7 +221,7 @@ class TestConcurrentEvaluationGuard:
 # ==============================================================================
 
 class TestMetricsDegradedState:
-    """Invariant: DB failure no longer fabricates zero-count metrics."""
+    """Invariant: /metrics returns Prometheus text exposition and degrades gracefully on DB failure."""
 
     @pytest.mark.asyncio
     async def test_metrics_route_reports_degraded(self):
@@ -233,25 +233,21 @@ class TestMetricsDegradedState:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             res = await ac.get("/metrics", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
-        body = res.json()
-        assert "database_available" in body
-        assert body["ai_task_metrics"]["total_tasks"] is not None or body["database_available"] is False
+        assert "text/plain" in res.headers.get("content-type", "")
+        assert "http_requests_total" in res.text
 
     @pytest.mark.asyncio
     async def test_metrics_db_failure_sets_flag(self, caplog):
-        """Direct unit: get_metrics with a failing session reports degraded, not zeros."""
+        """Direct unit: get_metrics with a failing session still returns 200 Prometheus exposition."""
         from unittest.mock import MagicMock
         from app.main import get_metrics
 
         db = MagicMock()
         db.execute = AsyncMock(side_effect=RuntimeError("connection refused"))
-        response = MagicMock()
-        response.status_code = 200
 
-        out = await get_metrics(current_user=MagicMock(id=1), db=db)
-        assert out["database_available"] is False
-        assert out["ai_task_metrics"]["total_tasks"] is None
-        assert out["ai_task_metrics"]["by_status"] == {}
+        out = await get_metrics(True, db=db)
+        assert out.status_code == 200
+        assert b"http_requests_total" in out.body
 
     @pytest.mark.asyncio
     async def test_metrics_db_success_keeps_counts(self):
@@ -259,14 +255,12 @@ class TestMetricsDegradedState:
         from app.main import get_metrics
 
         db = MagicMock()
-        res1 = MagicMock(); res1.scalar.return_value = 7
-        res2 = MagicMock(); res2.all.return_value = [("QUEUED", 3), ("COMPLETED", 4)]
-        db.execute = AsyncMock(side_effect=[res1, res2])
+        res = MagicMock(); res.all.return_value = [("QUEUED", 3), ("COMPLETED", 4)]
+        db.execute = AsyncMock(return_value=res)
 
-        out = await get_metrics(current_user=MagicMock(id=1), db=db)
-        assert out["database_available"] is True
-        assert out["ai_task_metrics"]["total_tasks"] == 7
-        assert out["ai_task_metrics"]["by_status"] == {"QUEUED": 3, "COMPLETED": 4}
+        out = await get_metrics(True, db=db)
+        assert out.status_code == 200
+        assert b"ideagpt_ai_tasks" in out.body
 
 
 # ==============================================================================

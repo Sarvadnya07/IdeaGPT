@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select, func
 from typing import Annotated
+import asyncio
 import logging
 
 logger = logging.getLogger("uvicorn.error")
@@ -399,34 +400,23 @@ async def health_db_diagnostics(_: Annotated[bool, Depends(verify_metrics_auth)]
 @app.get("/api/metrics", summary="Prometheus Operational Metrics (prefixed)", response_class=Response)
 async def get_metrics(
     _: Annotated[bool, Depends(verify_metrics_auth)],
+    db: AsyncSession = Depends(get_db),
 ):
-    """Exposes operational task metrics and system status (authenticated)."""
-    # Monitoring must not silently report fabricated zeros when the DB is
-    # unreachable — surface a degraded state so dashboards can alert on it.
-    task_count: int | None = None
-    status_breakdown: dict = {}
-    db_available = True
+    """Exposes operational Prometheus metrics and AI task status gauges (authenticated)."""
+    status_breakdown: dict[str, int] = {}
     try:
-        res = await db.execute(select(func.count(AiTask.id)))
-        task_count = res.scalar() or 0
-
         breakdown_res = await db.execute(
             select(AiTask.status, func.count(AiTask.id)).group_by(AiTask.status)
         )
         for st, cnt in breakdown_res.all():
             status_breakdown[st] = cnt
+        update_ai_tasks_gauge(status_breakdown)
     except Exception as exc:
-        db_available = False
         logging.getLogger("ideagpt.metrics").warning(
             "Metrics query failed (database unavailable): %s", exc
         )
 
-    return {
-        "service": "IdeaGPT API",
-        "version": settings.VERSION,
-        "database_available": db_available,
-        "ai_task_metrics": {
-            "total_tasks": task_count,
-            "by_status": status_breakdown
-        }
-    }
+    return Response(
+        content=get_prometheus_exposition_text(),
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )

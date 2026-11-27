@@ -3,13 +3,15 @@ AI Tasks Sub-Router: Task creation, retrieval, and SSE streaming lifecycle.
 """
 
 from typing import Optional, Any, Dict
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status, Header
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request, status, Header
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.api.dependencies.auth import get_current_user
+from app.core.config import settings
+from app.core.rate_limit import limiter
 from app.models.user import User
 from app.services.ai_task_service import AiTaskService
 from app.ai.exceptions.ai_exceptions import AIException
@@ -46,7 +48,9 @@ class TaskResponse(BaseModel):
 
 
 @router.post("/tasks", status_code=status.HTTP_202_ACCEPTED, summary="Create and enqueue an AI task")
+@limiter.limit(settings.AI_GENERATION_RATE_LIMIT)
 async def create_ai_task(
+    request: Request,
     payload: TaskCreateRequest,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),

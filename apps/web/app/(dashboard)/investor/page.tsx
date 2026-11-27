@@ -13,7 +13,7 @@ import {
   Loader2,
   RefreshCw,
   Target,
-  
+  CheckCircle2,
 } from "lucide-react";
 import { useLabArtifact } from "@/hooks/useLabArtifact";
 
